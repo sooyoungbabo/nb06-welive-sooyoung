@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Socket.IO client test</h1>
+    <form id="form">
+      <input type="text" id="token" placeholder="JWT Access Token" />
+      <button id="connect" type="submit">Connect</button>
+    </form>
+
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+      console.log('script loaded');
+      const form = document.getElementById('form');
+      const tokenInput = document.getElementById('token');
+
+      let socket = null;
+
+      function attachLogs(s) {
+        // socket 이벤트
+        s.on('connect', () => console.log('connect', s.id));
+        s.on('disconnect', (reason) => console.log('disconnect', s.id, reason));
+        s.on('connect_error', (err) => console.log('connect_error', err?.message || err));
+
+        // 재연결은 Manager(s.io) 이벤트로 봐야 함
+        s.io.on('reconnect_attempt', (n) => console.log('reconnect_attempt', n));
+        s.io.on('reconnect', (n) => console.log('reconnect', n));
+        s.io.on('reconnect_error', (e) => console.log('reconnect_error', e?.message || e));
+        s.io.on('reconnect_failed', () => console.log('reconnect_failed'));
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const accessToken = tokenInput.value.trim();
+        console.log('[submit] token len:', accessToken.length);
+
+        // 소켓이 없으면 1번만 생성
+        if (!socket) {
+          socket = io('http://localhost:3000', {
+            autoConnect: false, // 원할 때만 connect
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 500,
+            reconnectionDelayMax: 2000
+          });
+          attachLogs(socket);
+
+          socket.on('notification', (data) => {
+            console.log('notification', data);
+          });
+          socket.on('notification:unreadCount', ({ unreadCount }) => {
+            console.log('unreadCount:', unreadCount);
+          });
+        }
+
+        // 토큰은 connect 전에 갱신해줘야 함 (재연결에도 사용됨)
+        socket.auth = { accessToken };
+
+        // 이미 연결 중/연결됨이면 굳이 또 connect 안 함
+        if (!socket.connected) socket.connect();
+      });
+    </script>
+  </body>
+</html>
