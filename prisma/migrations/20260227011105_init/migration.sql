@@ -46,8 +46,6 @@ CREATE TABLE "users" (
     "avatar" TEXT,
     "role" "UserType" NOT NULL DEFAULT 'USER',
     "joinStatus" "JoinStatus" NOT NULL DEFAULT 'PENDING',
-    "apartmentDong" TEXT,
-    "apartmentHo" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -104,7 +102,7 @@ CREATE TABLE "boards" (
     "id" TEXT NOT NULL,
     "apartmentId" TEXT NOT NULL,
     "boardType" "BoardType" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "boards_pkey" PRIMARY KEY ("id")
@@ -115,7 +113,6 @@ CREATE TABLE "notices" (
     "id" TEXT NOT NULL,
     "boardId" TEXT NOT NULL,
     "adminId" TEXT NOT NULL,
-    "eventId" TEXT,
     "category" "NoticeType" NOT NULL,
     "isPinned" BOOLEAN NOT NULL DEFAULT false,
     "startDate" TIMESTAMP(3),
@@ -153,7 +150,6 @@ CREATE TABLE "polls" (
     "id" TEXT NOT NULL,
     "boardId" TEXT NOT NULL,
     "adminId" TEXT NOT NULL,
-    "eventId" TEXT NOT NULL,
     "buildingPermission" INTEGER NOT NULL DEFAULT 0,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -172,7 +168,7 @@ CREATE TABLE "poll_options" (
     "id" TEXT NOT NULL,
     "pollId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "voteCount" INTEGER DEFAULT 0,
+    "voteCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -221,6 +217,8 @@ CREATE TABLE "comments" (
 -- CreateTable
 CREATE TABLE "events" (
     "id" TEXT NOT NULL,
+    "pollId" TEXT,
+    "noticeId" TEXT,
     "eventType" "EventType" NOT NULL DEFAULT 'NOTICE',
     "title" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -251,12 +249,6 @@ CREATE UNIQUE INDEX "apartments_name_address_key" ON "apartments"("name", "addre
 CREATE UNIQUE INDEX "boards_apartmentId_boardType_key" ON "boards"("apartmentId", "boardType");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "notices_eventId_key" ON "notices"("eventId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "polls_eventId_key" ON "polls"("eventId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "votes_pollId_voterId_key" ON "votes"("pollId", "voterId");
 
 -- CreateIndex
@@ -267,6 +259,12 @@ CREATE INDEX "notifications_receiverId_isChecked_idx" ON "notifications"("receiv
 
 -- CreateIndex
 CREATE INDEX "comments_targetType_targetId_idx" ON "comments"("targetType", "targetId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "events_pollId_key" ON "events"("pollId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "events_noticeId_key" ON "events"("noticeId");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_apartmentId_fkey" FOREIGN KEY ("apartmentId") REFERENCES "apartments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -287,9 +285,6 @@ ALTER TABLE "notices" ADD CONSTRAINT "notices_boardId_fkey" FOREIGN KEY ("boardI
 ALTER TABLE "notices" ADD CONSTRAINT "notices_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notices" ADD CONSTRAINT "notices_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "complaints" ADD CONSTRAINT "complaints_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -303,9 +298,6 @@ ALTER TABLE "polls" ADD CONSTRAINT "polls_adminId_fkey" FOREIGN KEY ("adminId") 
 
 -- AddForeignKey
 ALTER TABLE "polls" ADD CONSTRAINT "polls_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "boards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "polls" ADD CONSTRAINT "polls_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "poll_options" ADD CONSTRAINT "poll_options_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -324,3 +316,9 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_receiverId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "comments" ADD CONSTRAINT "comments_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "events" ADD CONSTRAINT "events_noticeId_fkey" FOREIGN KEY ("noticeId") REFERENCES "notices"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "events" ADD CONSTRAINT "events_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE CASCADE ON UPDATE CASCADE;

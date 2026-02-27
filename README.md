@@ -1,6 +1,6 @@
 # WELIVE: 개인 프로젝트
 
-https://www.notion.so/ERD-313a0d5530a5801cbd8ecfa4db8d7360?source=copy_link
+https://www.notion.so/WELIVE-313a0d5530a580b78ddfde22eb1ec072?source=copy_link
 
 ## 프로젝트 소개
 
@@ -11,7 +11,7 @@ https://www.notion.so/ERD-313a0d5530a5801cbd8ecfa4db8d7360?source=copy_link
 ### 기술 스택
 
 - Backend: Express.js, Prisma ORM
-- Database: PostgreSQL DB
+- Database: PostgreSQL
 - Distribution: AWS
 - Other tools: Git, Github, Discord
 
@@ -33,6 +33,10 @@ https://www.notion.so/ERD-313a0d5530a5801cbd8ecfa4db8d7360?source=copy_link
 
 - Github actions는 .github/workflows/ 폴더에 저장해서 제출
 - Docker 관련 파일들은 프로젝트 폴더 최상위에 저장
+
+## ERD
+
+![alt text](image-3.png)
 
 ## 구현 홈페이지
 

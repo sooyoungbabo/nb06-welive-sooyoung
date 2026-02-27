@@ -26,9 +26,6 @@ model User {
   role       UserType   @default(USER)
   joinStatus JoinStatus @default(PENDING)
 
-  apartmentDong String? // only for USER
-  apartmentHo   String? // only for USER
-
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // soft delete
@@ -38,8 +35,8 @@ model User {
 
   polls             Poll[]
   notices           Notice[]
-  complaintCreators Complaint[]    @relation(name: "User2Creator")
   complaintAdmins   Complaint[]    @relation(name: "User2Admin")
+  complaintCreators Complaint[]    @relation(name: "User2Creator")
   comments          Comment[]
   notifications     Notification[]
   votes             Vote[]
@@ -120,10 +117,9 @@ model Board {
 
 // 마감된 투표는 공지에 자동 등록
 model Notice {
-  id      String  @id @default(uuid())
+  id      String @id @default(uuid())
   boardId String // FK
   adminId String // FK
-  eventId String? @unique // Fk
 
   category  NoticeType
   isPinned  Boolean    @default(false)
@@ -141,7 +137,7 @@ model Notice {
 
   board Board  @relation(fields: [boardId], references: [id])
   admin User   @relation(fields: [adminId], references: [id])
-  event Event? @relation(fields: [eventId], references: [id])
+  event Event?
 
   @@map("notices")
 }
@@ -173,7 +169,6 @@ model Poll {
   id      String @id @default(uuid())
   boardId String //FK
   adminId String //FK 
-  eventId String @unique //FK
 
   buildingPermission Int        @default(0)
   title              String
@@ -190,7 +185,7 @@ model Poll {
   board       Board        @relation(fields: [boardId], references: [id])
   votes       Vote[]
   pollOptions PollOption[]
-  event       Event        @relation(fields: [eventId], references: [id])
+  event       Event?
 
   @@map("polls")
 }
@@ -199,7 +194,7 @@ model PollOption {
   id        String   @id @default(uuid())
   pollId    String // FK
   content   String // 각 선택지
-  voteCount Int?     @default(0)
+  voteCount Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -266,13 +261,15 @@ model Comment {
 
 model Event {
   id        String    @id @default(uuid())
+  pollId    String?   @unique //FA
+  noticeId  String?   @unique //FA
   eventType EventType @default(NOTICE)
   title     String // notice.title 또는 poll.title
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  notice Notice?
-  poll   Poll?
+  notice Notice? @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  poll   Poll?   @relation(fields: [pollId], references: [id], onDelete: Cascade)
 
   @@map("events")
 }

@@ -12,8 +12,6 @@ erDiagram
     String name
     UserType role
     String avartar "nullable"
-    String apartmentDong "nullable"
-    String apartmentHo "nullable"
     JoinStatus joinStatus
   }
 
@@ -64,7 +62,6 @@ erDiagram
     String id "🗝️"
     String boardId "🔗"
     String adminId "🔗"
-    String eventId "🔗 nullable"
     NoticeType category
     Boolean isPinned
     DateTime startDate "nullable"
@@ -90,7 +87,6 @@ erDiagram
     String id "🗝️"
     String boardId "🔗"
     String adminId "🔗"
-    String eventId "🔗"
     Int buildingPermission
     String title
     String description
@@ -140,6 +136,8 @@ erDiagram
 
   "Event" {
     Int id "🗝️"
+    Int noticeId "🔗 nullable"
+    Int pollId "🔗 nullable"
     EventType eventType
     String title
   }
@@ -166,6 +164,6 @@ erDiagram
     "User" ||--o{ "Notification" : "1:N (receive)"
 
     "Notice" o|--o| "Event" : "1:1 (belongs to)"
-    "Poll" ||--|| "Event" : "1:1 (belongs to)"
+    "Poll" ||--o| "Event" : "1:1 (belongs to)"
 
 ```

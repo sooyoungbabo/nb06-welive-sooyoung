@@ -16,7 +16,7 @@ import { fakerKO as faker } from '@faker-js/faker';
 import NotFoundError from '../src/middleware/errors/NotFoundError';
 import { complaintItems, noticeItems, commentTexts } from './seed_rawData';
 import { getRandomNo, getUniqueRandomNOs, shuffleArray } from '../src/lib/myFuns';
-import { hashingPassword, getRandomDong, getRandomHo } from './seed_utils';
+import { hashingPassword, getRandomDong, getRandomHo, getDongRange } from './seed_utils';
 
 const prisma = new PrismaClient();
 
@@ -38,8 +38,8 @@ async function main() {
     prisma.apartment.deleteMany()
   ]);
 
-  const nApts = 1;
-  const nUsers = 20;
+  const nApts = 3;
+  const nUsers = 200;
   const nSeeds = 10;
   const nComplaints = getRandomNo(1, 3);
   const nComments = getRandomNo(1, 3);
@@ -52,10 +52,10 @@ async function main() {
       address: faker.location.streetAddress(),
       officeNumber: faker.phone.number(),
       description: '청정한 환경과 좋은 학군을 가진 살기좋은 아파트입니다.',
-      endComplexNumber: faker.number.int({ min: 3, max: 10 }),
-      endBuildingNumber: faker.number.int({ min: 5, max: 10 }),
-      endFloorNumber: faker.number.int({ min: 2, max: 20 }),
-      endUnitNumber: faker.number.int({ min: 5, max: 10 }),
+      endComplexNumber: faker.number.int({ min: 1, max: 1 }),
+      endBuildingNumber: faker.number.int({ min: 3, max: 5 }),
+      endFloorNumber: faker.number.int({ min: 1, max: 10 }),
+      endUnitNumber: faker.number.int({ min: 1, max: 2 }),
       apartmentStatus: ApprovalStatus.APPROVED
     };
     apartmentData.push(tempApt);
@@ -85,9 +85,9 @@ async function main() {
     adminData.push(tempAdmin);
   }
 
-  const userData = [];
+  const rawUserData = [];
   for (let i = 0; i < nUsers; i++) {
-    const tempUser = {
+    const tempRawUser = {
       username: `user${i}`,
       password: await hashingPassword(`userpassword${i}!`),
       contact: faker.phone.number(),
@@ -96,7 +96,7 @@ async function main() {
       role: UserType.USER,
       joinStatus: JoinStatus.APPROVED
     };
-    userData.push(tempUser);
+    rawUserData.push(tempRawUser);
   }
 
   console.log('Seeding started...');
@@ -133,7 +133,7 @@ async function main() {
       data: {
         notiType: NotificationType.ADMIN_APPLIED,
         targetId: adminCreated.id,
-        content: `알림: 관리자 가입신청이 있습니다.`,
+        content: `알림: 관리자 가입신청`,
         isChecked: true,
         checkedAt: new Date(),
         receiver: { connect: { id: superAdminCreated.id } }
@@ -172,30 +172,27 @@ async function main() {
 
   // User 등록
   const users = [];
-  for (let i = 0; i < userData.length; i++) {
+  for (let i = 0; i < rawUserData.length; i++) {
     const aptNo = getRandomNo(0, apts.length - 1);
-    const data = userData[i];
     const aptId = apts[aptNo].id;
-
     const apartmentDong = String(getRandomDong(apts[aptNo].endComplexNumber, apts[aptNo].endBuildingNumber));
     const apartmentHo = String(getRandomHo(apts[aptNo].endFloorNumber, apts[aptNo].endUnitNumber));
 
+    const userData = rawUserData[i];
     const residentData = {
       apartmentId: aptId,
       apartmentDong,
       apartmentHo,
-      contact: data.contact,
-      name: data.name,
-      email: data.email,
+      contact: userData.contact,
+      name: userData.name,
+      email: userData.email,
       isRegistered: true,
-      approvalStatus: data.joinStatus
+      approvalStatus: userData.joinStatus
     };
 
     const userCreated = await prisma.user.create({
       data: {
-        ...data,
-        apartmentDong,
-        apartmentHo,
+        ...userData,
         apartment: { connect: { id: aptId } },
         resident: { create: residentData }
       }
@@ -205,7 +202,7 @@ async function main() {
     // Notification 등록: User 등록을 admin에게 알림
     const admin = await prisma.user.findFirst({
       where: {
-        apartmentId: apts[aptNo].id,
+        apartmentId: aptId,
         role: UserType.ADMIN,
         deletedAt: null
       }
@@ -216,7 +213,7 @@ async function main() {
       data: {
         notiType: NotificationType.USER_APPLIED,
         targetId: userCreated.id,
-        content: '알림: 사용자 가입신청이 있습니다.',
+        content: '알림: 사용자 가입신청',
         isChecked: true,
         checkedAt: new Date(),
         receiver: { connect: { id: admin.id } }
@@ -245,6 +242,10 @@ async function main() {
 
     const adminId = apt.users.find((user) => user.role === UserType.ADMIN)?.id;
     if (!adminId) throw new NotFoundError('Admin not found');
+
+    // const residents = await prisma.resident.findMany({
+    //   where: { apartmentId: apt.id, isRegistered: true }
+    // });
 
     if (!apt.users) throw new NotFoundError('Users not found');
     const users = apt.users.filter((user) => user.role === UserType.USER);
@@ -298,7 +299,7 @@ async function main() {
         data: {
           notiType: NotificationType.COMPLAINT_RAISED,
           targetId: complaintCreated.id,
-          content: `알림: 새로운 민원이 등록되었습니다 (${item.title})`,
+          content: `알림(${item.title}): 민원 등록`,
           isChecked: true,
           checkedAt: new Date(),
           receiver: { connect: { id: adminId } }
@@ -309,7 +310,7 @@ async function main() {
         data: {
           notiType: NotificationType.COMPLAINT_RESOLVED,
           targetId: complaintCreated.id,
-          content: `알림: 민원이 종결되었습니다 (${item.title})`,
+          content: `알림(${item.title}): 민원 종결`,
           isChecked: true,
           checkedAt: new Date(),
           receiver: { connect: { id: complainantId } }
@@ -331,22 +332,10 @@ async function main() {
         endDate: item.endDate ? new Date(item.endDate) : null,
         title: item.title,
         content: item.content,
-        viewCount: getRandomNo(apt.users.length - 3, apt.users.length * 2),
+        viewCount: getRandomNo(users.length - 3, users.length * 2),
         board: { connect: { id: boardId_notice } },
         admin: { connect: { id: adminId } }
       };
-
-      // 날짜가 있는 notice는 event 등록
-      if (item.startDate) {
-        const eventCreated = await prisma.event.create({
-          data: {
-            eventType: EventType.NOTICE,
-            title: `${randomType}: ${item.title}`
-          }
-        });
-        events.push(eventCreated);
-        noticeData.event = { connect: { id: eventCreated.id } };
-      }
 
       // 정기점검과 긴급공지는 중요도 높음
       if (randomType === NoticeType.EMERGENCY || randomType === NoticeType.MAINTENANCE) noticeData.isPinned = true;
@@ -374,42 +363,63 @@ async function main() {
       // 공지 유형이 투표인 경우, poll, pollOptions, votes, event, notification 등록
 
       if (randomType === NoticeType.RESIDENT_VOTE) {
-        // event 등록
-        const eventCreated = await prisma.event.create({
-          data: {
-            eventType: EventType.POLL,
-            title: `${randomType}: ${item.title}`
-          }
-        });
-        events.push(eventCreated);
-
         // poll 등록
+        const dongRange = getDongRange(apts[aptNo].endComplexNumber, apts[aptNo].endBuildingNumber);
+
+        let voters;
+        let residents;
+        let pollTarget;
+        do {
+          pollTarget = faker.helpers.arrayElement(dongRange);
+          if (pollTarget === 0) voters = users;
+          else {
+            residents = await prisma.resident.findMany({
+              where: {
+                apartmentId: apts[aptNo].id,
+                apartmentDong: String(pollTarget),
+                isRegistered: true
+              },
+              select: { userId: true }
+            });
+            voters = residents.flatMap((r) => (r.userId !== null ? [{ id: r.userId }] : []));
+          }
+        } while (voters.length < 2);
+
         const pollData = {
-          buildingPermission: 0,
+          buildingPermission: pollTarget,
           title: item.title,
           description: item.content,
           startDate: item.startDate ? new Date(item.startDate) : new Date('2025-01-01'),
           endDate: item.endDate ? new Date(item.endDate) : new Date('2025-12-31'),
           status: PollStatus.CLOSED,
           board: { connect: { id: boardId_poll } },
-          admin: { connect: { id: adminId } },
-          event: { connect: { id: eventCreated.id } }
+          admin: { connect: { id: adminId } }
         };
 
         const pollCreated = await prisma.poll.create({ data: pollData });
         polls.push(pollCreated);
 
+        // event 등록
+        const eventCreated = await prisma.event.create({
+          data: {
+            eventType: EventType.POLL,
+            title: `${randomType}: ${item.title}`,
+            poll: { connect: { id: pollCreated.id } }
+          }
+        });
+        events.push(eventCreated);
+
         // notification 등록: poll 시작
         // poll 종료 시에는 공지에 올라올 때 전체공지만 하기로 함 (안 그러면 공지가 중복되니까)
-        for (const receiver of users) {
+        for (const voter of voters) {
           let notiCreated = await prisma.notification.create({
             data: {
               notiType: NotificationType.POLL_START,
               targetId: pollCreated.id,
-              content: `알림: 투표 개시. 오늘 ~ ${item.endDate}까지 (${item.title})`,
+              content: `알림: 투표 개시 (${item.startDate} ~ ${item.endDate})`,
               isChecked: true,
               checkedAt: new Date(),
-              receiver: { connect: { id: receiver.id } }
+              receiver: { connect: { id: voter.id } }
             }
           });
           notifications.push(notiCreated);
@@ -418,10 +428,10 @@ async function main() {
             data: {
               notiType: NotificationType.POLL_CLOSED,
               targetId: pollCreated.id,
-              content: `알림: 오늘 투표 종료합니다. 참여 부탁드려요 (${item.title})`,
+              content: `알림(${item.title}): 투표 종료 (${item.startDate} ~ ${item.endDate})`,
               isChecked: true,
               checkedAt: new Date(),
-              receiver: { connect: { id: receiver.id } }
+              receiver: { connect: { id: voter.id } }
             }
           });
           notifications.push(notiCreated);
@@ -429,7 +439,7 @@ async function main() {
 
         // pollOption 등록
         const participationRate = getRandomNo(80, 100) / 100; // 80% 이상 참여
-        const nVotes = Math.floor(users.length * participationRate);
+        const nVotes = Math.floor(voters.length * participationRate);
 
         const winRate = getRandomNo(60, 100) / 100; // 60% 이상 득표
         let nVotes_win = Math.floor(nVotes * winRate);
@@ -477,14 +487,14 @@ async function main() {
 
         // votes 등록
         // 투표에 참가한 수만큼 user를 random하게 뽑아서, 순서를 뒤섞어 놓기
-        const votedUsersShuffled = shuffleArray(getUniqueRandomNOs(0, users.length - 1, nVotes));
+        const votedShuffled = shuffleArray(getUniqueRandomNOs(0, voters.length - 1, nVotes));
 
         let optionId;
         // winning vote를 한 사람들 수 만큼 앞에서 자름
         if (pollResult === '찬성') {
           for (let n = 0; n < nVotes_win; n++) {
             optionId = pollOptions[pollOptions.length - 2].id;
-            const voterId = users[votedUsersShuffled[n]].id;
+            const voterId = voters[votedShuffled[n]].id;
             const voteCreated = await prisma.vote.create({
               data: {
                 poll: { connect: { id: pollCreated.id } },
@@ -496,7 +506,7 @@ async function main() {
           }
           for (let n = 0; n < nVotes_lost; n++) {
             optionId = pollOptions[pollOptions.length - 1].id;
-            const voterId = users[votedUsersShuffled[nVotes - n - 1]].id;
+            const voterId = voters[votedShuffled[nVotes - n - 1]].id;
             const voteCreated = await prisma.vote.create({
               data: {
                 poll: { connect: { id: pollCreated.id } },
@@ -509,7 +519,7 @@ async function main() {
         } else {
           for (let n = 0; n < nVotes_lost; n++) {
             optionId = pollOptions[pollOptions.length - 2].id;
-            const voterId = users[votedUsersShuffled[n]].id;
+            const voterId = voters[votedShuffled[n]].id;
             const voteCreated = await prisma.vote.create({
               data: {
                 poll: { connect: { id: pollCreated.id } },
@@ -521,7 +531,7 @@ async function main() {
           }
           for (let n = 0; n < nVotes_win; n++) {
             optionId = pollOptions[pollOptions.length - 1].id;
-            const voterId = users[votedUsersShuffled[nVotes - n - 1]].id;
+            const voterId = voters[votedShuffled[nVotes - n - 1]].id;
             const voteCreated = await prisma.vote.create({
               data: {
                 poll: { connect: { id: pollCreated.id } },
@@ -533,13 +543,28 @@ async function main() {
           }
         }
       }
+
+      // 날짜가 있는 notice는 event 등록
+      if (noticeCreated.startDate && noticeCreated.category !== NoticeType.RESIDENT_VOTE) {
+        // RESIDENT_VOTE는 Poll 등록 당시 event 생성되었으므로 중복 방지
+
+        const eventCreated = await prisma.event.create({
+          data: {
+            eventType: EventType.NOTICE,
+            title: `${randomType}: ${item.title}`,
+            notice: { connect: { id: noticeCreated.id } }
+          }
+        });
+        events.push(eventCreated);
+      }
+
       // notification 생성: 공지 등록 시 (알림 등록 순서를 대충 맞추기 위하여 마지막에)
       for (const user of users) {
         let notiCreated = await prisma.notification.create({
           data: {
             notiType: NotificationType.NOTICE,
             targetId: noticeCreated.id,
-            content: `알림: 새로운 공지가 등록되었습니다 (${item.title})`,
+            content: `알림: 공지 등록 (${item.title})`,
             isChecked: true,
             checkedAt: new Date(),
             receiver: { connect: { id: user.id } }
