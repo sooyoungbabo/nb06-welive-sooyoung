@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import aptService from './apartment.service';
-import { Apartment, User } from '@prisma/client';
+import { Apartment, ApprovalStatus, User } from '@prisma/client';
 import {
   AptListPublicResponseDto,
   AptListResponseDto,
@@ -8,19 +8,44 @@ import {
   AptResponseDto
 } from './apartment.dto';
 
-async function publicGetList(req: Request, res: Response, next: NextFunction) {
-  const apts = await aptService.getList();
-  res.status(200).json(buildPublicAptListRes(apts));
+type PublicAptQuery = {
+  keyword?: string;
+  name?: string;
+  address?: string;
+};
+
+async function publicGetList(
+  req: Request<{}, {}, {}, PublicAptQuery>,
+  res: Response,
+  next: NextFunction
+) {
+  const { keyword, name, address } = req.query;
+  const apts = await aptService.publicGetList({ keyword, name, address });
+  const apts2show = buildPublicAptListRes(apts);
+  res.status(200).json({ apartments: apts2show, count: apts2show.length });
 }
 
 async function publicGet(req: Request, res: Response, next: NextFunction) {
-  const apt = await aptService.get(req.params.id as string);
+  const apt = await aptService.publicGet(req.params.id as string);
   res.status(200).json(buildPublicAptRes(apt));
 }
 
-async function getList(req: Request, res: Response, next: NextFunction) {
-  const apts = await aptService.getList();
-  res.status(200).json(buildMemberAptListRes(apts));
+type AptQuery = {
+  keyword?: string;
+  name?: string;
+  address?: string;
+  apartmentStatus?: ApprovalStatus;
+  page?: string;
+  limit?: string;
+};
+async function getList(req: Request<{}, {}, {}, AptQuery>, res: Response, next: NextFunction) {
+  const { keyword, name, address, apartmentStatus, page, limit } = req.query;
+  const apts = await aptService.getList(
+    { keyword, name, address, apartmentStatus },
+    { page, limit }
+  );
+  const apts2show = buildMemberAptListRes(apts);
+  res.status(200).json({ apartments: apts2show, count: apts2show.length });
 }
 
 async function get(req: Request, res: Response, next: NextFunction) {
@@ -64,7 +89,8 @@ function buildMemberAptListRes(apts: (Apartment & { users: User[] })[]): AptList
     return {
       id: apt.id,
       name: apt.name,
-      apartmentManagementNumber: apt.apartmentManagementNumber,
+      address: apt.address,
+      officeNumber: apt.apartmentManagementNumber,
       description: apt.description,
       startComplexNumber: apt.startComplexNumber,
       endComplexNumber: apt.endComplexNumber,

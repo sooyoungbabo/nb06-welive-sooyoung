@@ -62,7 +62,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin1",
+  "username": "superadmin",
   "password": "password0!"
 }
 
@@ -110,17 +110,17 @@ Content-Type: application/json
 }
 
 ### 슈퍼관리자
-PATCH {{baseUrl}}/auth/admins/d3924a61-1ec5-4fcc-8846-b1e7802c897d
+PATCH {{baseUrl}}/auth/admins/3476e896-dc1d-4504-9d4d-63c3e1cf12d9
 Content-Type: application/json
 
 {
-  "contact": "01000000013",
-  "name": "관리자일삼",
-  "email": "admin13@test.com",
+  "contact": "024-471-5120",
+  "name": "김서윤",
+  "email": "admin2@test.com",
   "description": "서울대 합격 1위를 자랑하는 학군에 위치한 명품 아파트",
-  "apartmentName": "아파트13",
-  "apartmentAddress": "서울시 노원구 화랑로 777",
-  "apartmentManagementNumber": "020000013"
+  "apartmentName": "명품아파트2",
+  "apartmentAddress": "833 나팔꽃5길",
+  "apartmentManagementNumber": "063-875-5482"
 }
 
 

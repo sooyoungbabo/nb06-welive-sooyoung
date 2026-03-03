@@ -1,20 +1,20 @@
 @baseUrl = http://localhost:3000
 
 ###
-GET {{baseUrl}}/
+GET {{baseUrl}}/residents/
 ###
-POST {{baseUrl}}/
+POST {{baseUrl}}/residents/
 ###
-POST {{baseUrl}}/from-users/abcd
+POST {{baseUrl}}/residents/from-users/abcd
 ###
-GET {{baseUrl}}/file/template
+GET {{baseUrl}}/residents/file/template
 ###
-POST {{baseUrl}}/from-file
+POST {{baseUrl}}/residents/from-file
 ###
-GET {{baseUrl}}/file
+GET {{baseUrl}}/residents/file
 ###
-GET {{baseUrl}}/abcd
+GET {{baseUrl}}/residents/abcd
 ###
-PATCH {{baseUrl}}/abcd
+PATCH {{baseUrl}}/residents/abcd
 ###
-DELETE {{baseUrl}}/abcd
+DELETE {{baseUrl}}/residents/abcd

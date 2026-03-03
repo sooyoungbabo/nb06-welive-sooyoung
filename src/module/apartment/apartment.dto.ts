@@ -24,7 +24,8 @@ export interface AptListPublicResponseDto {
 export interface AptListResponseDto {
   id: string;
   name: string;
-  apartmentManagementNumber: string;
+  address: string;
+  officeNumber: string;
   description: string;
   startComplexNumber: number;
   endComplexNumber: number;
@@ -88,3 +89,8 @@ export interface AptPublicResponseDto {
     end: number;
   };
 }
+
+// export interface ListResponseDto<T> {
+//   items: T[];
+//   count: number;
+// }
