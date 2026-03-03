@@ -1,0 +1,130 @@
+@baseUrl = http://localhost:3000
+
+### 공개
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "username": "sammy",
+  "password": "password0!",
+  "contact": "01094989529",
+  "name": "정샘이",
+  "email": "sam@test.com",
+  "role": "USER",
+  "apartmentName": "아파트1",
+  "apartmentDong": "202",
+  "apartmentHo": "101"
+}
+### 공개
+POST {{baseUrl}}/auth/signup/admin
+Content-Type: application/json
+
+{
+  "username": "admin11",
+  "password": "password0!",
+  "contact": "01000000011",
+  "name": "관리자일일",
+  "email": "admin11@test.com",
+  "description": "나 같으면 안 산다?",
+  "startComplexNumber": 1,
+  "endComplexNumber": 1,
+  "startDongNumber": 1,
+  "endDongNumber": 5,
+  "startFloorNumber": 1,
+  "endFloorNumber": 7,
+  "startHoNumber": 1,
+  "endHoNumber": 2,
+  "role": "ADMIN",
+  "apartmentName": "아파트11",
+  "apartmentAddress": "서울시 성북구 화랑로 277",
+  "apartmentManagementNumber": "020000011"
+}
+
+### 공개
+POST {{baseUrl}}/auth/signup/super-admin
+Content-Type: application/json
+
+{
+  "username": "superAdmin1",
+  "password": "password0!",
+  "contact": "01000000999",
+  "name": "슈퍼관리자",
+  "email": "user999@test.com",
+  "role": "SUPER_ADMIN",
+  "joinStatus": "APPROVED"
+}
+
+
+
+
+### 사용자
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin1",
+  "password": "password0!"
+}
+
+### 사용자
+POST {{baseUrl}}/auth/logout
+
+### 사용자
+POST {{baseUrl}}/auth/refresh
+### 사용자
+GET {{baseUrl}}/auth/refresh/view
+
+
+
+
+### 슈퍼관리자
+PATCH {{baseUrl}}/auth/admins/cdd846a9-2db5-472e-a59a-82283c9d9128/status
+Content-Type: application/json
+
+{
+  "status": "APPROVED"
+}
+
+### 슈퍼관리자
+PATCH {{baseUrl}}/auth/admins/status
+Content-Type: application/json
+
+{
+  "status": "APPROVED"
+}
+
+### 관리자
+PATCH {{baseUrl}}/auth/residents/93278720-5247-4f3b-b9eb-11657fe31cf5/status
+Content-Type: application/json
+
+{
+  "status": "REJECTED"
+}
+
+### 관리자
+PATCH {{baseUrl}}/auth/residents/status
+Content-Type: application/json
+
+{
+  "status": "REJECTED"
+}
+
+### 슈퍼관리자
+PATCH {{baseUrl}}/auth/admins/d3924a61-1ec5-4fcc-8846-b1e7802c897d
+Content-Type: application/json
+
+{
+  "contact": "01000000013",
+  "name": "관리자일삼",
+  "email": "admin13@test.com",
+  "description": "서울대 합격 1위를 자랑하는 학군에 위치한 명품 아파트",
+  "apartmentName": "아파트13",
+  "apartmentAddress": "서울시 노원구 화랑로 777",
+  "apartmentManagementNumber": "020000013"
+}
+
+
+### 슈퍼관리자
+DELETE {{baseUrl}}/auth/admins/e42d16b2-047e-438e-af49-a96e2d1e0263
+### 슈퍼관리자, 관리자
+POST {{baseUrl}}/auth/cleanup

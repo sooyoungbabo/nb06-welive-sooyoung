@@ -64,7 +64,7 @@ CREATE TABLE "residents" (
     "name" TEXT NOT NULL,
     "email" TEXT,
     "isRegistered" BOOLEAN NOT NULL DEFAULT false,
-    "houseRole" "HouseholdRole" NOT NULL DEFAULT 'HOUSEHOLDER',
+    "isHouseholder" "HouseholdRole" NOT NULL DEFAULT 'HOUSEHOLDER',
     "residenceStatus" "ResidenceStatus" NOT NULL DEFAULT 'RESIDENCE',
     "approvalStatus" "ApprovalStatus" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -79,8 +79,8 @@ CREATE TABLE "apartments" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "address" TEXT NOT NULL,
-    "officeNumber" TEXT NOT NULL,
     "description" TEXT NOT NULL,
+    "apartmentManagementNumber" TEXT NOT NULL,
     "startComplexNumber" INTEGER NOT NULL DEFAULT 1,
     "startBuildingNumber" INTEGER NOT NULL DEFAULT 1,
     "startFloorNumber" INTEGER NOT NULL DEFAULT 1,
@@ -228,6 +228,9 @@ CREATE TABLE "events" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_contact_key" ON "users"("contact");
 
 -- CreateIndex
@@ -240,7 +243,10 @@ CREATE UNIQUE INDEX "residents_userId_key" ON "residents"("userId");
 CREATE UNIQUE INDEX "residents_contact_key" ON "residents"("contact");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "apartments_officeNumber_key" ON "apartments"("officeNumber");
+CREATE UNIQUE INDEX "apartments_name_key" ON "apartments"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "apartments_apartmentManagementNumber_key" ON "apartments"("apartmentManagementNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "apartments_name_address_key" ON "apartments"("name", "address");

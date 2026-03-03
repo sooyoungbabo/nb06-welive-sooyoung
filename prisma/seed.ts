@@ -10,7 +10,8 @@ import {
   ComplaintStatus,
   NotificationType,
   CommentType,
-  EventType
+  EventType,
+  HouseholdRole
 } from '@prisma/client';
 import { fakerKO as faker } from '@faker-js/faker';
 import NotFoundError from '../src/middleware/errors/NotFoundError';
@@ -39,8 +40,8 @@ async function main() {
   ]);
 
   const nApts = 3;
-  const nUsers = 200;
-  const nSeeds = 10;
+  const nUsers = 300;
+  const nSeeds = 20;
   const nComplaints = getRandomNo(1, 3);
   const nComments = getRandomNo(1, 3);
   const nNotices = getRandomNo(1, 3);
@@ -48,13 +49,13 @@ async function main() {
   const apartmentData = [];
   for (let i = 0; i < nApts; i++) {
     const tempApt = {
-      name: `아파트${i + 1}`,
+      name: `아파트${i}`,
       address: faker.location.streetAddress(),
-      officeNumber: faker.phone.number(),
+      apartmentManagementNumber: faker.phone.number(),
       description: '청정한 환경과 좋은 학군을 가진 살기좋은 아파트입니다.',
-      endComplexNumber: faker.number.int({ min: 1, max: 1 }),
-      endBuildingNumber: faker.number.int({ min: 3, max: 5 }),
-      endFloorNumber: faker.number.int({ min: 1, max: 10 }),
+      endComplexNumber: faker.number.int({ min: 1, max: 2 }),
+      endBuildingNumber: faker.number.int({ min: 2, max: 5 }),
+      endFloorNumber: faker.number.int({ min: 3, max: 10 }),
       endUnitNumber: faker.number.int({ min: 1, max: 2 }),
       apartmentStatus: ApprovalStatus.APPROVED
     };
@@ -66,7 +67,7 @@ async function main() {
     password: await hashingPassword('password0!'),
     contact: faker.phone.number(),
     name: faker.person.fullName(),
-    email: faker.internet.email(),
+    email: 'superadmin@test.com',
     role: UserType.SUPER_ADMIN,
     joinStatus: JoinStatus.APPROVED
   };
@@ -75,10 +76,10 @@ async function main() {
   for (let i = 0; i < apartmentData.length; i++) {
     const tempAdmin = {
       username: `admin${i}`,
-      password: await hashingPassword(`password${i}!`),
+      password: await hashingPassword(`password0!`),
       contact: faker.phone.number(),
       name: faker.person.fullName(),
-      email: faker.internet.email(),
+      email: `admin${i}@test.com`,
       role: UserType.ADMIN,
       joinStatus: JoinStatus.APPROVED
     };
@@ -89,10 +90,10 @@ async function main() {
   for (let i = 0; i < nUsers; i++) {
     const tempRawUser = {
       username: `user${i}`,
-      password: await hashingPassword(`userpassword${i}!`),
+      password: await hashingPassword(`password0!`),
       contact: faker.phone.number(),
       name: faker.person.fullName(),
-      email: faker.internet.email(),
+      email: `user${i}@test.com`,
       role: UserType.USER,
       joinStatus: JoinStatus.APPROVED
     };
@@ -175,7 +176,9 @@ async function main() {
   for (let i = 0; i < rawUserData.length; i++) {
     const aptNo = getRandomNo(0, apts.length - 1);
     const aptId = apts[aptNo].id;
-    const apartmentDong = String(getRandomDong(apts[aptNo].endComplexNumber, apts[aptNo].endBuildingNumber));
+    const apartmentDong = String(
+      getRandomDong(apts[aptNo].endComplexNumber, apts[aptNo].endBuildingNumber)
+    );
     const apartmentHo = String(getRandomHo(apts[aptNo].endFloorNumber, apts[aptNo].endUnitNumber));
 
     const userData = rawUserData[i];
@@ -187,6 +190,7 @@ async function main() {
       name: userData.name,
       email: userData.email,
       isRegistered: true,
+      isHouseholder: HouseholdRole.HOUSEHOLDER,
       approvalStatus: userData.joinStatus
     };
 
@@ -338,7 +342,8 @@ async function main() {
       };
 
       // 정기점검과 긴급공지는 중요도 높음
-      if (randomType === NoticeType.EMERGENCY || randomType === NoticeType.MAINTENANCE) noticeData.isPinned = true;
+      if (randomType === NoticeType.EMERGENCY || randomType === NoticeType.MAINTENANCE)
+        noticeData.isPinned = true;
 
       // notice 등록
       const noticeCreated = await prisma.notice.create({ data: noticeData });
@@ -450,7 +455,8 @@ async function main() {
           nVotes_lost--;
         }
 
-        if (nVotes_win > nVotes || nVotes_lost < 0) throw new Error('Vote distribution logic broken');
+        if (nVotes_win > nVotes || nVotes_lost < 0)
+          throw new Error('Vote distribution logic broken');
 
         const pollResult = faker.helpers.arrayElement(['찬성', '반대']);
 

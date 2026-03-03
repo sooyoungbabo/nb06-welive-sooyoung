@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:3000
+
+###
+GET {{baseUrl}}/users/getList?sort=asc
+###
+GET {{baseUrl}}/users/getList?sort=desc
+###
+GET {{baseUrl}}/users/348c6e1d-102c-46a3-93ad-1f1d414edd7d
+###
+GET {{baseUrl}}/users/me/myInfo
+
+
+
+
+###
+PATCH {{baseUrl}}/users/me/avatar
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
+Content-Disposition: form-data; name="image"; filename="Hillie3.png"
+Content-Type: image/png
+
+< ./images/users/Hillie3.png
+--MyBoundary--
+
+###
+PATCH {{baseUrl}}/users/me/password
+Content-Type: application/json
+
+{
+  "currentPassword": "welive!",
+  "newPassword": "password0!"
+}

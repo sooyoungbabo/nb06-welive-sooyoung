@@ -1,0 +1,20 @@
+@baseUrl = http://localhost:3000
+
+###
+GET {{baseUrl}}/
+###
+POST {{baseUrl}}/
+###
+POST {{baseUrl}}/from-users/abcd
+###
+GET {{baseUrl}}/file/template
+###
+POST {{baseUrl}}/from-file
+###
+GET {{baseUrl}}/file
+###
+GET {{baseUrl}}/abcd
+###
+PATCH {{baseUrl}}/abcd
+###
+DELETE {{baseUrl}}/abcd

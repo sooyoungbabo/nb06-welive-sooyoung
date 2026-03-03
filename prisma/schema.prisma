@@ -17,7 +17,7 @@ model User {
   id          String  @id @default(uuid())
   apartmentId String? //FA
 
-  username   String
+  username   String     @unique
   password   String
   contact    String     @unique
   name       String
@@ -54,8 +54,8 @@ model Resident {
   name          String
   email         String?
 
-  isRegistered    Boolean         @default(false) // welive 가입여부
-  houseRole       HouseholdRole   @default(HOUSEHOLDER)
+  isRegistered    Boolean         @default(true) // welive 가입여부
+  isHouseholder   HouseholdRole   @default(HOUSEHOLDER)
   residenceStatus ResidenceStatus @default(RESIDENCE)
   approvalStatus  ApprovalStatus  @default(PENDING) // residentId로 관리자가 가입신청 승인
 
@@ -70,11 +70,11 @@ model Resident {
 }
 
 model Apartment {
-  id           String @id @default(uuid())
-  name         String
-  address      String
-  officeNumber String @unique
-  description  String
+  id                        String @id @default(uuid())
+  name                      String @unique
+  address                   String
+  description               String
+  apartmentManagementNumber String @unique
 
   startComplexNumber  Int @default(1)
   startBuildingNumber Int @default(1)
