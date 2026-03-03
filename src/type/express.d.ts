@@ -1,9 +1,11 @@
+import 'express';
+import { User } from '@prisma/client';
+
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string };
+      user: User;
+      // cookies?: { [key: string]: string };
     }
   }
 }
-
-export {};

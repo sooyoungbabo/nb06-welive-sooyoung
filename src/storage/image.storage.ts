@@ -1,10 +1,10 @@
 import path from 'path';
 import fs, { mkdir, writeFile } from 'fs/promises';
 import mime from 'mime-types';
-import { NODE_ENV, STATIC_IMG_PATH, BUCKETNAME, REGION, BASE_URL } from '../../../6-sprint-mission/src/lib/constants';
-import InternalServerError from '../../../6-sprint-mission/src/middleware/errors/internalServerError';
-import { ImageFile, ImageResult } from '../../../6-sprint-mission/src/types/interfaceType';
-import { s3Client } from '../../../6-sprint-mission/src/lib/s3Client';
+import { NODE_ENV, STATIC_IMG_PATH, BUCKETNAME, REGION, BASE_URL } from '../lib/constants';
+import InternalServerError from '../middleware/errors/internalServerError';
+import { ImageFile, ImageResult } from '../module/user/user.dto';
+import { s3Client } from '../lib/s3Client';
 import {
   PutObjectCommand,
   ListObjectsV2Command,

@@ -7,10 +7,10 @@ import {
 } from './constants';
 
 export interface tokenPayload extends JwtPayload {
-  id: number;
+  id: string;
 }
 
-function generateTokens(userId: number) {
+function generateTokens(userId: string) {
   const accessToken = jwt.sign({ id: userId }, JWT_ACCESS_TOKEN_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRESIN
   });

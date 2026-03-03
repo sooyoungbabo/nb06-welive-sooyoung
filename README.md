@@ -36,7 +36,7 @@ https://www.notion.so/WELIVE-313a0d5530a580b78ddfde22eb1ec072?source=copy_link
 
 ## ERD
 
-![alt text](image-3.png)
+![alt text](image.png)
 
 ## 구현 홈페이지
 

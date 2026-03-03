@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:3000
+
+###
+GET {{baseUrl}}/public
+###
+GET {{baseUrl}}/public/abcd
+###
+GET {{baseUrl}}/
+###
+GET {{baseUrl}}/abcd
