@@ -2,7 +2,7 @@
 
 # 모두 관리자 권한
 ### 
-GET {{baseUrl}}/residents?building=101
+GET {{baseUrl}}/residents?keyword=정수영
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json
@@ -42,9 +42,10 @@ Content-Type: text/csv
 ### 입주민 목록 다운로드
 GET {{baseUrl}}/residents/file
 
+### 입주민 상세 조회
+GET {{baseUrl}}/residents/fb5176f7-f041-4a80-88a5-88677dd13f49
 ###
-GET {{baseUrl}}/residents/abcdefg
-###
+
 PATCH {{baseUrl}}/residents/fb5176f7-f041-4a80-88a5-88677dd13f49
 Content-Type: application/json
 

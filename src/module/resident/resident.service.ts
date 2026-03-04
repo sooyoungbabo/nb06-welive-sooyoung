@@ -1,15 +1,13 @@
-import { Resident, Prisma, ApprovalStatus, ResidenceStatus, HouseholdRole } from '@prisma/client';
+import { Resident, Prisma, HouseholdRole } from '@prisma/client';
 import residentRepo from './resident.repo';
 import prisma from '../../lib/prisma';
 import userRepo from '../user/user.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import { QueryBuilderInput, WhereInputOf } from '../../lib/buildQuery';
-import { ResidentCreateRequestDto, ResidentListDto } from './resident.dto';
-import aptRepo from '../apartment/apartment.repo';
+import { ResidentCreateRequestDto } from './resident.dto';
 import { assert } from 'node:console';
-import { CreateResident } from './resident.struct';
-import { NotEquals } from 'class-validator';
+import { CreateResident, ResidentQueryStruct } from './resident.struct';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 
 type ResidentWhere = WhereInputOf<'Resident'>;
@@ -121,6 +119,12 @@ async function createManyFromFile(aptId: string, buffer: Buffer): Promise<number
   return residents.count;
 }
 
+async function get(residentId: string): Promise<Resident> {
+  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
+  if (!resident) throw new NotFoundError('입주민이 존재하지 않습니다.');
+  return resident;
+}
+
 async function patch(
   residentId: string,
   residentData: Prisma.ResidentUpdateInput,
@@ -166,6 +170,7 @@ export default {
   user2resident,
   buildResidentTemplateCsv,
   createManyFromFile,
+  get,
   patch,
   del
 };

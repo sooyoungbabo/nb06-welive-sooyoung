@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import residentService from './resident.service';
 import { assert } from 'node:console';
-import { PatchResident, ResidentQueryStruct } from './resident.struct';
+import { PatchResident } from './resident.struct';
 import { PatchUser } from '../user/user.struct';
 import { Resident, ResidenceStatus } from '@prisma/client';
 import { ResidentListDto } from './resident.dto';
-import { GetBucketEncryptionRequest$ } from '@aws-sdk/client-s3';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 
 type ResidentQuery = {
@@ -77,6 +76,11 @@ async function createManyFromFile(req: Request, res: Response, next: NextFunctio
   res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });
 }
 
+async function get(req: Request, res: Response, next: NextFunction) {
+  const resident = await residentService.get(req.params.id as string);
+  res.status(200).json(buildResidentRes(resident));
+}
+
 async function patch(req: Request, res: Response, next: NextFunction) {
   const residentData = {
     name: req.body.name ?? undefined,
@@ -142,6 +146,7 @@ export default {
   user2resident,
   downloadTemplate,
   createManyFromFile,
+  get,
   patch,
   del
 };
