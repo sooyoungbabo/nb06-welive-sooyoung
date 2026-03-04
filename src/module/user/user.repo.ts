@@ -44,7 +44,7 @@ async function find<T extends Prisma.UserFindUniqueArgs>(
 
 type PrismaSelectIncludeWithoutWhere = Omit<Prisma.UserFindUniqueArgs, 'where'>;
 async function findById(id: string, args?: PrismaSelectIncludeWithoutWhere) {
-  return prisma.user.findUniqueOrThrow({
+  return prisma.user.findUnique({
     where: { id },
     ...args
   });

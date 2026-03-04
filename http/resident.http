@@ -1,6 +1,7 @@
 @baseUrl = http://localhost:3000
 
-###
+# 모두 관리자 권한
+### 
 GET {{baseUrl}}/residents?building=103
 ###
 POST {{baseUrl}}/residents
@@ -14,8 +15,15 @@ Content-Type: application/json
   "isHouseholder": "HOUSEHOLDER"
 }
 
-###
+### 계정 생성 시에는 언제나 resident도 생기고 있기 때문에...
+### 이런 경우가 어떻게 있을 수 있는지?
 POST {{baseUrl}}/residents/from-users/abcdefg
+Content-Type: application/json
+
+{
+  "userId": "abcdefg"
+}
+
 ###
 GET {{baseUrl}}/residents/file/template
 ###

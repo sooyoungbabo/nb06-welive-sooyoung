@@ -9,6 +9,11 @@ const residentRouter = express.Router();
 
 residentRouter.get('/', authenticate(), withTryCatch(residentControl.getList));
 residentRouter.post('/', authenticate(), withTryCatch(residentControl.post));
+residentRouter.post(
+  '/from-users/:userId',
+  authenticate(),
+  withTryCatch(residentControl.user2resident)
+);
 
 residentRouter.patch('/:id', authenticate(), withTryCatch(residentControl.patch));
 residentRouter.delete('/:id', authenticate(), withTryCatch(residentControl.del));

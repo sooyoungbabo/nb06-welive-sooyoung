@@ -1,4 +1,4 @@
-import { Resident, Prisma, ApprovalStatus, ResidenceStatus } from '@prisma/client';
+import { Resident, Prisma, ApprovalStatus, ResidenceStatus, HouseholdRole } from '@prisma/client';
 import residentRepo from './resident.repo';
 import prisma from '../../lib/prisma';
 import userRepo from '../user/user.repo';
@@ -7,6 +7,10 @@ import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import { QueryBuilderInput, WhereInputOf } from '../../lib/buildQuery';
 import { ResidentCreateRequestDto, ResidentListDto } from './resident.dto';
 import aptRepo from '../apartment/apartment.repo';
+import { assert } from 'node:console';
+import { CreateResident } from './resident.struct';
+import { NotEquals } from 'class-validator';
+import BadRequestError from '../../middleware/errors/BadRequestError';
 
 type ResidentWhere = WhereInputOf<'Resident'>;
 
@@ -56,6 +60,29 @@ async function post(adminId: string, data: ResidentCreateRequestDto) {
   return resident;
 }
 
+async function user2resident(userId: string): Promise<Resident> {
+  const user = await userRepo.findById(userId);
+  let message: string;
+  if (!user) throw new BadRequestError('존재하지 않는 사용자입니다.');
+  if (!user.apartmentId) throw new BadRequestError('아파트ID가 없는 사용자입니다.');
+
+  const resident = await residentRepo.find(prisma, { where: { userId } });
+  if (resident) throw new BadRequestError('이미 입주민 명부에 추가된 사용자입니다.');
+
+  const data = {
+    apartmentDong: '999', // user에도 중복으로 넣어야 할 듯
+    apartmentHo: '999',
+    contact: user.contact,
+    name: user.name,
+    isHouseholder: HouseholdRole.HOUSEHOLDER
+  };
+  assert(data, CreateResident);
+  return await residentRepo.create(prisma, {
+    ...data,
+    apartment: { connect: { id: user.apartmentId } }
+  });
+}
+
 async function patch(
   residentId: string,
   residentData: Prisma.ResidentUpdateInput,
@@ -98,6 +125,7 @@ async function del(residentId: string) {
 export default {
   getList,
   post,
+  user2resident,
   patch,
   del
 };
