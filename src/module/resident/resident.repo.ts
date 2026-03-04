@@ -27,6 +27,13 @@ async function create(
   return await tx.resident.create({ data });
 }
 
+async function createMany(
+  tx: Prisma.TransactionClient,
+  data: Prisma.ResidentCreateManyInput[]
+): Promise<Prisma.BatchPayload> {
+  return await tx.resident.createMany({ data });
+}
+
 async function find(db: DB, args: Prisma.ResidentFindUniqueArgs) {
   return db.resident.findUnique(args);
 }
@@ -55,6 +62,7 @@ export default {
   getList,
   count,
   create,
+  createMany,
   patch,
   patchMany,
   del,

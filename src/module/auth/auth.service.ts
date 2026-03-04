@@ -268,6 +268,7 @@ async function deleteAdminApt(adminId: string): Promise<User> {
 
 async function cleanup(id: string): Promise<string> {
   const user = await userRepo.findById(id);
+  if (!user) throw new NotFoundError('슈퍼관리자/관리자가 없습니다.');
   let userArgs: Prisma.UserDeleteManyArgs;
   let deleted;
   let message;

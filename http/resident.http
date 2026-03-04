@@ -2,7 +2,7 @@
 
 # 모두 관리자 권한
 ### 
-GET {{baseUrl}}/residents?building=103
+GET {{baseUrl}}/residents?building=101
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json
@@ -26,9 +26,20 @@ Content-Type: application/json
 
 ###
 GET {{baseUrl}}/residents/file/template
+Accept: text/csv
+
 ###
 POST {{baseUrl}}/residents/from-file
-###
+Content-Type: multipart/form-data; boundary=----MyBoundary
+
+------MyBoundary
+Content-Disposition: form-data; name="file"; filename="residents.csv"
+Content-Type: text/csv
+
+< ../files/residents.csv
+------MyBoundary--
+
+### 입주민 목록 다운로드
 GET {{baseUrl}}/residents/file
 
 ###

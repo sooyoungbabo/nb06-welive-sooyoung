@@ -1,9 +1,8 @@
 import express from 'express';
-import { Request, Response, NextFunction } from 'express';
 import userControl from './user.control';
 import withTryCatch from '../../lib/withTryCatch';
 import authenticate from '../../middleware/authenticate';
-import upload from '../../middleware/multer';
+import { uploadImage } from '../../middleware/multer';
 //import { allowedUserKeys } from '../../lib/constants';
 //import { validateReqBody } from '../../middleware/validateReqBody';
 
@@ -19,7 +18,7 @@ userRouter.patch('/me/password', authenticate(), withTryCatch(userControl.patchP
 userRouter.post(
   'me/avatar',
   authenticate(),
-  upload.single('image'),
+  uploadImage.single('image'),
   withTryCatch(userControl.postAvatar)
 );
 export default userRouter;

@@ -83,6 +83,44 @@ async function user2resident(userId: string): Promise<Resident> {
   });
 }
 
+function buildResidentTemplateCsv(): string {
+  return [
+    `"동","호수","이름","연락처","세대주여부"`,
+    `"101","101","홍길동","01012345678","HOUSEHOLDER"`,
+    `"105","2008","김길동","01043215678","MEMBER"`
+  ].join('\n');
+}
+
+/* 
+req.file = {
+  fieldname: "file",
+  originalname: "resident.csv",
+  mimetype: "text/csv",
+  buffer: <Buffer ... >
+} */
+
+async function createManyFromFile(aptId: string, buffer: Buffer): Promise<number> {
+  const text = buffer.toString('utf-8').replace(/^\uFEFF/, '');
+
+  let residentData = [];
+  const rows = text.split('\n').slice(1);
+  for (const row of rows) {
+    const [dong, ho, name, contact, role] = row.replace(/"/g, '').split(',');
+    const tempData = {
+      apartmentId: aptId,
+      apartmentDong: dong,
+      apartmentHo: ho,
+      name,
+      contact,
+      isHouseholder: role as HouseholdRole
+    };
+    assert(tempData, CreateResident);
+    residentData.push(tempData);
+  }
+  const residents = await residentRepo.createMany(prisma, residentData);
+  return residents.count;
+}
+
 async function patch(
   residentId: string,
   residentData: Prisma.ResidentUpdateInput,
@@ -126,6 +164,8 @@ export default {
   getList,
   post,
   user2resident,
+  buildResidentTemplateCsv,
+  createManyFromFile,
   patch,
   del
 };

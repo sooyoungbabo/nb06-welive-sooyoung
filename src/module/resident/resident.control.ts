@@ -6,6 +6,7 @@ import { PatchUser } from '../user/user.struct';
 import { Resident, ResidenceStatus } from '@prisma/client';
 import { ResidentListDto } from './resident.dto';
 import { GetBucketEncryptionRequest$ } from '@aws-sdk/client-s3';
+import BadRequestError from '../../middleware/errors/BadRequestError';
 
 type ResidentQuery = {
   page?: string;
@@ -53,6 +54,27 @@ async function post(req: Request, res: Response, next: NextFunction) {
 async function user2resident(req: Request, res: Response, next: NextFunction) {
   const resident = await residentService.user2resident(req.params.id as string);
   res.status(201).json(buildResidentRes(resident));
+}
+
+async function downloadTemplate(req: Request, res: Response, next: NextFunction) {
+  const csv = '\ufeff' + residentService.buildResidentTemplateCsv();
+  const filename = '입주민명부_템플릿.csv';
+  const encoded = encodeURIComponent(filename);
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="residents.csv"; filename*=UTF-8''${encoded}`
+  );
+
+  res.send(csv);
+}
+
+async function createManyFromFile(req: Request, res: Response, next: NextFunction) {
+  if (!req.file) throw new BadRequestError('파일이 없습니다.');
+  const buffer = req.file.buffer;
+  const count = await residentService.createManyFromFile(req.user.apartmentId as string, buffer);
+  res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });
 }
 
 async function patch(req: Request, res: Response, next: NextFunction) {
@@ -118,6 +140,8 @@ export default {
   getList,
   post,
   user2resident,
+  downloadTemplate,
+  createManyFromFile,
   patch,
   del
 };
