@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import prisma from '../../lib/prisma';
 import {
-  Apartment,
   ApprovalStatus,
   BoardType,
   HouseholdRole,
@@ -12,7 +11,7 @@ import {
   UserType
 } from '@prisma/client';
 import { assert } from 'superstruct';
-import { CreateAdmin, CreateResident, CreateUser, PatchAdmin } from '../user/user.struct';
+import { CreateAdmin, CreateUser, PatchAdmin } from '../user/user.struct';
 import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/constants';
 import { generateTokens, verifyRefreshToken } from '../../lib/token';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
@@ -41,6 +40,7 @@ import { CreateApartment, PatchApartment } from '../apartment/apartment.struct';
 import { AptSignupRequestDto } from '../apartment/apartment.dto';
 import ConflictError from '../../middleware/errors/ConflictError';
 import BadRequestError from '../../middleware/errors/BadRequestError';
+import { CreateResident } from '../resident/resident.struct';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
   const aptArgs = {
@@ -142,8 +142,9 @@ async function issueTokens(refreshToken: string): Promise<TokenType> {
 async function changeAdminStatus(adminId: string, status: JoinStatus) {
   const apartmentStatus = getApprovalStatus(status);
   const admin = await userRepo.find({ where: { id: adminId }, select: { apartmentId: true } });
+  if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
   const aptId = admin.apartmentId;
-  if (!aptId) throw new NotFoundError('아파트 ID가 존재하지 않습니다.');
+  if (!aptId) throw new NotFoundError('관리자 계정에 아파트 ID가 존재하지 않습니다.');
 
   const adminApproved = await prisma.$transaction(async (tx) => {
     const admin = await userRepo.patch(tx, {
@@ -211,8 +212,9 @@ async function changeAllResidentsStatus(adminId: string, status: JoinStatus) {
   */
   const approvalStatus = getApprovalStatus(status);
   const user = await userRepo.find({ where: { id: adminId }, select: { apartmentId: true } });
+  if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
   const apartmentId = user.apartmentId;
-  if (!apartmentId) throw new NotFoundError('아파트가 존재하지 않습니다.');
+  if (!apartmentId) throw new NotFoundError('사용자 계정에 아파트가 존재하지 않습니다.');
   const apt = await aptRepo.find({ where: { id: apartmentId } });
 
   const userArgs = {
@@ -253,8 +255,9 @@ async function patchAdminApt(adminId: string, body: PatchAdminAptRequestDto): Pr
 
 async function deleteAdminApt(adminId: string): Promise<User> {
   const admin = await userRepo.find({ where: { id: adminId }, select: { apartmentId: true } });
+  if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
   const aptId = admin.apartmentId;
-  if (!aptId) throw new NotFoundError('아파트 ID가 존재하지 않습니다.');
+  if (!aptId) throw new NotFoundError('관리자 게정에 아파트 ID가 존재하지 않습니다.');
   const adminSoftDeleted = await prisma.$transaction(async (tx) => {
     const apt = await aptRepo.deleteById(tx, aptId);
     const admin = await userRepo.deleteById(tx, adminId);

@@ -106,35 +106,9 @@ export type PatchAdminAptRequestDto = {
   apartmentManagementNumber: string;
 };
 
-// export interface UserDeleteManyResponseDto {
-//   deletedAdmins: number;
-//   deletedUsers: number;
-//   deletedResidents: number;
-// }
-
-export interface ResidentListDto {
-  id: string;
-  userId: string;
-  building: number;
-  unitNumber: number;
-  contact: string;
-  name: string;
-  residenceStatus: ResidenceStatus;
-  isHouseHolder: HouseholdRole;
-  isRegistered: boolean;
-  approvalStatus: ApprovalStatus;
-  email: string;
-}
-
-export interface ResidentDto extends Omit<ResidentListDto, 'emaili'> {
-  apartmentId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface ResidentPatchDto {
-  building: number;
-  unitNumber: number;
+  apartmentDong: number;
+  apartmentHo: number;
   contact: string;
   name: string;
   isHouseholder: HouseholdRole;

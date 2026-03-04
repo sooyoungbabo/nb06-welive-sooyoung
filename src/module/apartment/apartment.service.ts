@@ -1,6 +1,6 @@
 import { ApprovalStatus, Prisma, UserType } from '@prisma/client';
+import { buildPagination } from '../../lib/buildQuery';
 import aptRepo from './apartment.repo';
-import { ListBucketMetricsConfigurationsOutput$, ListMultipartUploads$ } from '@aws-sdk/client-s3';
 
 async function publicGetList(filters: { keyword?: string; name?: string; address?: string }) {
   const where: Prisma.ApartmentWhereInput = buildPublicWhereQuery(filters);
@@ -58,16 +58,6 @@ function buildPublicWhereQuery(filters: {
       filters.address ? { address: { contains: filters.address, mode: 'insensitive' } } : {}
     ]
   };
-}
-
-function buildPagination(params: { page?: string; limit?: string }): {
-  skip?: number;
-  take?: number;
-} {
-  const page = Math.max(1, parseInt(params.page ?? '1', 10));
-  const limit = Math.max(1, parseInt(params.limit ?? '10', 10));
-  const skip = (page - 1) * limit;
-  return { skip, take: limit };
 }
 
 function buildWhereQuery(filters: {
