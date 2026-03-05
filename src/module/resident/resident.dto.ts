@@ -47,6 +47,14 @@ export interface ResidentCreateRequestDto {
   isHouseholder: HouseholdRole;
 }
 
+export type ResidentCsvItem = {
+  apartmentDong: string;
+  apartmentHo: string;
+  name: string;
+  contact: string;
+  isHouseholder: string;
+};
+
 // export interface ResidentDto extends Omit<ResidentListDto, 'email'> {
 //   apartmentId: string;
 //   createdAt: Date;

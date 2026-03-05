@@ -4,7 +4,7 @@ import { assert } from 'node:console';
 import { PatchResident } from './resident.struct';
 import { PatchUser } from '../user/user.struct';
 import { Resident, ResidenceStatus } from '@prisma/client';
-import { ResidentListDto } from './resident.dto';
+import { ResidentCsvItem, ResidentListDto } from './resident.dto';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 
 type ResidentQuery = {
@@ -43,17 +43,6 @@ async function getList(req: Request<{}, {}, {}, ResidentQuery>, res: Response, n
     req.user.apartmentId as string,
     queryParms
   );
-  // const { page, limit } = req.query;
-  // const { keyword } = req.query;
-  // const { building: apartmentDong, unitNumber: apartmentHo } = req.query;
-  // const { residenceStatus, isRegistered } = req.query;
-
-  // const { residents, totalCount } = await residentService.getList(req.user.apartmentId as string, {
-  //   pagination: { page, limit },
-  //   searchKey: { keyword, fields: ['name', 'contact'] },
-  //   filters: { apartmentDong, apartmentHo },
-  //   exactFilters: { residenceStatus, isRegistered }
-  // });
 
   const resident2show = buildResidentListRes(residents);
   const count = resident2show.length;
@@ -82,7 +71,7 @@ async function user2resident(req: Request, res: Response, next: NextFunction) {
 }
 
 async function downloadTemplate(req: Request, res: Response, next: NextFunction) {
-  const csv = '\ufeff' + residentService.buildResidentTemplateCsv();
+  const csv = residentService.buildResidentTemplateCsv();
   const filename = '입주민명부_템플릿.csv';
   const encoded = encodeURIComponent(filename);
 
@@ -91,7 +80,6 @@ async function downloadTemplate(req: Request, res: Response, next: NextFunction)
     'Content-Disposition',
     `attachment; filename="residents.csv"; filename*=UTF-8''${encoded}`
   );
-
   res.send(csv);
 }
 
@@ -102,17 +90,31 @@ async function createManyFromFile(req: Request, res: Response, next: NextFunctio
   res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });
 }
 
-async function downloadList(req: Request, res: Response, next: NextFunction) {
-  const csv = '\ufeff' + residentService.buildResidentListCsv();
-  const filename = `아파트_입주민명부_${getTimestamp}.csv`;
-  const encoded = encodeURIComponent(filename);
+async function downloadList(
+  req: Request<{}, {}, {}, ResidentQuery>,
+  res: Response,
+  next: NextFunction
+) {
+  const queryParms = buildQueryParams(req.query);
+  const { residents } = await residentService.getList(req.user.apartmentId as string, queryParms);
+
+  const items: ResidentCsvItem[] = residents.map((r) => ({
+    apartmentDong: r.apartmentDong,
+    apartmentHo: r.apartmentHo,
+    name: r.name,
+    contact: r.contact,
+    isHouseholder: r.isHouseholder
+  }));
+
+  const csv = residentService.buildResidentListCsv(items);
+  const filename = `아파트_입주민명부_${getTimestamp()}.csv`;
+  const encodedFilename = encodeURIComponent(filename);
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader(
     'Content-Disposition',
-    `attachment; filename="residents.csv"; filename*=UTF-8''${encoded}`
+    `attachment; filename="residents.csv"; filename*=UTF-8''${encodedFilename}`
   );
-
   res.send(csv);
 }
 

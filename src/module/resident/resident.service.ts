@@ -5,7 +5,7 @@ import userRepo from '../user/user.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import { QueryBuilderInput } from '../../lib/buildQuery';
-import { ResidentCreateRequestDto } from './resident.dto';
+import { ResidentCreateRequestDto, ResidentCsvItem } from './resident.dto';
 import { assert } from 'node:console';
 import { CreateResident } from './resident.struct';
 import BadRequestError from '../../middleware/errors/BadRequestError';
@@ -87,11 +87,14 @@ async function user2resident(userId: string): Promise<Resident> {
 }
 
 function buildResidentTemplateCsv(): string {
-  return [
-    `"동","호수","이름","연락처","세대주여부"`,
-    `"101","101","홍길동","01012345678","HOUSEHOLDER"`,
-    `"105","2008","김길동","01043215678","MEMBER"`
-  ].join('\n');
+  return (
+    '\ufeff' +
+    [
+      `"동","호수","이름","연락처","세대주여부"`,
+      `"101","101","홍길동","01012345678","HOUSEHOLDER"`,
+      `"105","2008","김길동","01043215678","MEMBER"`
+    ].join('\n')
+  );
 }
 
 /* 
@@ -124,12 +127,19 @@ async function createManyFromFile(aptId: string, buffer: Buffer): Promise<number
   return residents.count;
 }
 
-function buildResidentListCsv(): string {
-  return [
-    `"동","호수","이름","연락처","세대주여부"`,
-    `"101","101","홍길동","01012345678","HOUSEHOLDER"`,
-    `"105","2008","김길동","01043215678","MEMBER"`
-  ].join('\n');
+function buildResidentListCsv(data: ResidentCsvItem[]): string {
+  if (data.length === 0) return '입주민 명부가 없습니다.';
+  const header = ['동', '호수', '이름', '연락처', '세대주여부'];
+
+  const rows = data.map((d) =>
+    [d.apartmentDong, d.apartmentHo, d.name, d.contact, d.isHouseholder]
+      .map((v) => `"${v}"`)
+      .join(',')
+  );
+
+  const csv = [header.join(','), ...rows].join('\n');
+
+  return '\ufeff' + csv;
 }
 
 async function get(residentId: string): Promise<Resident> {
