@@ -5,14 +5,14 @@ POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "sammy",
+  "username": "ddonggae",
   "password": "password0!",
-  "contact": "01094989529",
-  "name": "정샘이",
-  "email": "sam@test.com",
+  "contact": "01094989521",
+  "name": "정똥개",
+  "email": "sooyoung1@test.com",
   "role": "USER",
   "apartmentName": "아파트1",
-  "apartmentDong": "202",
+  "apartmentDong": "203",
   "apartmentHo": "101"
 }
 ### 공개
@@ -62,7 +62,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "superadmin",
+  "username": "admin1",
   "password": "password0!"
 }
 
@@ -98,7 +98,7 @@ PATCH {{baseUrl}}/auth/residents/93278720-5247-4f3b-b9eb-11657fe31cf5/status
 Content-Type: application/json
 
 {
-  "status": "REJECTED"
+  "status": "APPROVED"
 }
 
 ### 관리자
@@ -106,7 +106,7 @@ PATCH {{baseUrl}}/auth/residents/status
 Content-Type: application/json
 
 {
-  "status": "REJECTED"
+  "status": "APPROVED"
 }
 
 ### 슈퍼관리자

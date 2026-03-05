@@ -38,13 +38,13 @@ async function findByEmail(
 
 async function find<T extends Prisma.UserFindUniqueArgs>(
   args: Prisma.SelectSubset<T, Prisma.UserFindUniqueArgs>
-): Promise<Prisma.UserGetPayload<T>> {
-  return prisma.user.findUniqueOrThrow(args);
+): Promise<Prisma.UserGetPayload<T> | null> {
+  return prisma.user.findUnique(args);
 }
 
 type PrismaSelectIncludeWithoutWhere = Omit<Prisma.UserFindUniqueArgs, 'where'>;
 async function findById(id: string, args?: PrismaSelectIncludeWithoutWhere) {
-  return prisma.user.findUniqueOrThrow({
+  return prisma.user.findUnique({
     where: { id },
     ...args
   });

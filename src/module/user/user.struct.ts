@@ -15,22 +15,6 @@ export const CreateUser = s.object({
 
 export const PatchUser = s.partial(CreateUser);
 
-export const CreateResident = s.object({
-  userId: s.optional(s.string()),
-  apartmentId: s.string(),
-  apartmentDong: s.string(),
-  apartmentHo: s.string(),
-  contact: s.string(),
-  name: s.string(),
-  email: s.string(),
-  isRegistered: s.literal(true),
-  isHouseholder: s.enums(['HOUSEHOLDER', 'MEMBER']),
-  residenceStatus: s.enums(['RESIDENCE', 'NO_RESIDENCE']),
-  approvalStatus: s.enums(['PENDING', 'APPROVED', 'REJECTED'])
-});
-
-export const PatchResident = s.partial(CreateResident);
-
 export const CreateAdmin = s.object({
   username: s.string(),
   password: s.string(), // hashed

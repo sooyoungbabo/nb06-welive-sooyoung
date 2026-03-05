@@ -4,7 +4,7 @@ import BadRequestError from './errors/BadRequestError';
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
 const FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
-const upload = multer({
+export const uploadImage = multer({
   storage: multer.memoryStorage(),
 
   limits: { fileSize: FILE_SIZE_LIMIT }, // 파일 크기 설정
@@ -19,4 +19,13 @@ const upload = multer({
   }
 });
 
-export default upload;
+export const uploadFile = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: FILE_SIZE_LIMIT },
+  fileFilter(req, file, cb) {
+    if (!['text/csv', 'application/vnd.ms-excel'].includes(file.mimetype)) {
+      return cb(new BadRequestError('CSV 파일만 가능합니다.'));
+    }
+    cb(null, true);
+  }
+});

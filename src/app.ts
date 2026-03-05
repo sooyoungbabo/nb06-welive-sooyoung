@@ -8,6 +8,7 @@ import { defaultNotFoundHandler, globalErrorHandler } from './middleware/errorHa
 import authRouter from './module/auth/auth.router';
 import userRouter from './module/user/user.router';
 import aptRouter from './module/apartment/apartment.router';
+import residentRouter from './module/resident/resident.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
 
 const app = express();
@@ -25,7 +26,7 @@ if (NODE_ENV === 'development') app.use('/images', express.static(STATIC_IMG_PAT
 app.use('/auth', authRouter);
 app.use('/users', userRouter);
 app.use('/apartments', aptRouter);
-// app.use('/residents', residentRouter);
+app.use('/residents', residentRouter);
 // app.use('/complaints', complaintRouter);
 // app.use('/polls', pollRouter);
 // app.use('/notices', noticeRouter);

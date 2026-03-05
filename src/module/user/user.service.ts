@@ -25,6 +25,8 @@ async function patchPassword(id: string, oldPassword: string, newPassword: strin
   if (oldPassword === newPassword) throw new BadRequestError('비밀번호가 같습니다.');
 
   const user = await userRepo.findById(id, { select: { password: true, name: true } });
+  if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
+
   if (!(await check_passwordValidity(oldPassword, user.password)))
     throw new ForbiddenError('현재 비밀번호가 틀렸습니다.');
 
@@ -51,6 +53,7 @@ async function postAvatar(file: Express.Multer.File, id: string) {
 
   // 출력 문구
   const user = await userRepo.findById(id, { select: { name: true } });
+  if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
   const message = `${user.name}님의 프로필 이미지가 성공적으로 업데이트되었습니다.`;
   return message;
 }
