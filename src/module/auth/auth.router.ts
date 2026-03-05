@@ -1,7 +1,9 @@
 import authControl from './auth.control';
 import withTryCatch from '../../lib/withTryCatch';
 import authenticate from '../../middleware/authenticate';
+import authorize from '../../middleware/authorize';
 import express from 'express';
+import { UserType } from '@prisma/client';
 // import { allowedUserKeys } from '../../lib/constants';
 // import { validateReqBody } from '../../middleware/validateReqBody';
 
@@ -24,22 +26,45 @@ authRouter.get('/refresh/view', withTryCatch(authControl.viewTokens)); // 토큰
 authRouter.patch(
   '/admins/:adminId/status',
   authenticate(),
+  authorize(UserType.SUPER_ADMIN),
   withTryCatch(authControl.changeAdminStatus)
 );
-authRouter.patch('/admins/status', authenticate(), withTryCatch(authControl.changeAllAdminsStatus));
+authRouter.patch(
+  '/admins/status',
+  authenticate(),
+  authorize(UserType.SUPER_ADMIN),
+  withTryCatch(authControl.changeAllAdminsStatus)
+);
 authRouter.patch(
   '/residents/:residentId/status',
   authenticate(),
+  authorize(UserType.ADMIN),
   withTryCatch(authControl.changeResidentStatus)
 );
 authRouter.patch(
   '/residents/status',
   authenticate(),
+  authorize(UserType.ADMIN),
   withTryCatch(authControl.changeAllResidentsStatus)
 );
 
-authRouter.patch('/admins/:adminId', authenticate(), withTryCatch(authControl.patchAdminApt));
-authRouter.delete('/admins/:adminId', authenticate(), withTryCatch(authControl.deleteAdminApt));
-authRouter.post('/cleanup', authenticate(), withTryCatch(authControl.cleanup));
+authRouter.patch(
+  '/admins/:adminId',
+  authenticate(),
+  authorize(UserType.SUPER_ADMIN),
+  withTryCatch(authControl.patchAdminApt)
+);
+authRouter.delete(
+  '/admins/:adminId',
+  authenticate(),
+  authorize(UserType.SUPER_ADMIN),
+  withTryCatch(authControl.deleteAdminApt)
+);
+authRouter.post(
+  '/cleanup',
+  authenticate(),
+  authorize(UserType.SUPER_ADMIN, UserType.ADMIN),
+  withTryCatch(authControl.cleanup)
+);
 
 export default authRouter;

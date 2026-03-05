@@ -10,6 +10,7 @@ import { PatchUser } from './user.struct';
 import imgStorage from '../../storage/image.storage';
 import userRepo from './user.repo';
 import { BASE_URL } from '../../lib/constants';
+import authService from '../auth/auth.service';
 
 async function getList(sortParam: Prisma.SortOrder) {
   const users = await userRepo.getList({ orderBy: { createdAt: sortParam } });
@@ -33,6 +34,7 @@ async function patchPassword(id: string, oldPassword: string, newPassword: strin
   const userData = { password: await hashingPassword(newPassword) };
   assert(userData, PatchUser);
   const newUser = await userRepo.patch(prisma, { where: { id }, data: userData });
+
   const message = `${user.name}님의 비밀번호가 성공적으로 업데이트되었습니다. 다시 로그인해주세요.`;
   return message;
 }
@@ -43,7 +45,11 @@ async function postAvatar(file: Express.Multer.File, id: string) {
   const normalizedExt = ext.toLowerCase().startsWith('.')
     ? ext.toLowerCase()
     : `.${ext.toLowerCase()}`;
-  const key = `welive/images/${id}${normalizedExt}`;
+
+  const user = await userRepo.find({ where: { id }, select: { username: true, name: true } });
+  if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
+  const key = `welive/images/${user.username}${normalizedExt}`;
+  //const key = `welive/images/${id}${normalizedExt}`;
 
   await imgStorage.saveImg(key, file);
   const newImageUrl = `${BASE_URL}/${key}`;
@@ -51,9 +57,7 @@ async function postAvatar(file: Express.Multer.File, id: string) {
   // DB에 새 imageUrl 저장
   await userRepo.patch(prisma, { where: { id }, data: { avatar: newImageUrl } });
 
-  // 출력 문구
-  const user = await userRepo.findById(id, { select: { name: true } });
-  if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
+  // 출력 문구;
   const message = `${user.name}님의 프로필 이미지가 성공적으로 업데이트되었습니다.`;
   return message;
 }

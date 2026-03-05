@@ -6,6 +6,7 @@ import NotFoundError from '../../middleware/errors/NotFoundError';
 import { assert } from 'node:console';
 import { PatchUser } from './user.struct';
 import { Prisma } from '@prisma/client';
+import authService from '../auth/auth.service';
 
 async function getList(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (NODE_ENV === 'development') {
@@ -36,12 +37,13 @@ async function patchPassword(req: Request, res: Response, next: NextFunction): P
   const { currentPassword, newPassword } = req.body;
   assert({ password: newPassword }, PatchUser);
   const message = await userService.patchPassword(req.user.id, currentPassword, newPassword);
+  authService.logout(res);
   res.status(200).send({ message });
 }
 
 async function postAvatar(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (!req.file) throw new BadRequestError('이미지 화일이 존재하지 않습니다');
-  const item = await userService.postAvatar(req.file, req.params.id as string);
+  const item = await userService.postAvatar(req.file, req.user.id);
   if (!item) throw new NotFoundError();
 
   res.status(201).json(item);

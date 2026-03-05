@@ -63,28 +63,29 @@ async function post(adminId: string, data: ResidentCreateRequestDto) {
   return resident;
 }
 
-async function user2resident(userId: string): Promise<Resident> {
-  const user = await userRepo.findById(userId);
-  let message: string;
-  if (!user) throw new BadRequestError('존재하지 않는 사용자입니다.');
-  if (!user.apartmentId) throw new BadRequestError('아파트ID가 없는 사용자입니다.');
+// 주강사님과의 협의로 안 만들기로 한 API
+// async function user2resident(userId: string): Promise<Resident> {
+//   const user = await userRepo.findById(userId);
+//   let message: string;
+//   if (!user) throw new BadRequestError('존재하지 않는 사용자입니다.');
+//   if (!user.apartmentId) throw new BadRequestError('아파트ID가 없는 사용자입니다.');
 
-  const resident = await residentRepo.find(prisma, { where: { userId } });
-  if (resident) throw new BadRequestError('이미 입주민 명부에 추가된 사용자입니다.');
+//   const resident = await residentRepo.find(prisma, { where: { userId } });
+//   if (resident) throw new BadRequestError('이미 입주민 명부에 추가된 사용자입니다.');
 
-  const data = {
-    apartmentDong: '999', // user에도 중복으로 넣어야 할 듯
-    apartmentHo: '999',
-    contact: user.contact,
-    name: user.name,
-    isHouseholder: HouseholdRole.HOUSEHOLDER
-  };
-  assert(data, CreateResident);
-  return await residentRepo.create(prisma, {
-    ...data,
-    apartment: { connect: { id: user.apartmentId } }
-  });
-}
+//   const data = {
+//     apartmentDong: '999', // user에도 중복으로 넣어야 할 듯
+//     apartmentHo: '999',
+//     contact: user.contact,
+//     name: user.name,
+//     isHouseholder: HouseholdRole.HOUSEHOLDER
+//   };
+//   assert(data, CreateResident);
+//   return await residentRepo.create(prisma, {
+//     ...data,
+//     apartment: { connect: { id: user.apartmentId } }
+//   });
+// }
 
 function buildResidentTemplateCsv(): string {
   return (
@@ -190,7 +191,6 @@ async function del(residentId: string) {
 export default {
   getList,
   post,
-  user2resident,
   buildResidentTemplateCsv,
   createManyFromFile,
   buildResidentListCsv,
