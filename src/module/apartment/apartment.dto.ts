@@ -24,7 +24,8 @@ export interface AptListPublicResponseDto {
 export interface AptListResponseDto {
   id: string;
   name: string;
-  apartmentManagementNumber: string;
+  address: string;
+  officeNumber: string;
   description: string;
   startComplexNumber: number;
   endComplexNumber: number;
@@ -45,7 +46,7 @@ export interface AptResponseDto {
   id: string;
   name: string;
   address: string;
-  apartmentManagementNumber: string;
+  officeNumber: string;
   description: string;
   startComplexNumber: number;
   endComplexNumber: number;
@@ -55,11 +56,30 @@ export interface AptResponseDto {
   endFloorNumber: number;
   startHoNumber: number;
   endHoNumber: number;
+  dongRange: {
+    start: number;
+    end: number;
+  };
+  hoRange: {
+    start: number;
+    end: number;
+  };
   apartmentStatus: ApprovalStatus;
-  adminId: string;
-  adminName: string;
-  adminContact: string;
-  adminEmail: string;
+}
+
+export interface AptPublicResponseDto {
+  id: string;
+  name: string;
+  address: string;
+  startComplexNumber: number;
+  endComplexNumber: number;
+  startDongNumber: number;
+  endDongNumber: number;
+  startFloorNumber: number;
+  endFloorNumber: number;
+  startHoNumber: number;
+  endHoNumber: number;
+  apartmentStatus: ApprovalStatus;
   dongRange: {
     start: number;
     end: number;
@@ -70,25 +90,7 @@ export interface AptResponseDto {
   };
 }
 
-export interface AptPublicResponseDto {
-  id: string;
-  name: string;
-  address: string;
-  startComplexNumber?: number;
-  endComplexNumber: number;
-  startDongNumber?: number;
-  endDongNumber: number;
-  startFloorNumber?: number;
-  endFloorNumber: number;
-  startHoNumber?: number;
-  endHoNumber: number;
-  apartmentStatus: ApprovalStatus;
-  dongRange: {
-    start: number;
-    end: number;
-  };
-  hoRange: {
-    start: number;
-    end: number;
-  };
-}
+// export interface ListResponseDto<T> {
+//   items: T[];
+//   count: number;
+// }

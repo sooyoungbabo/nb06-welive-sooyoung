@@ -2,6 +2,12 @@ import { Apartment, PrismaClient, Prisma } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
+async function getList<T extends Prisma.ApartmentFindManyArgs>(
+  args?: Prisma.SelectSubset<T, Prisma.ApartmentFindManyArgs>
+): Promise<Prisma.ApartmentGetPayload<T>[]> {
+  return prisma.apartment.findMany(args);
+}
+
 async function findByName(name: string): Promise<Apartment | null> {
   return prisma.apartment.findUnique({
     where: { name },
@@ -46,6 +52,7 @@ async function cleanup(db: DB, args: Prisma.ApartmentDeleteManyArgs): Promise<Pr
 }
 
 export default {
+  getList,
   findByName,
   findById,
   find,
