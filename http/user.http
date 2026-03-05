@@ -17,10 +17,10 @@ PATCH {{baseUrl}}/users/me/avatar
 Content-Type: multipart/form-data; boundary=MyBoundary
 
 --MyBoundary
-Content-Disposition: form-data; name="image"; filename="Hillie3.png"
+Content-Disposition: form-data; name="image"; filename="Frodo2.png"
 Content-Type: image/png
 
-< ./images/users/Hillie3.png
+< ./images/users/Frodo2.png
 --MyBoundary--
 
 ###
@@ -28,6 +28,6 @@ PATCH {{baseUrl}}/users/me/password
 Content-Type: application/json
 
 {
-  "currentPassword": "welive!",
+  "currentPassword": "password1!",
   "newPassword": "password0!"
 }

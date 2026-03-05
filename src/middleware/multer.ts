@@ -14,7 +14,6 @@ export const uploadImage = multer({
       const err = new BadRequestError('png, jpeg, jpg 확장자만 가능합니다.');
       return cb(err); //파일 확장자 확인
     }
-
     cb(null, true);
   }
 });

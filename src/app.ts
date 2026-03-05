@@ -10,6 +10,7 @@ import userRouter from './module/user/user.router';
 import aptRouter from './module/apartment/apartment.router';
 import residentRouter from './module/resident/resident.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
+console.log(NODE_ENV, STATIC_IMG_PATH);
 
 const app = express();
 app.use(express.json());

@@ -65,10 +65,10 @@ async function post(req: Request, res: Response, next: NextFunction) {
   res.status(201).json(buildResidentRes(resident));
 }
 
-async function user2resident(req: Request, res: Response, next: NextFunction) {
-  const resident = await residentService.user2resident(req.params.id as string);
-  res.status(201).json(buildResidentRes(resident));
-}
+// async function user2resident(req: Request, res: Response, next: NextFunction) {
+//   const resident = await residentService.user2resident(req.params.id as string);
+//   res.status(201).json(buildResidentRes(resident));
+// }
 
 async function downloadTemplate(req: Request, res: Response, next: NextFunction) {
   const csv = residentService.buildResidentTemplateCsv();
@@ -199,7 +199,6 @@ function getTimestamp(): string {
 export default {
   getList,
   post,
-  user2resident,
   downloadTemplate,
   createManyFromFile,
   downloadList,

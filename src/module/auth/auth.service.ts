@@ -121,7 +121,7 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
   return { userRes, accessToken, refreshToken };
 }
 
-function logout(userId: string, tokenData: Response): void {
+function logout(tokenData: Response): void {
   clearTokenCookies(tokenData);
 
   // const io = getIO();

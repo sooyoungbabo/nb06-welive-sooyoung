@@ -42,7 +42,7 @@ async function login(req: Request, res: Response, next: NextFunction): Promise<v
 }
 
 function logout(req: Request, res: Response, next: NextFunction) {
-  authService.logout(req.user.id, res);
+  authService.logout(res);
   res.status(200).send({ message: '사용자가 로그아웃 하였습니다' });
 }
 
