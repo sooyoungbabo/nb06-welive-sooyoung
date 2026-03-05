@@ -19,7 +19,7 @@ export function buildPagination(
   return { skip, take: limit };
 }
 
-export interface QueryBuilderInput<T = Record<string, unknown>> {
+export interface ResidentQueryBuilderInput {
   pagination?: {
     page?: string;
     limit?: string;
@@ -30,13 +30,12 @@ export interface QueryBuilderInput<T = Record<string, unknown>> {
     fields?: string[];
   };
 
-  filters?: Record<string, unknown>;
+  filters?: Record<string, any>;
 
-  exactFilters?: T;
+  exactFilters?: Record<string, any>;
 }
 
-//export function buildWhere(input: QueryBuilderInput) {
-export function buildWhere<T>(input: QueryBuilderInput<T>) {
+export function buildWhere(input: ResidentQueryBuilderInput) {
   const { searchKey, filters, exactFilters } = input;
 
   const where: any = {};

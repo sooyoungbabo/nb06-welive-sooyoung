@@ -12,22 +12,48 @@ type ResidentQuery = {
   limit?: string;
   building?: string;
   unitNumber?: string;
-  residenceStatus?: ResidenceStatus;
-  isRegistered?: boolean;
+  residenceStatus?: string;
+  isRegistered?: string;
   keyword?: string; //이름, 연락처
 };
-async function getList(req: Request<{}, {}, {}, ResidentQuery>, res: Response, next: NextFunction) {
-  const { page, limit } = req.query;
-  const { keyword } = req.query;
-  const { building: apartmentDong, unitNumber: apartmentHo } = req.query;
-  const { residenceStatus, isRegistered } = req.query;
 
-  const { residents, totalCount } = await residentService.getList(req.user.apartmentId as string, {
+function buildQueryParams(query: ResidentQuery) {
+  const { page, limit } = query;
+  const { keyword } = query;
+  const { building: apartmentDong, unitNumber: apartmentHo } = query;
+
+  const residenceStatus =
+    query.residenceStatus === undefined || query.residenceStatus === ''
+      ? undefined
+      : (query.residenceStatus as ResidenceStatus);
+
+  const isRegistered = query.isRegistered === undefined ? undefined : query.isRegistered === 'true';
+
+  return {
     pagination: { page, limit },
     searchKey: { keyword, fields: ['name', 'contact'] },
     filters: { apartmentDong, apartmentHo },
     exactFilters: { residenceStatus, isRegistered }
-  });
+  };
+}
+
+async function getList(req: Request<{}, {}, {}, ResidentQuery>, res: Response, next: NextFunction) {
+  const queryParms = buildQueryParams(req.query);
+  const { residents, totalCount } = await residentService.getList(
+    req.user.apartmentId as string,
+    queryParms
+  );
+  // const { page, limit } = req.query;
+  // const { keyword } = req.query;
+  // const { building: apartmentDong, unitNumber: apartmentHo } = req.query;
+  // const { residenceStatus, isRegistered } = req.query;
+
+  // const { residents, totalCount } = await residentService.getList(req.user.apartmentId as string, {
+  //   pagination: { page, limit },
+  //   searchKey: { keyword, fields: ['name', 'contact'] },
+  //   filters: { apartmentDong, apartmentHo },
+  //   exactFilters: { residenceStatus, isRegistered }
+  // });
 
   const resident2show = buildResidentListRes(residents);
   const count = resident2show.length;
@@ -74,6 +100,20 @@ async function createManyFromFile(req: Request, res: Response, next: NextFunctio
   const buffer = req.file.buffer;
   const count = await residentService.createManyFromFile(req.user.apartmentId as string, buffer);
   res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });
+}
+
+async function downloadList(req: Request, res: Response, next: NextFunction) {
+  const csv = '\ufeff' + residentService.buildResidentListCsv();
+  const filename = `아파트_입주민명부_${getTimestamp}.csv`;
+  const encoded = encodeURIComponent(filename);
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="residents.csv"; filename*=UTF-8''${encoded}`
+  );
+
+  res.send(csv);
 }
 
 async function get(req: Request, res: Response, next: NextFunction) {
@@ -140,12 +180,27 @@ function buildResidentRes(resident: Resident): ResidentListDto {
   };
 }
 
+function getTimestamp(): string {
+  const now = new Date();
+
+  const YYYY = now.getFullYear();
+  const MM = String(now.getMonth() + 1).padStart(2, '0');
+  const DD = String(now.getDate()).padStart(2, '0');
+
+  const HH = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+
+  return `${YYYY}-${MM}-${DD}-${HH}${mm}${ss}`;
+}
+
 export default {
   getList,
   post,
   user2resident,
   downloadTemplate,
   createManyFromFile,
+  downloadList,
   get,
   patch,
   del

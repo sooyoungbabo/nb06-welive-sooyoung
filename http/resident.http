@@ -2,7 +2,7 @@
 
 # 모두 관리자 권한
 ### 
-GET {{baseUrl}}/residents?keyword=정수영
+GET {{baseUrl}}/residents?residenceStatus=RESIDENCE
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json
@@ -28,7 +28,7 @@ Content-Type: application/json
 GET {{baseUrl}}/residents/file/template
 Accept: text/csv
 
-###
+### 파일로부터 입주민들 생성
 POST {{baseUrl}}/residents/from-file
 Content-Type: multipart/form-data; boundary=----MyBoundary
 

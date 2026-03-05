@@ -1,5 +1,4 @@
 import { ApprovalStatus, HouseholdRole, ResidenceStatus } from '@prisma/client';
-import { string } from 'superstruct';
 
 export interface ResidentDetailRequestDto {
   id: string;

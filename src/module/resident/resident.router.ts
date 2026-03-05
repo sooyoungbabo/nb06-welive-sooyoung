@@ -29,6 +29,8 @@ residentRouter.post(
   residentControl.createManyFromFile
 );
 
+residentRouter.get('/file', authenticate(), withTryCatch(residentControl.downloadList));
+
 residentRouter.get('/:id', authenticate(), withTryCatch(residentControl.get));
 residentRouter.patch('/:id', authenticate(), withTryCatch(residentControl.patch));
 residentRouter.delete('/:id', authenticate(), withTryCatch(residentControl.del));

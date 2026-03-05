@@ -1,20 +1,25 @@
-import { Resident, Prisma, HouseholdRole } from '@prisma/client';
+import { Resident, Prisma, HouseholdRole, ResidenceStatus } from '@prisma/client';
 import residentRepo from './resident.repo';
 import prisma from '../../lib/prisma';
 import userRepo from '../user/user.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
-import { QueryBuilderInput, WhereInputOf } from '../../lib/buildQuery';
+import { QueryBuilderInput } from '../../lib/buildQuery';
 import { ResidentCreateRequestDto } from './resident.dto';
 import { assert } from 'node:console';
-import { CreateResident, ResidentQueryStruct } from './resident.struct';
+import { CreateResident } from './resident.struct';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 
-type ResidentWhere = WhereInputOf<'Resident'>;
+//type ResidentWhere = WhereInputOf<'Resident'>;
+
+type ResidentExactFilters = {
+  residenceStatus?: ResidenceStatus;
+  isRegistered?: boolean;
+};
 
 async function getList(
   apartmentId: string,
-  input: QueryBuilderInput
+  input: QueryBuilderInput<ResidentExactFilters>
 ): Promise<{
   residents: Resident[];
   totalCount: number;
@@ -119,6 +124,14 @@ async function createManyFromFile(aptId: string, buffer: Buffer): Promise<number
   return residents.count;
 }
 
+function buildResidentListCsv(): string {
+  return [
+    `"동","호수","이름","연락처","세대주여부"`,
+    `"101","101","홍길동","01012345678","HOUSEHOLDER"`,
+    `"105","2008","김길동","01043215678","MEMBER"`
+  ].join('\n');
+}
+
 async function get(residentId: string): Promise<Resident> {
   const resident = await residentRepo.find(prisma, { where: { id: residentId } });
   if (!resident) throw new NotFoundError('입주민이 존재하지 않습니다.');
@@ -170,6 +183,7 @@ export default {
   user2resident,
   buildResidentTemplateCsv,
   createManyFromFile,
+  buildResidentListCsv,
   get,
   patch,
   del
