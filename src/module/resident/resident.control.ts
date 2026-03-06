@@ -6,6 +6,7 @@ import { PatchUser } from '../user/user.struct';
 import { Resident, ResidenceStatus } from '@prisma/client';
 import { ResidentCsvItem, ResidentListDto } from './resident.dto';
 import BadRequestError from '../../middleware/errors/BadRequestError';
+import { requireApartmentUser } from '../../lib/require';
 
 type ResidentQuery = {
   page?: string;
@@ -38,11 +39,9 @@ function buildQueryParams(query: ResidentQuery) {
 }
 
 async function getList(req: Request<{}, {}, {}, ResidentQuery>, res: Response, next: NextFunction) {
+  requireApartmentUser(req.user);
   const queryParms = buildQueryParams(req.query);
-  const { residents, totalCount } = await residentService.getList(
-    req.user.apartmentId as string,
-    queryParms
-  );
+  const { residents, totalCount } = await residentService.getList(req.user.apartmentId, queryParms);
 
   const resident2show = buildResidentListRes(residents);
   const count = resident2show.length;
@@ -61,7 +60,8 @@ async function post(req: Request, res: Response, next: NextFunction) {
     isHouseholder: req.body.isHouseholder
   };
   assert(data, PatchResident);
-  const resident = await residentService.post(req.user.id, data);
+  requireApartmentUser(req.user);
+  const resident = await residentService.post(req.user, data);
   res.status(201).json(buildResidentRes(resident));
 }
 
@@ -85,8 +85,9 @@ async function downloadTemplate(req: Request, res: Response, next: NextFunction)
 
 async function createManyFromFile(req: Request, res: Response, next: NextFunction) {
   if (!req.file) throw new BadRequestError('파일이 없습니다.');
+  requireApartmentUser(req.user);
   const buffer = req.file.buffer;
-  const count = await residentService.createManyFromFile(req.user.apartmentId as string, buffer);
+  const count = await residentService.createManyFromFile(req.user.apartmentId, buffer);
   res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });
 }
 
@@ -96,7 +97,8 @@ async function downloadList(
   next: NextFunction
 ) {
   const queryParms = buildQueryParams(req.query);
-  const { residents } = await residentService.getList(req.user.apartmentId as string, queryParms);
+  requireApartmentUser(req.user);
+  const { residents } = await residentService.getList(req.user.apartmentId, queryParms);
 
   const items: ResidentCsvItem[] = residents.map((r) => ({
     apartmentDong: r.apartmentDong,
@@ -119,7 +121,8 @@ async function downloadList(
 }
 
 async function get(req: Request, res: Response, next: NextFunction) {
-  const resident = await residentService.get(req.params.id as string);
+  requireApartmentUser(req.user);
+  const resident = await residentService.get(req.user.apartmentId, req.params.id as string);
   res.status(200).json(buildResidentRes(resident));
 }
 
@@ -137,12 +140,19 @@ async function patch(req: Request, res: Response, next: NextFunction) {
   };
   assert(residentData, PatchResident);
   assert(userData, PatchUser);
-  const resident = await residentService.patch(req.params.id as string, residentData, userData);
+  requireApartmentUser(req.user);
+  const resident = await residentService.patch(
+    req.user.apartmentId,
+    req.params.id as string,
+    residentData,
+    userData
+  );
   res.status(201).json(resident);
 }
 
 async function del(req: Request, res: Response, next: NextFunction) {
-  const resident = await residentService.del(req.params.id as string);
+  requireApartmentUser(req.user);
+  const resident = await residentService.del(req.user.apartmentId, req.params.id as string);
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다.' });
 }
 

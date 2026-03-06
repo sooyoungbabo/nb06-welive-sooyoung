@@ -8,7 +8,7 @@ import { QueryBuilderInput } from '../../lib/buildQuery';
 import { ResidentCreateRequestDto, ResidentCsvItem } from './resident.dto';
 import { assert } from 'node:console';
 import { CreateResident } from './resident.struct';
-import BadRequestError from '../../middleware/errors/BadRequestError';
+import { AuthUser } from '../../type/express';
 
 //type ResidentWhere = WhereInputOf<'Resident'>;
 
@@ -40,11 +40,7 @@ async function getList(
   return { residents, totalCount };
 }
 
-async function post(adminId: string, data: ResidentCreateRequestDto) {
-  const admin = await userRepo.find({ where: { id: adminId }, select: { apartmentId: true } });
-  if (!admin) throw new NotFoundError('관리자를 찾을 수 없습니다.');
-  if (!admin.apartmentId) throw new NotFoundError('관리자 계정에 아파트 ID가 없습니다.');
-
+async function post(admin: AuthUser, data: ResidentCreateRequestDto) {
   let resident;
   const residentData = {
     ...data,
@@ -106,7 +102,7 @@ req.file = {
   buffer: <Buffer ... >
 } */
 
-async function createManyFromFile(aptId: string, buffer: Buffer): Promise<number> {
+async function createManyFromFile(apartmentId: string, buffer: Buffer): Promise<number> {
   const text = buffer.toString('utf-8').replace(/^\uFEFF/, '');
 
   let residentData = [];
@@ -114,7 +110,7 @@ async function createManyFromFile(aptId: string, buffer: Buffer): Promise<number
   for (const row of rows) {
     const [dong, ho, name, contact, role] = row.replace(/"/g, '').split(',');
     const tempData = {
-      apartmentId: aptId,
+      apartmentId,
       apartmentDong: dong,
       apartmentHo: ho,
       name,
@@ -143,45 +139,47 @@ function buildResidentListCsv(data: ResidentCsvItem[]): string {
   return '\ufeff' + csv;
 }
 
-async function get(residentId: string): Promise<Resident> {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
+async function get(apartmentId: string, residentId: string): Promise<Resident> {
+  const resident = await residentRepo.find(prisma, { where: { id: residentId, apartmentId } });
   if (!resident) throw new NotFoundError('입주민이 존재하지 않습니다.');
   return resident;
 }
 
 async function patch(
+  apartmentId: string,
   residentId: string,
   residentData: Prisma.ResidentUpdateInput,
   userData: Prisma.UserUpdateInput
 ) {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
+  const resident = await residentRepo.find(prisma, { where: { id: residentId, apartmentId } });
   if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
   if (!resident.userId) {
     return await residentRepo.patch(prisma, {
-      where: { id: residentId },
+      where: { id: residentId, apartmentId },
       data: residentData
     });
   } else {
     const patched = await prisma.$transaction(async (tx) => {
       const resident = await residentRepo.patch(tx, {
-        where: { id: residentId },
+        where: { id: residentId, apartmentId },
         data: residentData
       });
-      await userRepo.patch(tx, { where: { id: resident.userId! }, data: userData });
+      await userRepo.patch(tx, { where: { id: resident.userId!, apartmentId }, data: userData });
       return resident;
     });
     return patched;
   }
 }
 
-async function del(residentId: string) {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
+async function del(apartmentId: string, residentId: string) {
+  const resident = await residentRepo.find(prisma, { where: { id: residentId, apartmentId } });
   if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
-  if (!resident.userId) return await residentRepo.del(prisma, { where: { id: residentId } });
+  if (!resident.userId)
+    return await residentRepo.del(prisma, { where: { id: residentId, apartmentId } });
   else {
     const deleted = await prisma.$transaction(async (tx) => {
-      const resident = await residentRepo.del(tx, { where: { id: residentId } });
-      const user = await userRepo.deleteById(tx, resident.userId!);
+      const resident = await residentRepo.del(tx, { where: { id: residentId, apartmentId } });
+      const user = await userRepo.del(tx, { where: { id: resident.userId!, apartmentId } });
       return resident;
     });
     return deleted;

@@ -41,6 +41,8 @@ import { AptSignupRequestDto } from '../apartment/apartment.dto';
 import ConflictError from '../../middleware/errors/ConflictError';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import { CreateResident } from '../resident/resident.struct';
+import { AuthUser } from '../../type/express';
+import { requireApartmentUser, requireUser } from '../../lib/require';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
   const aptArgs = {
@@ -183,7 +185,10 @@ async function changeAllAdminsStatus(status: JoinStatus) {
   else return `[슈퍼관리자] 관리자 ${adminsApproved.count}명의 가입신청을 기각했습니다.`;
 }
 
-async function changeResidentStatus(residentId: string, status: JoinStatus) {
+async function changeResidentStatus(user: AuthUser, residentId: string, status: JoinStatus) {
+  requireApartmentUser(user);
+  if (!(await isSameApartment(user.apartmentId, residentId))) throw new ForbiddenError();
+
   const approvalStatus = getApprovalStatus(status);
   const residentApproved = await prisma.$transaction(async (tx) => {
     const resident = await residentRepo.patch(tx, {
@@ -204,26 +209,18 @@ async function changeResidentStatus(residentId: string, status: JoinStatus) {
   else return `[관리자] ${apt.name}관리자가 ${residentApproved.name}의 가입요청을 기각했습니다.`;
 }
 
-async function changeAllResidentsStatus(adminId: string, status: JoinStatus) {
-  /* 현재 로직 상 강요할 수 있는 관계는...
-      (1) joinStatus.approved --> approvalStatus.approved
-      (2) approvalStatus.approved --> joinStatus.pending/approved
-       + approvalStatus.rejected --> joinStatus.rejected (?)
-  */
+async function changeAllResidentsStatus(user: AuthUser, status: JoinStatus) {
+  requireApartmentUser(user);
   const approvalStatus = getApprovalStatus(status);
-  const user = await userRepo.find({ where: { id: adminId }, select: { apartmentId: true } });
-  if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
-  const apartmentId = user.apartmentId;
-  if (!apartmentId) throw new NotFoundError('사용자 계정에 아파트가 존재하지 않습니다.');
-  const apt = await aptRepo.find({ where: { id: apartmentId } });
+  const apt = await aptRepo.find({ where: { id: user.apartmentId } });
 
   const userArgs = {
-    where: { apartmentId, role: UserType.USER, joinStatus: JoinStatus.PENDING },
+    where: { apartmentId: user.apartmentId, role: UserType.USER, joinStatus: JoinStatus.PENDING },
     data: { joinStatus: status }
   };
   const residentArgs = {
     where: {
-      apartmentId,
+      apartmentId: user.apartmentId,
       isRegistered: true,
       approvalStatus: ApprovalStatus.PENDING
     },
@@ -266,13 +263,12 @@ async function deleteAdminApt(adminId: string): Promise<User> {
   return adminSoftDeleted;
 }
 
-async function cleanup(id: string): Promise<string> {
-  const user = await userRepo.findById(id);
-  if (!user) throw new NotFoundError('슈퍼관리자/관리자가 없습니다.');
-  let userArgs: Prisma.UserDeleteManyArgs;
+async function cleanup(user: AuthUser): Promise<string> {
   let deleted;
   let message;
-  if (user.role === UserType.SUPER_ADMIN) {
+  let userArgs: Prisma.UserDeleteManyArgs;
+  requireUser(user);
+  if (user.userType === UserType.SUPER_ADMIN) {
     //user와 apt 정리
     userArgs = { where: { role: UserType.ADMIN, joinStatus: JoinStatus.REJECTED } };
     const aptArgs = { where: { apartmentStatus: ApprovalStatus.REJECTED } };
@@ -284,13 +280,12 @@ async function cleanup(id: string): Promise<string> {
     });
   } else {
     // user와 resident 정리
-    if (!user.apartmentId) throw new NotFoundError();
-    const apt = await aptRepo.findById(user.apartmentId);
+    requireApartmentUser(user);
     userArgs = {
-      where: { apartmentId: apt.id, role: UserType.USER, joinStatus: JoinStatus.REJECTED }
+      where: { apartmentId: user.apartmentId, role: UserType.USER, joinStatus: JoinStatus.REJECTED }
     };
     const residentArgs = {
-      where: { apartmentId: apt.id, approvalStatus: ApprovalStatus.REJECTED }
+      where: { apartmentId: user.apartmentId, approvalStatus: ApprovalStatus.REJECTED }
     };
     deleted = await prisma.$transaction(async (tx) => {
       const users = await userRepo.cleanup(tx, userArgs);
@@ -299,12 +294,19 @@ async function cleanup(id: string): Promise<string> {
     });
     message = '[관리자] 가입신청이 거절된 사용자 ';
   }
-
   message += `${deleted.count}건이 일괄정리되었습니다.`;
   return message;
 }
 
 //-------------------------------------------------------- local functions
+async function isSameApartment(apartmentId: string, residentId: string) {
+  const resident = await residentRepo.find(prisma, {
+    where: { id: residentId },
+    select: { apartmentId: true }
+  });
+  return resident?.apartmentId === apartmentId;
+}
+
 async function buildSignupUserData(body: UserSignupDto) {
   return {
     username: body.username,

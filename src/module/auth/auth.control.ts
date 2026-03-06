@@ -16,6 +16,7 @@ import {
   REFRESH_TOKEN_MAXAGE
 } from '../../lib/constants';
 import { PatchAdminAptRequestDto } from '../user/user.dto';
+import { requireUser, requireApartmentUser } from '../../lib/require';
 
 async function signup(req: Request, res: Response, next: NextFunction): Promise<void> {
   assert(req.body, UserSignupInputStruct);
@@ -87,7 +88,12 @@ async function changeResidentStatus(
 ): Promise<void> {
   const { residentId } = req.params;
   if (!residentId) throw new BadRequestError('입주민 ID가 필요합니다.');
-  const message = await authService.changeResidentStatus(residentId as string, req.body.status);
+  requireApartmentUser(req.user);
+  const message = await authService.changeResidentStatus(
+    req.user,
+    residentId as string,
+    req.body.status
+  );
   res.status(200).send({ message });
 }
 
@@ -96,7 +102,8 @@ async function changeAllResidentsStatus(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const message = await authService.changeAllResidentsStatus(req.user.id, req.body.status);
+  requireApartmentUser(req.user);
+  const message = await authService.changeAllResidentsStatus(req.user, req.body.status);
   res.status(200).send({ message });
 }
 
@@ -119,7 +126,7 @@ async function deleteAdminApt(req: Request, res: Response, next: NextFunction): 
 }
 
 async function cleanup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const message = await authService.cleanup(req.user.id);
+  const message = await authService.cleanup(req.user);
   res.status(201).send({ message });
 }
 

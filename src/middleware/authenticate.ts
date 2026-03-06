@@ -1,8 +1,15 @@
 import { verifyAccessToken } from '../lib/token';
 import authService from '../module/auth/auth.service';
+import residentService from '../module/resident/resident.service';
 import { Request, Response, NextFunction } from 'express';
 import UnauthorizedError from './errors/UnauthorizedError';
 import { ACCESS_TOKEN_COOKIE_NAME } from '../lib/constants';
+import residentRepo from '../module/resident/resident.repo';
+import prisma from '../lib/prisma';
+import apartmentRepo from '../module/apartment/apartment.repo';
+import userRepo from '../module/user/user.repo';
+import { UserType } from '@prisma/client';
+import { AdminSignupInputStruct } from '../module/user/user.struct';
 
 function authenticate(options?: { optional?: boolean }) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -13,8 +20,61 @@ function authenticate(options?: { optional?: boolean }) {
         throw new UnauthorizedError();
       }
       const { userId } = verifyAccessToken(accessToken);
+
       const user = await authService.verifyUserExist(userId);
-      req.user = user;
+      const apartmentId = user.apartmentId ?? undefined;
+
+      let adminId: string | undefined;
+      let residentId: string | undefined;
+      if (apartmentId) {
+        const [resident, admin] = await Promise.all([
+          residentRepo.find(prisma, { where: { userId: user.id } }),
+          userRepo.findFirst({
+            where: { apartmentId, role: UserType.ADMIN, deletedAt: null }
+          })
+        ]);
+        residentId = resident?.id;
+        adminId = admin?.id;
+      }
+
+      req.user = {
+        id: user.id,
+        userType: user.role,
+        apartmentId,
+        residentId,
+        adminId
+      };
+
+      // const { userId } = verifyAccessToken(accessToken);
+
+      // const user = await authService.verifyUserExist(userId);
+
+      // let adminId: string | undefined;
+
+      // if (user.apartmentId) {
+      //   const admin = await userRepo.findFirst({
+      //     where: {
+      //       apartmentId: user.apartmentId,
+      //       role: UserType.ADMIN,
+      //       deletedAt: null
+      //     }
+      //   });
+
+      //   adminId = admin?.id;
+      // }
+
+      // const resident = await residentRepo.find(prisma, {
+      //   where: { userId: user.id }
+      // });
+
+      // req.user = {
+      //   id: user.id,
+      //   userType: user.role,
+      //   apartmentId: user.apartmentId?? undefined,
+      //   adminId,
+      //   residentId: resident?.id
+      // };
+
       next();
     } catch (err) {
       next(err);

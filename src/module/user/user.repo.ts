@@ -42,6 +42,12 @@ async function find<T extends Prisma.UserFindUniqueArgs>(
   return prisma.user.findUnique(args);
 }
 
+async function findFirst<T extends Prisma.UserFindFirstArgs>(
+  args: Prisma.SelectSubset<T, Prisma.UserFindFirstArgs>
+): Promise<Prisma.UserGetPayload<T> | null> {
+  return prisma.user.findFirst(args);
+}
+
 type PrismaSelectIncludeWithoutWhere = Omit<Prisma.UserFindUniqueArgs, 'where'>;
 async function findById(id: string, args?: PrismaSelectIncludeWithoutWhere) {
   return prisma.user.findUnique({
@@ -61,6 +67,10 @@ async function patchMany(db: DB, args: Prisma.UserUpdateManyArgs): Promise<Prism
 async function deleteById(db: DB, id: string) {
   return db.user.delete({ where: { id } });
   //return db.user.update({ where: { id }, data: { deletedAt: new Date() } }); // soft delete 적용되면
+}
+
+async function del(db: DB, args: Prisma.UserDeleteArgs) {
+  return db.user.delete(args);
 }
 
 async function cleanup(db: DB, args: Prisma.UserDeleteManyArgs): Promise<Prisma.BatchPayload> {
@@ -108,7 +118,9 @@ export default {
   patchMany,
   findByEmail,
   find,
+  findFirst,
   findById,
+  del,
   deleteById,
   cleanup
 };
