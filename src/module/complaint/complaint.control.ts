@@ -4,6 +4,7 @@ import { requireApartmentUser, requireResidentUser, requireUser } from '../../li
 import { assert } from 'node:console';
 import { CreateComplaint, PatchComplaint } from './complaint.struct';
 import { ComplaintStatus, UserType } from '@prisma/client';
+import { ComplaintQueryDto } from './complaint.dto';
 
 async function create(req: Request, res: Response, next: NextFunction): Promise<void> {
   assert(req.body, CreateComplaint);
@@ -12,42 +13,10 @@ async function create(req: Request, res: Response, next: NextFunction): Promise<
   res.status(201).send({ message: '정상적으로 등록 처리되었습니다.' });
 }
 
-type ComplaintQuery = {
-  page?: string;
-  limit?: string; // default 20
-  status?: string; // ComplaintStatus, 후에 변환
-  isPublic: string; // boolean, 후에 변환
-  dong?: string;
-  ho?: string;
-  keyword?: string; // title, content
-};
-
-function buildQueryParams(query: ComplaintQuery) {
-  const { page, limit } = query;
-  const { dong, ho } = query;
-  const { keyword } = query;
-
-  const status =
-    query.status === undefined || query.status === ''
-      ? undefined
-      : (query.status as ComplaintStatus);
-
-  const isPublic = query.isPublic === undefined ? undefined : query.isPublic === 'true';
-
-  return {
-    pagination: { page, limit },
-    searchKey: { keyword, fields: ['title', 'content'] },
-    filters: { apartmentDong: dong, apartmentHo: ho },
-    exactFilters: { status, isPublic }
-  };
-}
-
 async function getList(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const query = req.query as ComplaintQuery;
-  const queryParams = buildQueryParams(query);
-
-  const { complaints, totalCount } = await complaintService.getList(req.user, queryParams);
-  res.status(200).json({ complaints, totalCount });
+  const query = req.query as ComplaintQueryDto;
+  const { complaints, totalCount } = await complaintService.getList(req.user, query);
+  res.status(200).json({ complaints, count: complaints.length, totalCount });
 }
 
 async function get(req: Request, res: Response, next: NextFunction): Promise<void> {

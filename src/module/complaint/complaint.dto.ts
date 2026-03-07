@@ -57,3 +57,13 @@ export interface ComplaintPatchRequestDto {
 }
 
 export type ComplaintPatchResDto = Omit<ComplaintDetailResDto, 'writerName'>;
+
+export type ComplaintQueryDto = {
+  page?: string;
+  limit?: string; // default 20
+  status?: string; // ComplaintStatus, 후에 변환
+  isPublic: string; // boolean, 후에 변환
+  dong?: string;
+  ho?: string;
+  keyword?: string; // title, content
+};

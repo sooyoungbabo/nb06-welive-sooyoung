@@ -2,8 +2,6 @@ import {
   BoardType,
   Complaint,
   Prisma,
-  User,
-  UserType,
   Comment,
   Resident,
   CommentType,
@@ -14,7 +12,6 @@ import complaintRepo from './complaint.repo';
 import commentRepo from '../comment/comment.repo';
 import residentRepo from '../resident/resident.repo';
 import boardRepo from '../board/board.repo';
-import { QueryBuilderInput } from '../../lib/buildQuery';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import {
   CommentResDto,
@@ -22,55 +19,51 @@ import {
   ComplaintDetailResDto,
   ComplaintListResDto,
   ComplaintPatchRequestDto,
-  ComplaintPatchResDto
+  ComplaintPatchResDto,
+  ComplaintQueryDto
 } from './complaint.dto';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import prisma from '../../lib/prisma';
 import { AuthUser } from '../../type/express';
-import UnauthorizedError from '../../middleware/errors/UnauthorizedError';
 import { requireApartmentUser, requireResidentUser, requireUser } from '../../lib/require';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
 
-async function create(creator: AuthUser, data: ComplaintCreateRequestDto) {
-  requireResidentUser(creator);
-
+async function create(user: AuthUser, data: ComplaintCreateRequestDto) {
+  requireResidentUser(user);
+  const boardId = await getBoardId(user.apartmentId, CommentType.COMPLAINT);
   const complaintData: Prisma.ComplaintCreateInput = {
     title: data.title,
     content: data.content,
     isPublic: data.isPublic,
     status: data.status,
-    creator: { connect: { id: creator.id } },
-    board: { connect: { id: data.boardId } },
-    admin: { connect: { id: creator.adminId } }
+    creator: { connect: { id: user.id } },
+    board: { connect: { id: boardId } },
+    admin: { connect: { id: user.adminId } }
   };
   return await complaintRepo.create(complaintData);
 }
 
-type ComplaintExactFilters = {
-  status?: ComplaintStatus;
-  isPublic?: boolean;
-};
-
 async function getList(
   user: AuthUser,
-  input: QueryBuilderInput<ComplaintExactFilters>
+  query: ComplaintQueryDto
 ): Promise<{ complaints: ComplaintListResDto[]; totalCount: number }> {
+  const queryParams = buildQueryParams(query);
+  const { skip, take } = buildPagination(queryParams.pagination, {
+    limitDefault: 20,
+    limitMax: 100
+  });
+
   requireApartmentUser(user);
   const boardId = await getBoardId(user.apartmentId, BoardType.COMPLAINT);
 
-  const pageInfo = input.pagination
-    ? buildPagination(input.pagination, { limitDefault: 20, limitMax: 100 })
-    : { skip: 0, take: 10 };
-  const { skip, take } = pageInfo;
-
   let where: Prisma.ComplaintWhereInput = buildWhere({
-    searchKey: input.searchKey,
-    //filters: input.filters, // 관계형 피드임
-    exactFilters: { ...input.exactFilters, boardId }
+    searchKey: queryParams.searchKey,
+    //filters: queryParams.filters, // 관계형 필드
+    exactFilters: { ...queryParams.exactFilters, boardId }
   });
 
-  const { apartmentDong, apartmentHo } = input.filters ?? {};
-
+  //filters: dong, ho  // 관계형 필드 추가
+  const { apartmentDong, apartmentHo } = queryParams.filters ?? {};
   if (apartmentDong || apartmentHo) {
     where = {
       ...where,
@@ -90,7 +83,7 @@ async function getList(
 }
 
 async function get(userId: string, complaintId: string): Promise<ComplaintDetailResDto> {
-  if (!(await isMyApartment(userId, complaintId))) throw new ForbiddenError();
+  if (!(await isMyComplaint(userId, complaintId))) throw new ForbiddenError();
 
   const complaint = await complaintRepo.patch({
     where: { id: complaintId },
@@ -126,10 +119,6 @@ async function patch(
   const resident = await residentRepo.find(prisma, { where: { userId: complaint.creatorId } });
   if (!resident) throw new NotFoundError('민원 작성자가 입주민 명부에 존재하지 않습니다.');
 
-  // 민원 작성자나 관리자만 수정할 수 있음
-  // if (user.id !== complaint.creatorId && user.userType !== UserType.ADMIN)
-  //   throw new UnauthorizedError('본인이 작성한 민원만 수정할 수 있습니다.');
-
   const comments = await commentRepo.findMany({
     where: { targetId: complaint.id, targetType: CommentType.COMPLAINT }
   });
@@ -148,10 +137,6 @@ async function del(user: AuthUser, complaintId: string): Promise<void> {
     select: { creatorId: true }
   });
   if (!complaint) throw new NotFoundError('민원이 존재하지 않습니다.');
-
-  // 민원 작성자나 관리자만 수정할 수 있음
-  // if (user.id !== complaint.creatorId && user.userType !== UserType.ADMIN)
-  //   throw new UnauthorizedError('본인이 작성한 민원만 삭제할 수 있습니다.');
 
   await complaintRepo.del({ where: { id: complaintId } });
 }
@@ -179,6 +164,7 @@ async function changeStatus(
 
   return buildComplaintRes(complaint, comments, resident);
 }
+
 //------------------------------------------
 async function isMyComplaint(userId: string, complaintId: string) {
   const complaint = await complaintRepo.find({
@@ -201,6 +187,26 @@ async function getBoardId(apartmentId: string, boardType: BoardType): Promise<st
   });
   if (!board) throw new NotFoundError('민원 보드가 없습니다.');
   return board[0].id;
+}
+
+function buildQueryParams(query: ComplaintQueryDto) {
+  const { page, limit } = query;
+  const { dong, ho } = query;
+  const { keyword } = query;
+
+  const status =
+    query.status === undefined || query.status === ''
+      ? undefined
+      : (query.status as ComplaintStatus);
+
+  const isPublic = query.isPublic === undefined ? undefined : query.isPublic === 'true';
+
+  return {
+    pagination: { page, limit },
+    searchKey: { keyword, fields: ['title', 'content'] },
+    filters: { apartmentDong: dong, apartmentHo: ho },
+    exactFilters: { status, isPublic }
+  };
 }
 
 async function buildComplaintRes(

@@ -5,7 +5,7 @@ import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import { assert } from 'node:console';
 import { PatchUser } from './user.struct';
-import { Prisma, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import authService from '../auth/auth.service';
 import { requireUser } from '../../lib/require';
 

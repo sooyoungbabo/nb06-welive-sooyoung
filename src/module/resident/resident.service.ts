@@ -1,46 +1,54 @@
 import { Resident, Prisma, HouseholdRole, ResidenceStatus } from '@prisma/client';
+import fs from 'fs/promises';
+import path from 'path';
 import residentRepo from './resident.repo';
 import prisma from '../../lib/prisma';
 import userRepo from '../user/user.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
-import { QueryBuilderInput } from '../../lib/buildQuery';
-import { ResidentCreateRequestDto, ResidentCsvItem } from './resident.dto';
+import {
+  ResidentCreateRequestDto,
+  ResidentCsvItem,
+  ResidentListDto,
+  ResidentQueryDto
+} from './resident.dto';
 import { assert } from 'node:console';
 import { CreateResident } from './resident.struct';
 import { AuthUser } from '../../type/express';
+import { getTimestamp } from '../../lib/myFuns';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
 
-//type ResidentWhere = WhereInputOf<'Resident'>;
-
-type ResidentExactFilters = {
-  residenceStatus?: ResidenceStatus;
-  isRegistered?: boolean;
-};
+// type ResidentExactFilters = {
+//   residenceStatus?: ResidenceStatus;
+//   isRegistered?: boolean;
+// };
 
 async function getList(
   apartmentId: string,
-  input: QueryBuilderInput<ResidentExactFilters>
+  query: ResidentQueryDto
 ): Promise<{
-  residents: Resident[];
+  residents: ResidentListDto[];
   totalCount: number;
 }> {
-  const pagination = input.pagination
-    ? buildPagination(input.pagination, { limitDefault: 20, limitMax: 100 })
-    : { skip: 0, take: 10 };
-  const { skip, take } = pagination;
-
+  const queryParams = buildQueryParams(query);
+  const { skip, take } = buildPagination(queryParams.pagination, {
+    limitDefault: 20,
+    limitMax: 100
+  });
   const where: Prisma.ResidentWhereInput = buildWhere({
-    searchKey: input.searchKey,
-    filters: input.filters,
-    exactFilters: { ...input.exactFilters, apartmentId }
+    searchKey: queryParams.searchKey,
+    filters: queryParams.filters,
+    exactFilters: { ...queryParams.exactFilters, apartmentId }
   });
 
   const totalCount = await residentRepo.count(where);
-  const residents = await residentRepo.getList(where, skip, take);
+  const rawResidents = await residentRepo.getList(where, skip, take);
+  const residents = buildResidentListRes(rawResidents);
+
   return { residents, totalCount };
 }
 
-async function post(admin: AuthUser, data: ResidentCreateRequestDto) {
+async function post(admin: AuthUser, data: ResidentCreateRequestDto): Promise<ResidentListDto> {
   let resident;
   const residentData = {
     ...data,
@@ -51,12 +59,13 @@ async function post(admin: AuthUser, data: ResidentCreateRequestDto) {
 
   if (!user) resident = await residentRepo.create(prisma, residentData);
   else
+    // 현재는 이런 경우가 있을 수 없음. 입주민 user 계정이 만들어질 때 resident도 생성되므로
     resident = await residentRepo.create(prisma, {
       ...residentData,
       user: { connect: { id: user.id } }
     });
 
-  return resident;
+  return buildResidentRes(resident);
 }
 
 // 주강사님과의 협의로 안 만들기로 한 API
@@ -83,7 +92,7 @@ async function post(admin: AuthUser, data: ResidentCreateRequestDto) {
 //   });
 // }
 
-function buildResidentTemplateCsv(): string {
+function downloadTemplateCsv(): string {
   return (
     '\ufeff' +
     [
@@ -124,25 +133,51 @@ async function createManyFromFile(apartmentId: string, buffer: Buffer): Promise<
   return residents.count;
 }
 
-function buildResidentListCsv(data: ResidentCsvItem[]): string {
-  if (data.length === 0) return '입주민 명부가 없습니다.';
+async function downloadListCsv(apartmentId: string, query: ResidentQueryDto): Promise<string> {
+  const queryParams = buildQueryParams(query);
+  const { skip, take } = buildPagination(queryParams.pagination, {
+    limitDefault: 20,
+    limitMax: 100
+  });
+  const where: Prisma.ResidentWhereInput = buildWhere({
+    searchKey: queryParams.searchKey,
+    filters: queryParams.filters,
+    exactFilters: { ...queryParams.exactFilters, apartmentId }
+  });
+
+  const residents = await residentRepo.getList(where, skip, take);
+
+  const items: ResidentCsvItem[] = residents.map((r) => ({
+    apartmentDong: r.apartmentDong,
+    apartmentHo: r.apartmentHo,
+    name: r.name,
+    contact: r.contact,
+    isHouseholder: r.isHouseholder
+  }));
+
+  if (residents.length === 0) return '입주민 명부가 없습니다.';
   const header = ['동', '호수', '이름', '연락처', '세대주여부'];
 
-  const rows = data.map((d) =>
-    [d.apartmentDong, d.apartmentHo, d.name, d.contact, d.isHouseholder]
+  const rows = residents.map((r) =>
+    [r.apartmentDong, r.apartmentHo, r.name, r.contact, r.isHouseholder]
       .map((v) => `"${v}"`)
       .join(',')
   );
 
-  const csv = [header.join(','), ...rows].join('\n');
+  const csv = '\ufeff' + [header.join(','), ...rows].join('\n');
 
-  return '\ufeff' + csv;
+  // file에 저장
+  const savedFilePath = await saveCsv(csv);
+  console.log(savedFilePath);
+
+  return csv;
 }
 
-async function get(apartmentId: string, residentId: string): Promise<Resident> {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId, apartmentId } });
+async function get(apartmentId: string, residentId: string): Promise<ResidentListDto> {
+  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
   if (!resident) throw new NotFoundError('입주민이 존재하지 않습니다.');
-  return resident;
+  if (resident.apartmentId != apartmentId) throw new ForbiddenError();
+  return buildResidentRes(resident);
 }
 
 async function patch(
@@ -172,8 +207,10 @@ async function patch(
 }
 
 async function del(apartmentId: string, residentId: string) {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId, apartmentId } });
+  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
   if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
+  if (resident.apartmentId != apartmentId) throw new ForbiddenError();
+
   if (!resident.userId)
     return await residentRepo.del(prisma, { where: { id: residentId, apartmentId } });
   else {
@@ -186,12 +223,77 @@ async function del(apartmentId: string, residentId: string) {
   }
 }
 
+//-----------------------------------------------------------
+function buildQueryParams(query: ResidentQueryDto) {
+  const { page, limit } = query;
+  const { keyword } = query;
+  const { building: apartmentDong, unitNumber: apartmentHo } = query;
+
+  const residenceStatus =
+    query.residenceStatus === undefined || query.residenceStatus === ''
+      ? undefined
+      : (query.residenceStatus as ResidenceStatus);
+
+  const isRegistered = query.isRegistered === undefined ? undefined : query.isRegistered === 'true';
+
+  return {
+    pagination: { page, limit },
+    searchKey: { keyword, fields: ['name', 'contact'] },
+    filters: { apartmentDong, apartmentHo },
+    exactFilters: { residenceStatus, isRegistered }
+  };
+}
+
+function buildResidentListRes(data: Resident[]): ResidentListDto[] {
+  return data.map((d) => {
+    return {
+      id: d.id,
+      userId: d.userId,
+      building: d.apartmentDong,
+      unitNumber: d.apartmentHo,
+      contact: d.contact,
+      name: d.name,
+      residenceStatus: d.residenceStatus,
+      isHouseholder: d.isHouseholder,
+      isRegistered: d.isRegistered,
+      approvalStatus: d.approvalStatus,
+      email: d.email
+    };
+  });
+}
+
+function buildResidentRes(resident: Resident): ResidentListDto {
+  return {
+    id: resident.id,
+    userId: resident.userId,
+    building: resident.apartmentDong,
+    unitNumber: resident.apartmentHo,
+    contact: resident.contact,
+    name: resident.name,
+    email: resident.email,
+    residenceStatus: resident.residenceStatus,
+    isHouseholder: resident.isHouseholder,
+    isRegistered: resident.isRegistered,
+    approvalStatus: resident.approvalStatus
+  };
+}
+
+async function saveCsv(csv: string) {
+  const dir = path.join(process.cwd(), 'downloads');
+  const filePath = path.join(dir, `아파트_입주민명부_${getTimestamp()}.csv`);
+
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(filePath, csv, 'utf-8');
+
+  return filePath;
+}
+
 export default {
   getList,
   post,
-  buildResidentTemplateCsv,
+  downloadTemplateCsv,
   createManyFromFile,
-  buildResidentListCsv,
+  downloadListCsv,
   get,
   patch,
   del

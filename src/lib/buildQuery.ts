@@ -1,22 +1,23 @@
 import { Prisma, ResidenceStatus } from '@prisma/client';
 
-export type WhereInputOf<T extends keyof Prisma.TypeMap['model']> =
-  Prisma.TypeMap['model'][T]['operations']['findMany']['args']['where'];
+// export type WhereInputOf<T extends keyof Prisma.TypeMap['model']> =
+//   Prisma.TypeMap['model'][T]['operations']['findMany']['args']['where'];
 
 export function buildPagination(
-  params: { page?: string; limit?: string },
+  params?: { page?: string; limit?: string },
   limitOptions?: { limitDefault?: number; limitMax?: number }
-): {
-  skip: number;
-  take: number;
-} {
-  const page = Math.max(1, Number(params.page ?? '1'));
+) {
+  const page = Math.max(1, Number(params?.page ?? '1'));
+
   const maxLimit = limitOptions?.limitMax ?? 100;
   const defaultLimit = limitOptions?.limitDefault ?? 10;
-  const limit = Math.min(Math.max(1, Number(params.limit ?? defaultLimit)), maxLimit);
 
-  const skip = (page - 1) * limit;
-  return { skip, take: limit };
+  const limit = Math.min(Math.max(1, Number(params?.limit ?? defaultLimit)), maxLimit);
+
+  return {
+    skip: (page - 1) * limit,
+    take: limit
+  };
 }
 
 export interface QueryBuilderInput<T = Record<string, unknown>> {
@@ -35,7 +36,6 @@ export interface QueryBuilderInput<T = Record<string, unknown>> {
   exactFilters?: T;
 }
 
-//export function buildWhere(input: QueryBuilderInput) {
 export function buildWhere<T>(input: QueryBuilderInput<T>) {
   const { searchKey, filters, exactFilters } = input;
 

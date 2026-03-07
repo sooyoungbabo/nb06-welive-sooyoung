@@ -90,7 +90,11 @@ export interface AptPublicResponseDto {
   };
 }
 
-// export interface ListResponseDto<T> {
-//   items: T[];
-//   count: number;
-// }
+export type ApartmentQuery = {
+  keyword?: string;
+  name?: string;
+  address?: string;
+  apartmentStatus?: string;
+  page?: string;
+  limit?: string;
+};
