@@ -11,7 +11,7 @@ async function getList(
   return await prisma.resident.findMany({
     where,
     skip: skip ?? 0,
-    take: take ?? 10,
+    take: take ?? 20,
     orderBy: { createdAt: 'desc' }
   });
 }

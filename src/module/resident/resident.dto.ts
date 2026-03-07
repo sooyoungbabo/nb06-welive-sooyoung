@@ -28,17 +28,6 @@ export interface ResidentListDto {
   email?: string | null;
 }
 
-export interface ResidentQueryDto {
-  page: string;
-  limit: string;
-  address: string;
-  building: string;
-  unitNumber: string;
-  residenceStatus: ResidenceStatus;
-  isRegistered: boolean;
-  keyword: string;
-}
-
 export interface ResidentCreateRequestDto {
   apartmentDong: string;
   apartmentHo: string;
@@ -55,18 +44,12 @@ export type ResidentCsvItem = {
   isHouseholder: string;
 };
 
-// export interface ResidentDto extends Omit<ResidentListDto, 'email'> {
-//   apartmentId: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
-
-// export interface UserPatchDto {
-//   contact: string;
-//   name: string;
-// }
-// export interface ResidentPatchDto extends UserPatchDto {
-//   apartmentDong: number;
-//   apartmentHo: number;
-//   isHouseholder: HouseholdRole;
-// }
+export type ResidentQueryDto = {
+  page?: string;
+  limit?: string;
+  building?: string;
+  unitNumber?: string;
+  residenceStatus?: string;
+  isRegistered?: string;
+  keyword?: string; //이름, 연락처
+};

@@ -9,8 +9,8 @@ Content-Type: application/json
 
 {
   "building": "102",
-  "unitNumber": "601",
-  "contact": "010-2320-6193",
+  "unitNumber": "301",
+  "contact": "010-2320-6192",
   "name": "홍길동",
   "isHouseholder": "HOUSEHOLDER"
 }
@@ -41,13 +41,15 @@ Content-Type: text/csv
 ------MyBoundary--
 
 ### 입주민 목록 다운로드
+GET {{baseUrl}}/residents/file?limit=10
+###
 GET {{baseUrl}}/residents/file?isRegistered=false
 
 ### 입주민 상세 조회
-GET {{baseUrl}}/residents/fb5176f7-f041-4a80-88a5-88677dd13f49
+GET {{baseUrl}}/residents/242e30d0-eca5-4b28-87ab-e549a90e4f89
 ###
 
-PATCH {{baseUrl}}/residents/fb5176f7-f041-4a80-88a5-88677dd13f49
+PATCH {{baseUrl}}/residents/e45783a5-33c4-45a5-9b7c-be01d9200332
 Content-Type: application/json
 
 {
@@ -57,5 +59,6 @@ Content-Type: application/json
   "name": "정수영",
   "isHouseholder": "HOUSEHOLDER"
 }
+
 ###
-DELETE {{baseUrl}}/residents/892173aa-ce09-4965-9e33-e1aceaa42e37
+DELETE {{baseUrl}}/residents/e45783a5-33c4-45a5-9b7c-be01d9200332

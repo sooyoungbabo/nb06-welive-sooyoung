@@ -10,7 +10,6 @@ import { PatchUser } from './user.struct';
 import imgStorage from '../../storage/image.storage';
 import userRepo from './user.repo';
 import { BASE_URL } from '../../lib/constants';
-import authService from '../auth/auth.service';
 
 async function getList(sortParam: Prisma.SortOrder) {
   const users = await userRepo.getList({ orderBy: { createdAt: sortParam } });
@@ -19,7 +18,10 @@ async function getList(sortParam: Prisma.SortOrder) {
 }
 
 async function get(id: string) {
-  return await userRepo.findById(id, { include: { resident: true, apartment: true } });
+  const user = await userRepo.findById(id, { include: { resident: true, apartment: true } });
+  if (!user) throw new NotFoundError('사용자를 찾을 수 없습니다.');
+  const { password, ...rest } = user;
+  return rest;
 }
 
 async function patchPassword(id: string, oldPassword: string, newPassword: string) {

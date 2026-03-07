@@ -1,11 +1,13 @@
 @baseUrl = http://localhost:3000
 
 ### 공개
+GET {{baseUrl}}/apartments/public
+### 공개
 GET {{baseUrl}}/apartments/public?address=나팔꽃
 ### 공개
 GET {{baseUrl}}/apartments/public/bc14a715-5e96-4724-876e-e3a92b42c341
 
 ### 슈퍼관리자/관리자
-GET {{baseUrl}}/apartments?limit=2
+GET {{baseUrl}}/apartments?limit=4
 ### 슈퍼관리자/관리자
-GET {{baseUrl}}/apartments/9b6f2ca0-f788-47be-9548-94cdedfc1ae7
+GET {{baseUrl}}/apartments/804ff47c-ce1e-4328-9f7c-50943ad3e328
