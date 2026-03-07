@@ -14,7 +14,7 @@ CREATE TYPE "ResidenceStatus" AS ENUM ('RESIDENCE', 'NO_RESIDENCE');
 CREATE TYPE "HouseholdRole" AS ENUM ('HOUSEHOLDER', 'MEMBER');
 
 -- CreateEnum
-CREATE TYPE "ComplaintStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'REJECTED');
+CREATE TYPE "ComplaintStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED');
 
 -- CreateEnum
 CREATE TYPE "PollStatus" AS ENUM ('UPCOMING', 'ONGOING', 'CLOSED');
@@ -29,7 +29,7 @@ CREATE TYPE "BoardType" AS ENUM ('NOTICE', 'POLL', 'COMPLAINT');
 CREATE TYPE "CommentType" AS ENUM ('NOTICE', 'COMPLAINT');
 
 -- CreateEnum
-CREATE TYPE "NotificationType" AS ENUM ('ADMIN_APPLIED', 'USER_APPLIED', 'NOTICE', 'COMPLAINT_RAISED', 'COMPLAINT_RESOLVED', 'POLL_START', 'POLL_CLOSED');
+CREATE TYPE "NotificationType" AS ENUM ('AUTH_ADMIN_APPLIED', 'AUTH_USER_APPLIED', 'NOTICE', 'COMPLAINT_RAISED', 'COMPLAINT_RESOLVED', 'POLL_START', 'POLL_CLOSED');
 
 -- CreateEnum
 CREATE TYPE "EventType" AS ENUM ('POLL', 'NOTICE');
@@ -63,7 +63,7 @@ CREATE TABLE "residents" (
     "contact" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT,
-    "isRegistered" BOOLEAN NOT NULL DEFAULT false,
+    "isRegistered" BOOLEAN NOT NULL DEFAULT true,
     "isHouseholder" "HouseholdRole" NOT NULL DEFAULT 'HOUSEHOLDER',
     "residenceStatus" "ResidenceStatus" NOT NULL DEFAULT 'RESIDENCE',
     "approvalStatus" "ApprovalStatus" NOT NULL DEFAULT 'PENDING',

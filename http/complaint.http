@@ -37,6 +37,6 @@ PATCH {{baseUrl}}/complaints/0014961a-0fc8-4146-a33b-821508b9e8a0/status
 Content-Type: application/json
 
 {
-  "status": "COMPLETED"
+  "status": "RESOLVED"
 }
 

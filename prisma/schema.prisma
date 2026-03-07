@@ -307,7 +307,7 @@ enum HouseholdRole {
 enum ComplaintStatus {
   PENDING
   IN_PROGRESS
-  COMPLETED
+  RESOLVED
   REJECTED
 }
 
@@ -338,8 +338,8 @@ enum CommentType {
 }
 
 enum NotificationType {
-  ADMIN_APPLIED
-  USER_APPLIED
+  AUTH_ADMIN_APPLIED
+  AUTH_USER_APPLIED
   NOTICE
   COMPLAINT_RAISED
   COMPLAINT_RESOLVED
