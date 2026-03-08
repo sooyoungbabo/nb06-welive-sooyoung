@@ -3,7 +3,7 @@ import userControl from './user.control';
 import withTryCatch from '../../lib/withTryCatch';
 import authenticate from '../../middleware/authenticate';
 import { uploadImage } from '../../middleware/multer';
-import { validateParams } from '../../middleware/validateParams';
+import { validateParams } from '../../middleware/validateReq';
 import { userParams } from './user.schema';
 
 const userRouter = express.Router();

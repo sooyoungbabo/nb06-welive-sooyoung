@@ -1,6 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
-import { Struct, assert } from 'superstruct';
+import { Struct, StructError, assert } from 'superstruct';
 import BadRequestError from './errors/BadRequestError';
+
+export function validateParams(schema: Struct<any, any>) {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      assert(req.params, schema);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
 
 export function validateQuery(schema: Struct<any, any>, shape: Record<string, any>) {
   return (req: Request, _res: Response, next: NextFunction) => {
@@ -20,6 +31,21 @@ export function validateQuery(schema: Struct<any, any>, shape: Record<string, an
       const field = err.path?.[0] ?? 'query';
 
       throw new BadRequestError(`${field} 값이 올바르지 않습니다.`);
+    }
+  };
+}
+
+export function validateBody(schema: Struct<any, any>) {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      assert(req.body, schema);
+      next();
+    } catch (err) {
+      if (err instanceof StructError) {
+        const failure = [...err.failures()][0];
+
+        throw new BadRequestError(`${failure.key} 값이 올바르지 않습니다.`);
+      }
     }
   };
 }

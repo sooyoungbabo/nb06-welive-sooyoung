@@ -4,17 +4,16 @@ import authenticate from '../../middleware/authenticate';
 import authorize from '../../middleware/authorize';
 import express from 'express';
 import { UserType } from '@prisma/client';
-import { validateBody } from '../../middleware/validateBody';
+import { validateParams, validateBody } from '../../middleware/validateReq';
 import {
   adminSignupBody,
   authParams,
+  authStatusBody,
   loginBody,
   patchAdminBody,
-  statusBody,
   superAdminSignupBody,
   userSignupBody
 } from './auth.schema';
-import { validateParams } from '../../middleware/validateParams';
 
 const authRouter = express.Router();
 
@@ -45,28 +44,29 @@ authRouter.patch(
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
   validateParams(authParams),
-  validateBody(statusBody),
+  validateBody(authStatusBody),
   withTryCatch(authControl.changeAdminStatus)
 );
 authRouter.patch(
   '/admins/status',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
-  validateBody(statusBody),
+  validateBody(authStatusBody),
   withTryCatch(authControl.changeAllAdminsStatus)
 );
 authRouter.patch(
   '/residents/:residentId/status',
   authenticate(),
   authorize(UserType.ADMIN),
-  validateBody(statusBody),
+  validateParams(authParams),
+  validateBody(authStatusBody),
   withTryCatch(authControl.changeResidentStatus)
 );
 authRouter.patch(
   '/residents/status',
   authenticate(),
   authorize(UserType.ADMIN),
-  validateBody(statusBody),
+  validateBody(authStatusBody),
   withTryCatch(authControl.changeAllResidentsStatus)
 );
 
@@ -76,7 +76,6 @@ authRouter.patch(
   authorize(UserType.SUPER_ADMIN),
   validateParams(authParams),
   validateBody(patchAdminBody),
-
   withTryCatch(authControl.patchAdminApt)
 );
 authRouter.delete(

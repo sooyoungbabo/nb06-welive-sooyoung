@@ -11,7 +11,7 @@ Content-Type: application/json
   "name": "가슴아픈바우",
   "email": "bawoo@test.com",
   "role": "USER",
-  "apartmentName": "아파트1",
+  "apartmentName": "힐리아파트",
   "apartmentDong": "101",
   "apartmentHo": "101"
 }
@@ -62,7 +62,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin1",
+  "username": "admin0",
   "password": "password0!"
 }
 
@@ -78,7 +78,7 @@ GET {{baseUrl}}/auth/refresh/view
 
 # 아래의 가입승인 --> 모두 가입상태 변경으로 작성 (APPROVED, REJECTED 가능)
 ### 최고관리자: 관리자 1명 가입상태 변경
-PATCH {{baseUrl}}/auth/admins/26817da0-54ff-4fd6-a3e2-296da839c141/status
+PATCH {{baseUrl}}/auth/admins/c56db6c9-b8e2-4494-bc57-c56eb8d7ace8/status
 Content-Type: application/json
 
 {
@@ -94,14 +94,15 @@ Content-Type: application/json
 }
 
 ### 관리자: 사용자 1명 가입상태 변경, residentId 사용
-PATCH {{baseUrl}}/auth/residents/a1fde2cc-4452-4804-8e32-8c7e19034d54/status
+PATCH {{baseUrl}}/auth/residents/de7f2f11-6ab7-4e3f-9bb1-ad0f1f695a72/status
 Content-Type: application/json
 
 {
-  "status": "REJECTED"
+  "status": "APPROVED"
 }
 
 ### 관리자: 사용자 일괄 가입상태 변경
+### 명부 only 입주자는 제외 (isRegistered = false) 
 PATCH {{baseUrl}}/auth/residents/status
 Content-Type: application/json
 

@@ -5,7 +5,7 @@
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents?residenceStatus=RESIDENCE
+GET {{baseUrl}}/residents
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json
@@ -68,4 +68,4 @@ Content-Type: application/json
 }
 
 ###
-DELETE {{baseUrl}}/residents/86aea3fb-7e8e-417f-8a53-fd07143c9a41
+DELETE {{baseUrl}}/residents/47e67da1-aad5-49a6-9087-e7adc663c4c2

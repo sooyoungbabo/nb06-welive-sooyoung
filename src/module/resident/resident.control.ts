@@ -1,8 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import residentService from './resident.service';
-import { assert } from 'node:console';
-import { PatchResident } from './resident.struct';
-import { PatchUser } from '../user/user.struct';
 import { ResidentQueryDto } from './resident.dto';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import { requireApartmentUser } from '../../lib/require';
@@ -20,15 +17,14 @@ async function getList(req: Request, res: Response, next: NextFunction) {
 }
 
 async function post(req: Request, res: Response, next: NextFunction) {
+  const { building, unitNumber, contact, name, isHouseholder } = req.body;
   const data = {
-    apartmentDong: req.body.building,
-    apartmentHo: req.body.unitNumber,
-    contact: req.body.contact,
-    name: req.body.name,
-    isHouseholder: req.body.isHouseholder
+    apartmentDong: building,
+    apartmentHo: unitNumber,
+    contact,
+    name,
+    isHouseholder
   };
-  assert(data, PatchResident);
-  requireApartmentUser(req.user);
   const resident = await residentService.post(req.user, data);
   res.status(201).json(resident);
 }
@@ -53,8 +49,8 @@ async function downloadTemplate(req: Request, res: Response, next: NextFunction)
 
 async function createManyFromFile(req: Request, res: Response, next: NextFunction) {
   if (!req.file) throw new BadRequestError('파일이 없습니다.');
-  requireApartmentUser(req.user);
   const buffer = req.file.buffer;
+  requireApartmentUser(req.user);
   const count = await residentService.createManyFromFile(req.user.apartmentId, buffer);
   res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });
 }
@@ -76,38 +72,41 @@ async function downloadList(req: Request, res: Response, next: NextFunction) {
 }
 
 async function get(req: Request, res: Response, next: NextFunction) {
+  const residentId = req.params.id as string;
   requireApartmentUser(req.user);
-  const resident = await residentService.get(req.user.apartmentId, req.params.id as string);
+  const resident = await residentService.get(req.user.apartmentId, residentId);
   res.status(200).json(resident);
 }
 
 async function patch(req: Request, res: Response, next: NextFunction) {
+  const residentId = req.params.id as string;
+  const { name, contact, building, unitNumber, isHouseholder } = req.body;
   const residentData = {
-    name: req.body.name ?? undefined,
-    contact: req.body.contact ?? undefined,
-    apartmentDong: req.body.building ?? undefined,
-    apartmentHo: req.body.unitNumber ?? undefined,
-    isHouseholder: req.body.isHouseholder ?? undefined
+    name,
+    contact,
+    apartmentDong: building,
+    apartmentHo: unitNumber,
+    isHouseholder
   };
   const userData = {
-    name: req.body.name ?? undefined,
-    contact: req.body.contact ?? undefined
+    name,
+    contact
   };
-  assert(residentData, PatchResident);
-  assert(userData, PatchUser);
+
   requireApartmentUser(req.user);
   const resident = await residentService.patch(
     req.user.apartmentId,
-    req.params.id as string,
+    residentId,
     residentData,
     userData
   );
-  res.status(201).json(resident);
+  res.status(200).json(resident);
 }
 
 async function del(req: Request, res: Response, next: NextFunction) {
+  const residentId = req.params.id as string;
   requireApartmentUser(req.user);
-  const resident = await residentService.del(req.user.apartmentId, req.params.id as string);
+  const resident = await residentService.del(req.user.apartmentId, residentId);
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다.' });
 }
 

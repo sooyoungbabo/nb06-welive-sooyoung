@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import prisma from '../../lib/prisma';
 import {
-  Apartment,
   ApprovalStatus,
   BoardType,
   HouseholdRole,
@@ -16,6 +15,7 @@ import { CreateUser, PatchUser } from '../user/user.struct';
 import { NODE_ENV, ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/constants';
 import { generateTokens, verifyRefreshToken } from '../../lib/token';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
+import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import UnauthorizedError from '../../middleware/errors/UnauthorizedError';
 //import { getIO } from '../../websocket/socketIO';
@@ -23,7 +23,15 @@ import { check_passwordValidity, hashingPassword } from '../user/user.service';
 import aptRepo from '../apartment/apartment.repo';
 import userRepo from '../user/user.repo';
 import residentRepo from '../resident/resident.repo';
+import boardRepo from '../board/board.repo';
 import { TokenType } from './auth.dto';
+import { CreateApartment, PatchApartment } from '../apartment/apartment.struct';
+import { AptSignupRequestDto } from '../apartment/apartment.dto';
+import ConflictError from '../../middleware/errors/ConflictError';
+import { CreateResident } from '../resident/resident.struct';
+import { AuthUser } from '../../type/express';
+import { requireApartmentUser, requireUser } from '../../lib/require';
+import { ensureSameApartment, validateDongHo } from '../../lib/utils';
 import {
   UserSignupDto,
   ResidentSignupDto,
@@ -37,23 +45,12 @@ import {
   UserSignupRequestDto,
   PatchAdminAptRequestDto
 } from '../user/user.dto';
-import { CreateApartment, PatchApartment } from '../apartment/apartment.struct';
-import { AptSignupRequestDto } from '../apartment/apartment.dto';
-import ConflictError from '../../middleware/errors/ConflictError';
-import BadRequestError from '../../middleware/errors/BadRequestError';
-import { CreateResident } from '../resident/resident.struct';
-import { AuthUser } from '../../type/express';
-import { requireApartmentUser, requireUser } from '../../lib/require';
-import { getDongRange, getHoRange } from '../../lib/utils';
-import boardRepo from '../board/board.repo';
-import apartmentService from '../apartment/apartment.service';
-import { apartmentListQuery } from '../apartment/apartment.schema';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
   // validation: (1) 아파트 (2) 동호수
   const apt = await aptRepo.findByName(body.apartmentName);
   if (!apt) throw new BadRequestError('아파트가 존재하지 않습니다.');
-  validateDongHo(body, apt);
+  validateDongHo(body.apartmentDong, body.apartmentHo, apt);
 
   // data transformation & validation by superstruct
   const userData = await buildSignupUserData(body);
@@ -215,14 +212,15 @@ async function changeResidentStatus(user: AuthUser, residentId: string, status: 
   const approvalStatus = getApprovalStatus(status);
   const residentApproved = await prisma.$transaction(async (tx) => {
     const resident = await residentRepo.patch(tx, {
-      where: { id: residentId },
+      where: { id: residentId, isRegistered: true }, // 명부only 입주민은 대상에서 제외
       data: { approvalStatus }
     });
+    if (!resident) throw new NotFoundError('입주민 정보를 찾을 수 없습니다.');
     if (!resident.userId) throw new NotFoundError('입주민 ID가 존재하지 않습니다.');
-    const user = await userRepo.patch(tx, {
-      where: { id: resident.userId },
-      data: { joinStatus: status }
-    });
+
+    // 사용자 계정이 있는 경우
+    if (resident.isRegistered === true)
+      await userRepo.patch(tx, { where: { id: resident.userId }, data: { joinStatus: status } });
     return resident;
   });
 
@@ -248,7 +246,7 @@ async function changeAllResidentsStatus(user: AuthUser, status: JoinStatus) {
   const residentArgs = {
     where: {
       apartmentId: user.apartmentId,
-      isRegistered: true,
+      isRegistered: true, // 명부only 입주민 제외
       approvalStatus: ApprovalStatus.PENDING
     },
     data: { approvalStatus }
@@ -322,6 +320,7 @@ async function cleanupAdmin(user: AuthUser): Promise<string> {
   const residentArgs = {
     where: {
       apartmentId: user.apartmentId,
+      isRegistered: true, // 명부only 입주민 제외
       approvalStatus: ApprovalStatus.REJECTED
     }
   };
@@ -334,26 +333,6 @@ async function cleanupAdmin(user: AuthUser): Promise<string> {
 }
 
 //-------------------------------------------------------- 지역 합수
-async function ensureSameApartment(apartmentId: string, residentId: string) {
-  const resident = await residentRepo.find(prisma, {
-    where: { id: residentId },
-    select: { apartmentId: true }
-  });
-
-  console.log(resident?.apartmentId, apartmentId);
-  if (resident?.apartmentId !== apartmentId) throw new ForbiddenError();
-}
-
-function validateDongHo(body: UserSignupRequestDto, apt: Apartment) {
-  const dongRange = getDongRange(apt.endComplexNumber, apt.endBuildingNumber);
-  const hoRange = getHoRange(apt.endFloorNumber, apt.endUnitNumber);
-
-  if (!dongRange.includes(Number(body.apartmentDong)))
-    throw new BadRequestError('아파트 동 번호가 범위를 벗어났습니다.');
-
-  if (!hoRange.includes(Number(body.apartmentHo)))
-    throw new BadRequestError('아파트 호수가 범위를 벗어났습니다.');
-}
 
 async function buildSignupUserData(body: UserSignupDto) {
   return {

@@ -4,15 +4,14 @@ import withTryCatch from '../../lib/withTryCatch';
 import authenticate from '../../middleware/authenticate';
 import authorize from '../../middleware/authorize';
 import complaintControl from './complaint.control';
-import { validateBody } from '../../middleware/validateBody';
+import { validateParams, validateQuery, validateBody } from '../../middleware/validateReq';
 import {
   complaintCreateBody,
   complaintListQuery,
   complaintListQueryShape,
-  complaintParams
+  complaintParams,
+  complaintStatusBody
 } from './complaint.schema';
-import { validateParams } from '../../middleware/validateParams';
-import { validateQuery } from '../../middleware/validateQuery';
 
 const complaintRouter = express.Router();
 
@@ -49,6 +48,7 @@ complaintRouter.patch(
   authenticate(),
   authorize(UserType.USER, UserType.ADMIN),
   validateParams(complaintParams),
+  validateBody(complaintCreateBody),
   withTryCatch(complaintControl.patch)
 );
 
@@ -67,6 +67,7 @@ complaintRouter.patch(
   authenticate(),
   authorize(UserType.SUPER_ADMIN, UserType.ADMIN),
   validateParams(complaintParams),
+  validateBody(complaintStatusBody),
   withTryCatch(complaintControl.changeStatus)
 );
 
