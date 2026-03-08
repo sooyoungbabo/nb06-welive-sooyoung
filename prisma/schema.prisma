@@ -232,8 +232,7 @@ model Notification {
   content   String
   isChecked Boolean          @default(false)
 
-  createdAt DateTime  @default(now())
-  checkedAt DateTime? // updatedAt으로 출력해야 함
+  notifiedAt DateTime? // updatedAt으로 출력해야 함
 
   receiver User @relation(fields: [receiverId], references: [id])
 

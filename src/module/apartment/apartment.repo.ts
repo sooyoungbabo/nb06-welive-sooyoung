@@ -32,8 +32,8 @@ async function findById(id: string): Promise<Apartment> {
 
 async function find<T extends Prisma.ApartmentFindUniqueArgs>(
   args: Prisma.SelectSubset<T, Prisma.ApartmentFindUniqueArgs>
-): Promise<Prisma.ApartmentGetPayload<T>> {
-  return prisma.apartment.findUniqueOrThrow(args);
+): Promise<Prisma.ApartmentGetPayload<T> | null> {
+  return prisma.apartment.findUnique(args);
 }
 
 async function patch(db: DB, data: Prisma.ApartmentUpdateArgs): Promise<Apartment> {

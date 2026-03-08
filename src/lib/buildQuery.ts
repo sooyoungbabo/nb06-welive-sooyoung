@@ -41,7 +41,7 @@ export function buildWhere<T>(input: QueryBuilderInput<T>) {
 
   const where: any = {};
 
-  // contains filters
+  // filters: contain
   if (filters) {
     for (const key in filters) {
       const value = filters[key];

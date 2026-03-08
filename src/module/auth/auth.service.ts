@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../../lib/prisma';
 import {
+  Apartment,
   ApprovalStatus,
   BoardType,
   HouseholdRole,
@@ -11,8 +12,8 @@ import {
   UserType
 } from '@prisma/client';
 import { assert } from 'superstruct';
-import { CreateAdmin, CreateUser, PatchAdmin } from '../user/user.struct';
-import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/constants';
+import { CreateUser, PatchUser } from '../user/user.struct';
+import { NODE_ENV, ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/constants';
 import { generateTokens, verifyRefreshToken } from '../../lib/token';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
@@ -43,21 +44,24 @@ import BadRequestError from '../../middleware/errors/BadRequestError';
 import { CreateResident } from '../resident/resident.struct';
 import { AuthUser } from '../../type/express';
 import { requireApartmentUser, requireUser } from '../../lib/require';
+import { getDongRange, getHoRange } from '../../lib/utils';
+import boardRepo from '../board/board.repo';
+import apartmentService from '../apartment/apartment.service';
+import { apartmentListQuery } from '../apartment/apartment.schema';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
-  const aptArgs = {
-    where: { name: body.apartmentName },
-    select: { id: true }
-  };
-  const apt = await aptRepo.find(aptArgs);
+  // validation: (1) 아파트 (2) 동호수
+  const apt = await aptRepo.findByName(body.apartmentName);
   if (!apt) throw new BadRequestError('아파트가 존재하지 않습니다.');
+  validateDongHo(body, apt);
 
+  // data transformation & validation by superstruct
   const userData = await buildSignupUserData(body);
   const residentData = await buildSignupResidentData(body);
-
   assert(userData, CreateUser);
   assert({ ...residentData, apartmentId: apt.id }, CreateResident);
 
+  // DB creation
   const userCreated = await prisma.$transaction(async (tx) => {
     const userArgs = { ...userData, apartment: { connect: { id: apt.id } } };
     const user = await userRepo.create(tx, userArgs);
@@ -69,18 +73,24 @@ async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto
     await residentRepo.create(tx, residentArgs);
     return user;
   });
+  // 출력형식에 맞추 재가공하여 리턴
   return buildSignupUserRes(userCreated);
 }
 
 async function signupAdmin(body: AdminSignupRequestDto): Promise<UserSignupResponseDto> {
-  const aptExisted = await aptRepo.findByName(body.apartmentName);
-  if (aptExisted) throw new ConflictError('같은 이름의 아파트가 이미 존재합니다.');
+  // validation: 아파트
+  const aptExisted = await aptRepo.find({
+    where: { name: body.apartmentName, address: body.apartmentAddress }
+  });
+  if (aptExisted) throw new ConflictError('같은 이름과 주소를 가진 아파트가 이미 존재합니다.');
 
+  // 데이터 가공, 검증
   const aptData = buildSignupApartmentData(body);
   const adminData = await buildSignupAdminData(body);
   assert(aptData, CreateApartment);
-  assert(adminData, CreateAdmin);
+  assert(adminData, CreateUser);
 
+  // DB 생성: User, Apartment, Board
   const adminCreated = await prisma.$transaction(async (tx) => {
     const apt = await aptRepo.create(tx, aptData);
     const adminArgs = {
@@ -88,8 +98,16 @@ async function signupAdmin(body: AdminSignupRequestDto): Promise<UserSignupRespo
       apartment: { connect: { id: apt.id } }
     };
     const admin = await userRepo.create(tx, adminArgs);
+    const boardData = [
+      { boardType: BoardType.NOTICE, apartmentId: apt.id },
+      { boardType: BoardType.COMPLAINT, apartmentId: apt.id },
+      { boardType: BoardType.POLL, apartmentId: apt.id }
+    ];
+    await boardRepo.createMany(tx, boardData);
     return admin;
   });
+
+  // 데이터 재가공하여 리턴
   return buildSignupUserRes(adminCreated);
 }
 
@@ -98,21 +116,28 @@ async function signupSuperAdmin(body: SuperAdminSignupRequestDto): Promise<UserS
     ...body,
     password: await hashingPassword(body.password)
   };
+  assert(data, CreateUser);
   const superAdminCreated = await userRepo.create(prisma, data);
   return buildSignupUserRes(superAdminCreated);
 }
 
 async function login(data: LoginDto): Promise<LoginToControlDto> {
-  const user = await userRepo.findByUsername(data.username);
+  const userInfoRequired = {
+    where: { username: data.username },
+    include: {
+      notifications: true,
+      apartment: { include: { boards: true } }
+    }
+  };
+  const user = await userRepo.find(userInfoRequired);
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다');
-  console.log(data.username);
 
   const isPasswordOk = await check_passwordValidity(data.password, user.password);
   if (!isPasswordOk) throw new ForbiddenError('비밀번호가 틀렸습니다');
 
   if (user.notifications.length) {
     const unreadCount = user.notifications.filter((n) => n.isChecked === false).length;
-    console.log(`읽지 않은 알림이 ${unreadCount}개 있습니다.`);
+    if (NODE_ENV === 'development') console.log(`읽지 않은 알림이 ${unreadCount}개 있습니다.`);
   }
   const { accessToken, refreshToken } = generateTokens(user.id);
 
@@ -137,7 +162,6 @@ function logout(tokenData: Response): void {
 async function issueTokens(refreshToken: string): Promise<TokenType> {
   const { userId } = verifyRefreshToken(refreshToken);
   const user = await verifyUserExist(userId);
-
   return generateTokens(user.id);
 }
 
@@ -153,7 +177,7 @@ async function changeAdminStatus(adminId: string, status: JoinStatus) {
       where: { id: adminId },
       data: { joinStatus: status }
     });
-    const apt = await aptRepo.patch(tx, {
+    await aptRepo.patch(tx, {
       where: { id: aptId },
       data: { apartmentStatus }
     });
@@ -179,7 +203,6 @@ async function changeAllAdminsStatus(status: JoinStatus) {
     const apts = await aptRepo.patchMany(tx, aptArgs);
     return admins;
   });
-  // console.log(adminsApproved);
   if (status === JoinStatus.APPROVED)
     return `[슈퍼관리자] 관리자 ${adminsApproved.count}명의 가입신청을 승인했습니다.`;
   else return `[슈퍼관리자] 관리자 ${adminsApproved.count}명의 가입신청을 기각했습니다.`;
@@ -187,7 +210,7 @@ async function changeAllAdminsStatus(status: JoinStatus) {
 
 async function changeResidentStatus(user: AuthUser, residentId: string, status: JoinStatus) {
   requireApartmentUser(user);
-  if (!(await isSameApartment(user.apartmentId, residentId))) throw new ForbiddenError();
+  await ensureSameApartment(user.apartmentId, residentId); // 권한 검증
 
   const approvalStatus = getApprovalStatus(status);
   const residentApproved = await prisma.$transaction(async (tx) => {
@@ -203,7 +226,8 @@ async function changeResidentStatus(user: AuthUser, residentId: string, status: 
     return resident;
   });
 
-  const apt = await aptRepo.findById(residentApproved.apartmentId);
+  const apt = await aptRepo.find({ where: { id: user.apartmentId }, select: { name: true } });
+  if (!apt) throw new NotFoundError('아파트가 존재하지 않습니다.');
   if (status === JoinStatus.APPROVED)
     return `[관리자] ${apt.name}관리자가 ${residentApproved.name}의 가입요청을 승인했습니다.`;
   else return `[관리자] ${apt.name}관리자가 ${residentApproved.name}의 가입요청을 기각했습니다.`;
@@ -212,10 +236,13 @@ async function changeResidentStatus(user: AuthUser, residentId: string, status: 
 async function changeAllResidentsStatus(user: AuthUser, status: JoinStatus) {
   requireApartmentUser(user);
   const approvalStatus = getApprovalStatus(status);
-  const apt = await aptRepo.find({ where: { id: user.apartmentId } });
 
   const userArgs = {
-    where: { apartmentId: user.apartmentId, role: UserType.USER, joinStatus: JoinStatus.PENDING },
+    where: {
+      apartmentId: user.apartmentId,
+      role: UserType.USER,
+      joinStatus: JoinStatus.PENDING
+    },
     data: { joinStatus: status }
   };
   const residentArgs = {
@@ -227,84 +254,105 @@ async function changeAllResidentsStatus(user: AuthUser, status: JoinStatus) {
     data: { approvalStatus }
   };
   const residentApproved = await prisma.$transaction(async (tx) => {
-    const user = await userRepo.patchMany(tx, userArgs);
+    await userRepo.patchMany(tx, userArgs);
     const resident = await residentRepo.patchMany(tx, residentArgs);
     return resident;
   });
+
+  const apt = await aptRepo.find({ where: { id: user.apartmentId }, select: { name: true } });
+  if (!apt) throw new NotFoundError('아파트가 존재하지 않습니다.');
   if (status === JoinStatus.APPROVED)
     return `[관리자] ${apt.name}관리자가 입주민 ${residentApproved.count}명의 가입요청을 승인했습니다.`;
   else
     return `[관리자] ${apt.name}관리자가 입주민 ${residentApproved.count}명의 가입요청을 기각했습니다.`;
 }
 
-async function patchAdminApt(adminId: string, body: PatchAdminAptRequestDto): Promise<void> {
+async function patchAdminApt(adminId: string, body: PatchAdminAptRequestDto): Promise<User> {
   const adminData = buildPatchAdminData(body);
   const aptData = buildPatchAptData(body);
-  assert(adminData, PatchAdmin);
+  assert(adminData, PatchUser);
   assert(aptData, PatchApartment);
 
-  const adminPatched = await prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx) => {
     const admin = await userRepo.patch(tx, { where: { id: adminId }, data: adminData });
-    const apt = await aptRepo.patch(tx, { where: { id: admin.apartmentId! }, data: aptData });
+    await aptRepo.patch(tx, { where: { id: admin.apartmentId! }, data: aptData });
     return admin;
   });
 }
 
 async function deleteAdminApt(adminId: string): Promise<User> {
-  const admin = await userRepo.find({ where: { id: adminId }, select: { apartmentId: true } });
-  if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
-  const aptId = admin.apartmentId;
-  if (!aptId) throw new NotFoundError('관리자 게정에 아파트 ID가 존재하지 않습니다.');
-  const adminSoftDeleted = await prisma.$transaction(async (tx) => {
-    const apt = await aptRepo.deleteById(tx, aptId);
+  return prisma.$transaction(async (tx) => {
     const admin = await userRepo.deleteById(tx, adminId);
+    if (!admin.apartmentId) throw new NotFoundError('관리자 계정에 아파트 ID가 존재하지 않습니다.');
+    await boardRepo.deleteMany(tx, { where: { apartmentId: admin.apartmentId } });
+    await aptRepo.deleteById(tx, admin.apartmentId);
     return admin;
   });
-  return adminSoftDeleted;
 }
 
 async function cleanup(user: AuthUser): Promise<string> {
-  let deleted;
-  let message;
-  let userArgs: Prisma.UserDeleteManyArgs;
   requireUser(user);
-  if (user.userType === UserType.SUPER_ADMIN) {
-    //user와 apt 정리
-    userArgs = { where: { role: UserType.ADMIN, joinStatus: JoinStatus.REJECTED } };
-    const aptArgs = { where: { apartmentStatus: ApprovalStatus.REJECTED } };
-    message = '[슈퍼관리자] 가입신청이 거절된 관리자 ';
-    deleted = await prisma.$transaction(async (tx) => {
-      const users = await userRepo.cleanup(tx, userArgs);
-      const apts = await aptRepo.cleanup(tx, aptArgs);
-      return users;
-    });
-  } else {
-    // user와 resident 정리
-    requireApartmentUser(user);
-    userArgs = {
-      where: { apartmentId: user.apartmentId, role: UserType.USER, joinStatus: JoinStatus.REJECTED }
-    };
-    const residentArgs = {
-      where: { apartmentId: user.apartmentId, approvalStatus: ApprovalStatus.REJECTED }
-    };
-    deleted = await prisma.$transaction(async (tx) => {
-      const users = await userRepo.cleanup(tx, userArgs);
-      const residents = await residentRepo.cleanup(tx, residentArgs);
-      return residents;
-    });
-    message = '[관리자] 가입신청이 거절된 사용자 ';
-  }
-  message += `${deleted.count}건이 일괄정리되었습니다.`;
-  return message;
+  if (user.userType === UserType.SUPER_ADMIN) return cleanupSuperAdmin();
+  return cleanupAdmin(user);
 }
 
-//-------------------------------------------------------- local functions
-async function isSameApartment(apartmentId: string, residentId: string) {
+async function cleanupSuperAdmin(): Promise<string> {
+  const aptArgs = { where: { apartmentStatus: ApprovalStatus.REJECTED } };
+  const boardArgs = { where: { apartment: { apartmentStatus: ApprovalStatus.REJECTED } } };
+  const userArgs = { where: { role: UserType.ADMIN, joinStatus: JoinStatus.REJECTED } };
+
+  const deleted = await prisma.$transaction(async (tx) => {
+    const users = await userRepo.cleanup(tx, userArgs);
+    const boards = await boardRepo.deleteMany(tx, boardArgs);
+    const apts = await aptRepo.cleanup(tx, aptArgs);
+    return users;
+  });
+  return `[슈퍼관리자] 거절된 관리자 가입신청 ${deleted.count}건이 일괄정리되었습니다.`;
+}
+
+async function cleanupAdmin(user: AuthUser): Promise<string> {
+  requireApartmentUser(user);
+  const userArgs = {
+    where: {
+      apartmentId: user.apartmentId,
+      role: UserType.USER,
+      joinStatus: JoinStatus.REJECTED
+    }
+  };
+  const residentArgs = {
+    where: {
+      apartmentId: user.apartmentId,
+      approvalStatus: ApprovalStatus.REJECTED
+    }
+  };
+  const deleted = await prisma.$transaction(async (tx) => {
+    const users = await userRepo.cleanup(tx, userArgs);
+    const residents = await residentRepo.cleanup(tx, residentArgs);
+    return residents;
+  });
+  return `[관리자] 거절된 사용자 가입신청 ${deleted.count}건이 일괄정리되었습니다.`;
+}
+
+//-------------------------------------------------------- 지역 합수
+async function ensureSameApartment(apartmentId: string, residentId: string) {
   const resident = await residentRepo.find(prisma, {
     where: { id: residentId },
     select: { apartmentId: true }
   });
-  return resident?.apartmentId === apartmentId;
+
+  console.log(resident?.apartmentId, apartmentId);
+  if (resident?.apartmentId !== apartmentId) throw new ForbiddenError();
+}
+
+function validateDongHo(body: UserSignupRequestDto, apt: Apartment) {
+  const dongRange = getDongRange(apt.endComplexNumber, apt.endBuildingNumber);
+  const hoRange = getHoRange(apt.endFloorNumber, apt.endUnitNumber);
+
+  if (!dongRange.includes(Number(body.apartmentDong)))
+    throw new BadRequestError('아파트 동 번호가 범위를 벗어났습니다.');
+
+  if (!hoRange.includes(Number(body.apartmentHo)))
+    throw new BadRequestError('아파트 호수가 범위를 벗어났습니다.');
 }
 
 async function buildSignupUserData(body: UserSignupDto) {
@@ -464,9 +512,7 @@ function getApprovalStatus(state: JoinStatus): ApprovalStatus {
 
 async function verifyUserExist(userId: string): Promise<User> {
   const user = await userRepo.findById(userId);
-  if (!user) {
-    throw new UnauthorizedError();
-  }
+  if (!user) throw new UnauthorizedError();
   return user;
 }
 

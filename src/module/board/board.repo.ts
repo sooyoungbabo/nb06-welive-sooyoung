@@ -8,6 +8,19 @@ async function findMany<T extends Prisma.BoardFindManyArgs>(
   return prisma.board.findMany(args);
 }
 
+async function createMany(
+  db: DB,
+  data: Prisma.BoardCreateManyInput[]
+): Promise<Prisma.BatchPayload> {
+  return await db.board.createMany({ data });
+}
+
+async function deleteMany(db: DB, args: Prisma.BoardDeleteManyArgs): Promise<Prisma.BatchPayload> {
+  return db.board.deleteMany(args);
+}
+
 export default {
-  findMany
+  findMany,
+  createMany,
+  deleteMany
 };

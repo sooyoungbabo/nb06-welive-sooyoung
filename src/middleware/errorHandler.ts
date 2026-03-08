@@ -1,6 +1,7 @@
 import { StructError } from 'superstruct';
 import { Prisma } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
+import { NODE_ENV } from '../lib/constants';
 
 export function defaultNotFoundHandler(req: Request, res: Response, next: NextFunction) {
   return res.status(404).send({ message: '요청하신 페이지를 찾을 수 없습니다' });
@@ -17,7 +18,7 @@ const defaultMessageByStatus: Record<number, string> = {
 };
 
 export function globalErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  // console.error(err); // 개발용
+  if (NODE_ENV === 'development') console.error(err);
 
   let statusCode: number | undefined = err.statusCode;
   let message: string | undefined = err.message;

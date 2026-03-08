@@ -91,7 +91,7 @@ async function main() {
     const tempRawUser = {
       username: `user${i}`,
       password: await hashingPassword(`password0!`),
-      contact: faker.phone.number(),
+      contact: faker.phone.number(), //.replace(/\D/g, ''),
       name: faker.person.fullName(),
       email: `user${i}@test.com`,
       role: UserType.USER,

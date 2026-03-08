@@ -1,11 +1,4 @@
-import {
-  ApprovalStatus,
-  BoardType,
-  HouseholdRole,
-  JoinStatus,
-  ResidenceStatus,
-  UserType
-} from '@prisma/client';
+import { BoardType, HouseholdRole, JoinStatus, UserType } from '@prisma/client';
 
 export interface UserSignupRequestDto {
   //USER
