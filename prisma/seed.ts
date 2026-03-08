@@ -91,7 +91,7 @@ async function main() {
     const tempRawUser = {
       username: `user${i}`,
       password: await hashingPassword(`password0!`),
-      contact: faker.phone.number(),
+      contact: faker.phone.number(), //.replace(/\D/g, ''),
       name: faker.person.fullName(),
       email: `user${i}@test.com`,
       role: UserType.USER,
@@ -132,7 +132,7 @@ async function main() {
     // Notification 등록: 수퍼관리자에게 관리자 가입신청 알림
     const notiCreated = await prisma.notification.create({
       data: {
-        notiType: NotificationType.ADMIN_APPLIED,
+        notiType: NotificationType.AUTH_ADMIN_APPLIED,
         targetId: adminCreated.id,
         content: `알림: 관리자 가입신청`,
         isChecked: true,
@@ -215,7 +215,7 @@ async function main() {
 
     const notiCreated = await prisma.notification.create({
       data: {
-        notiType: NotificationType.USER_APPLIED,
+        notiType: NotificationType.AUTH_USER_APPLIED,
         targetId: userCreated.id,
         content: '알림: 사용자 가입신청',
         isChecked: true,
@@ -270,7 +270,7 @@ async function main() {
         title: item.title,
         content: item.content,
         isPublic: true,
-        status: ComplaintStatus.COMPLETED,
+        status: ComplaintStatus.RESOLVED,
         viewCount: (users.length * getRandomNo(13, 30)) / 10,
         creator: { connect: { id: complainantId } },
         admin: { connect: { id: adminId } },

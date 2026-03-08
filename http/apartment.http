@@ -1,13 +1,21 @@
 @baseUrl = http://localhost:3000
 
-### 공개
+### 공개: 아파트 목록 조회
+### query keyword: name, address, description
+### query filters: name, address
 GET {{baseUrl}}/apartments/public
-### 공개
-GET {{baseUrl}}/apartments/public?address=나팔꽃
-### 공개
-GET {{baseUrl}}/apartments/public/bc14a715-5e96-4724-876e-e3a92b42c341
+###
+GET {{baseUrl}}/apartments/public?address=길목
 
-### 슈퍼관리자/관리자
-GET {{baseUrl}}/apartments?limit=4
-### 슈퍼관리자/관리자
-GET {{baseUrl}}/apartments/804ff47c-ce1e-4328-9f7c-50943ad3e328
+### 공개: 아파트 상세 조회
+GET {{baseUrl}}/apartments/public/fa1331b1-ca0c-4a8f-be39-9ef346bda066
+
+### 슈퍼관리자/관리자: 아파트 목록 조회
+### pagination: page, limit
+### query filters: name, address
+### query exactFilters: apartmentStatus
+### query keyword: name, address, (관계형) admin name, admin email
+GET {{baseUrl}}/apartments?keyword=보고싶은
+
+### 슈퍼관리자/관리자: 아파트 상세 조회
+GET {{baseUrl}}/apartments/fa1331b1-ca0c-4a8f-be39-9ef346bda066

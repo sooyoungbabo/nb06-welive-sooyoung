@@ -1,15 +1,12 @@
 import { verifyAccessToken } from '../lib/token';
 import authService from '../module/auth/auth.service';
-import residentService from '../module/resident/resident.service';
 import { Request, Response, NextFunction } from 'express';
 import UnauthorizedError from './errors/UnauthorizedError';
 import { ACCESS_TOKEN_COOKIE_NAME } from '../lib/constants';
 import residentRepo from '../module/resident/resident.repo';
 import prisma from '../lib/prisma';
-import apartmentRepo from '../module/apartment/apartment.repo';
 import userRepo from '../module/user/user.repo';
 import { UserType } from '@prisma/client';
-import { AdminSignupInputStruct } from '../module/user/user.struct';
 
 function authenticate(options?: { optional?: boolean }) {
   return async (req: Request, res: Response, next: NextFunction) => {

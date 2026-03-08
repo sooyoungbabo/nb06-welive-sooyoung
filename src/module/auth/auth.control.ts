@@ -1,11 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { assert } from 'superstruct';
-import {
-  CreateSuperAdmin,
-  UserSignupInputStruct,
-  AdminSignupInputStruct,
-  PatchAdminApt
-} from '../user/user.struct';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import authService from './auth.service';
 import {
@@ -15,23 +8,18 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_MAXAGE
 } from '../../lib/constants';
-import { PatchAdminAptRequestDto } from '../user/user.dto';
-import { requireUser, requireApartmentUser } from '../../lib/require';
 
 async function signup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  assert(req.body, UserSignupInputStruct);
   const newUser = await authService.signup(req.body);
   res.status(201).json(newUser);
 }
 
 async function signupAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
-  assert(req.body, AdminSignupInputStruct);
   const newAdmin = await authService.signupAdmin(req.body);
   res.status(201).json(newAdmin);
 }
 
 async function signupSuperAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
-  assert(req.body, CreateSuperAdmin);
   const newSuperAdmin = await authService.signupSuperAdmin(req.body);
   res.status(201).json(newSuperAdmin);
 }
@@ -66,9 +54,9 @@ async function issueTokens(req: Request, res: Response, next: NextFunction): Pro
 }
 
 async function changeAdminStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const { adminId } = req.params;
+  const adminId = req.params.adminId as string;
   if (!adminId) throw new BadRequestError('관리자 ID가 필요합니다.');
-  const message = await authService.changeAdminStatus(adminId as string, req.body.status);
+  const message = await authService.changeAdminStatus(adminId, req.body.status);
   res.status(200).send({ message });
 }
 
@@ -86,14 +74,9 @@ async function changeResidentStatus(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const { residentId } = req.params;
+  const residentId = req.params.residentId as string;
   if (!residentId) throw new BadRequestError('입주민 ID가 필요합니다.');
-  requireApartmentUser(req.user);
-  const message = await authService.changeResidentStatus(
-    req.user,
-    residentId as string,
-    req.body.status
-  );
+  const message = await authService.changeResidentStatus(req.user, residentId, req.body.status);
   res.status(200).send({ message });
 }
 
@@ -102,27 +85,20 @@ async function changeAllResidentsStatus(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  requireApartmentUser(req.user);
   const message = await authService.changeAllResidentsStatus(req.user, req.body.status);
   res.status(200).send({ message });
 }
 
 async function patchAdminApt(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const { adminId } = req.params;
-  assert(req.body, PatchAdminApt);
-  const adminPatched = await authService.patchAdminApt(
-    adminId as string,
-    req.body as PatchAdminAptRequestDto
-  );
+  const adminId = req.params.adminId as string;
+  const adminPatched = await authService.patchAdminApt(adminId, req.body);
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다' });
 }
 
 async function deleteAdminApt(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const { adminId } = req.params;
-  if (!adminId) throw new BadRequestError('관리자 ID가 필요합니다.');
-  const deletedAdmin = await authService.deleteAdminApt(adminId as string);
-  if (NODE_ENV === 'development') console.log(deletedAdmin);
-  res.status(200).send({ message: '관리자와 아파트가 성공적으로 삭제되었습니다' });
+  const adminId = req.params.adminId as string;
+  const deletedAdmin = await authService.deleteAdminApt(adminId);
+  res.status(200).send({ message: '관리자/아파트/보드가 성공적으로 삭제되었습니다' });
 }
 
 async function cleanup(req: Request, res: Response, next: NextFunction): Promise<void> {

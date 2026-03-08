@@ -4,24 +4,43 @@ import authenticate from '../../middleware/authenticate';
 import authorize from '../../middleware/authorize';
 import express from 'express';
 import { UserType } from '@prisma/client';
-// import { allowedUserKeys } from '../../lib/constants';
-// import { validateReqBody } from '../../middleware/validateReqBody';
+import {
+  apartmentListQuery,
+  apartmentListQueryShape,
+  apartmentParams,
+  publicApartmentListQuery,
+  publicApartmentListQueryShape
+} from './apartment.schema';
+import { validateQuery } from '../../middleware/validateQuery';
+import { validateParams } from '../../middleware/validateParams';
 
 const aptRouter = express.Router();
 
-// 가입신청
-aptRouter.get('/public', withTryCatch(aptControl.publicGetList));
-aptRouter.get('/public/:id', withTryCatch(aptControl.publicGet));
+// 아파트 목록 조회: 공개
+aptRouter.get(
+  '/public',
+  validateQuery(publicApartmentListQuery, publicApartmentListQueryShape),
+  withTryCatch(aptControl.publicGetList)
+);
+
+// 아파트 상세 조회: 공개
+aptRouter.get('/public/:id', validateParams(apartmentParams), withTryCatch(aptControl.publicGet));
+
+// 아파트 목록 조회
 aptRouter.get(
   '/',
   authenticate(),
   authorize(UserType.ADMIN, UserType.SUPER_ADMIN),
+  validateQuery(apartmentListQuery, apartmentListQueryShape),
   withTryCatch(aptControl.getList)
 );
+
+// 아파트 상세 조회
 aptRouter.get(
   '/:id',
   authenticate(),
   authorize(UserType.ADMIN, UserType.SUPER_ADMIN),
+  validateParams(apartmentParams),
   withTryCatch(aptControl.get)
 );
 

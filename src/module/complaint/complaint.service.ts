@@ -5,7 +5,8 @@ import {
   Comment,
   Resident,
   CommentType,
-  ComplaintStatus
+  ComplaintStatus,
+  UserType
 } from '@prisma/client';
 import userRepo from '../user/user.repo';
 import complaintRepo from './complaint.repo';
@@ -147,7 +148,8 @@ async function changeStatus(
   status: ComplaintStatus
 ): Promise<ComplaintDetailResDto> {
   requireUser(user);
-  if (!(await isMyApartment(user.id, complaintId))) throw new ForbiddenError();
+  if (!(await isMyApartment(user.id, complaintId)) && user.userType !== UserType.SUPER_ADMIN)
+    throw new ForbiddenError();
 
   const complaint = await complaintRepo.patch({
     where: { id: complaintId },

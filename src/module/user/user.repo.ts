@@ -11,19 +11,8 @@ async function create(db: DB, data: Prisma.UserCreateInput): Promise<User> {
   return db.user.create({ data });
 }
 
-async function findByUsername(username: string): Promise<Prisma.UserGetPayload<{
-  include: {
-    notifications: true;
-    apartment: { include: { boards: true } };
-  };
-}> | null> {
-  return prisma.user.findUnique({
-    where: { username },
-    include: {
-      notifications: true,
-      apartment: { include: { boards: true } }
-    }
-  });
+async function findByUsername(username: string): Promise<User | null> {
+  return prisma.user.findUnique({ where: { username } });
 }
 
 async function findByEmail(

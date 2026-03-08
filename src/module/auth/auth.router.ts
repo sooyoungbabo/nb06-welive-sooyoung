@@ -4,18 +4,35 @@ import authenticate from '../../middleware/authenticate';
 import authorize from '../../middleware/authorize';
 import express from 'express';
 import { UserType } from '@prisma/client';
-// import { allowedUserKeys } from '../../lib/constants';
-// import { validateReqBody } from '../../middleware/validateReqBody';
+import { validateBody } from '../../middleware/validateBody';
+import {
+  adminSignupBody,
+  authParams,
+  loginBody,
+  patchAdminBody,
+  statusBody,
+  superAdminSignupBody,
+  userSignupBody
+} from './auth.schema';
+import { validateParams } from '../../middleware/validateParams';
 
 const authRouter = express.Router();
 
 // 가입신청
-authRouter.post('/signup', withTryCatch(authControl.signup));
-authRouter.post('/signup/admin', withTryCatch(authControl.signupAdmin));
-authRouter.post('/signup/super-admin', withTryCatch(authControl.signupSuperAdmin));
+authRouter.post('/signup', validateBody(userSignupBody), withTryCatch(authControl.signup));
+authRouter.post(
+  '/signup/admin',
+  validateBody(adminSignupBody),
+  withTryCatch(authControl.signupAdmin)
+);
+authRouter.post(
+  '/signup/super-admin',
+  validateBody(superAdminSignupBody),
+  withTryCatch(authControl.signupSuperAdmin)
+);
 
 // 로그인 / 로그아웃
-authRouter.post('/login', withTryCatch(authControl.login));
+authRouter.post('/login', validateBody(loginBody), withTryCatch(authControl.login));
 authRouter.post('/logout', authenticate(), withTryCatch(authControl.logout));
 
 // 토큰 재발행
@@ -27,24 +44,29 @@ authRouter.patch(
   '/admins/:adminId/status',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
+  validateParams(authParams),
+  validateBody(statusBody),
   withTryCatch(authControl.changeAdminStatus)
 );
 authRouter.patch(
   '/admins/status',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
+  validateBody(statusBody),
   withTryCatch(authControl.changeAllAdminsStatus)
 );
 authRouter.patch(
   '/residents/:residentId/status',
   authenticate(),
   authorize(UserType.ADMIN),
+  validateBody(statusBody),
   withTryCatch(authControl.changeResidentStatus)
 );
 authRouter.patch(
   '/residents/status',
   authenticate(),
   authorize(UserType.ADMIN),
+  validateBody(statusBody),
   withTryCatch(authControl.changeAllResidentsStatus)
 );
 
@@ -52,12 +74,16 @@ authRouter.patch(
   '/admins/:adminId',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
+  validateParams(authParams),
+  validateBody(patchAdminBody),
+
   withTryCatch(authControl.patchAdminApt)
 );
 authRouter.delete(
   '/admins/:adminId',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
+  validateParams(authParams),
   withTryCatch(authControl.deleteAdminApt)
 );
 authRouter.post(

@@ -1,12 +1,12 @@
 @baseUrl = http://localhost:3000
 
 # 추가 기능
-### 사용자 목록 조회
-GET {{baseUrl}}/users/getList?sort=asc
-###
+### 개발자용 무인증 기능: 사용자 목록 조회
 GET {{baseUrl}}/users/getList?sort=desc
+
+
 ### 사용자 상세 조회
-GET {{baseUrl}}/users/348c6e1d-102c-46a3-93ad-1f1d414edd7d
+GET {{baseUrl}}/users/0f94fae1-f306-4680-b258-4658ad1c0988
 ### 내 정보 조회
 GET {{baseUrl}}/users/me/myInfo
 
@@ -17,10 +17,10 @@ PATCH {{baseUrl}}/users/me/avatar
 Content-Type: multipart/form-data; boundary=MyBoundary
 
 --MyBoundary
-Content-Disposition: form-data; name="image"; filename="Frodo2.png"
+Content-Disposition: form-data; name="image"; filename="EmmaStone.png"
 Content-Type: image/png
 
-< ./images/users/Frodo2.png
+< ./images/users/EmmaStone.png
 --MyBoundary--
 
 ###
