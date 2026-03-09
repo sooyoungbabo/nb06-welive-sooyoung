@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import authService from './auth.service';
+import { getDevRefreshToken, setDevTokens } from '../../lib/tokenDev';
 import {
   NODE_ENV,
   ACCESS_TOKEN_COOKIE_NAME,
@@ -31,25 +32,36 @@ async function login(req: Request, res: Response, next: NextFunction): Promise<v
 }
 
 function logout(req: Request, res: Response, next: NextFunction) {
+  res.clearCookie('accessToken', { path: '/' });
+  res.clearCookie('refreshToken', { path: '/' });
+  res.clearCookie('refreshToken', { path: '/auth/refresh' });
+  res.clearCookie('access-token', { path: '/' });
+  res.clearCookie('refresh-token', { path: '/' });
+  res.clearCookie('connect.sid', { path: '/' });
+  res.clearCookie('token', { path: '/' });
   authService.logout(res);
   res.status(200).send({ message: '사용자가 로그아웃 하였습니다' });
 }
 
 function viewTokens(req: Request, res: Response, next: NextFunction) {
-  const accessToken = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
-  const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
+  let accessToken = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
+  let refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
 
   console.log('');
+  console.log('URL:', req.originalUrl);
+  console.log('RAW COOKIE HEADER:', req.headers.cookie);
   console.log(`accessToken:  ${accessToken}`);
   console.log(`refreshToken: ${refreshToken}`);
   console.log('');
 }
 
 async function issueTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const { accessToken, refreshToken } = await authService.issueTokens(
-    req.cookies[REFRESH_TOKEN_COOKIE_NAME]
-  );
+  let currRefreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
+  if (!currRefreshToken && NODE_ENV === 'development') currRefreshToken = getDevRefreshToken();
+
+  const { accessToken, refreshToken } = await authService.issueTokens(currRefreshToken);
   setTokenCookies(res, accessToken, refreshToken);
+  if (NODE_ENV === 'development') setDevTokens(accessToken, refreshToken);
   res.status(201).send({ accessToken });
 }
 
@@ -108,7 +120,7 @@ async function cleanup(req: Request, res: Response, next: NextFunction): Promise
 
 //-------------------------------------------------- local functions
 
-function setTokenCookies(
+export function setTokenCookies(
   res: Response,
   accessToken: string | undefined,
   refreshToken: string | undefined
@@ -117,14 +129,14 @@ function setTokenCookies(
     httpOnly: true,
     secure: NODE_ENV === 'production', // false: 쓸데없이 우회적인 표현
     sameSite: 'lax',
-    maxAge: ACCESS_TOKEN_MAXAGE || 1 * 60 * 60 * 1000 // 1 hour
+    maxAge: ACCESS_TOKEN_MAXAGE || 10 * 60 * 60 * 1000 // 1 hour
   });
   res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
-    path: '/auth/refresh'
+    path: NODE_ENV === 'development' ? '/' : '/auth/refresh'
   });
 }
 

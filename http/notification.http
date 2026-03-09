@@ -1,0 +1,14 @@
+@baseUrl = http://localhost:3000
+
+### 
+GET {{baseUrl}}/notifications/stream
+
+### 아파트1
+POST {{baseUrl}}/notifications/test
+Content-Type: application/json
+
+{
+  "notiType": "AUTH_USER_APPLIED",
+  "targetId": "9ebc9d3d-2b2e-4e77-937a-9a2b877cfd1b",
+  "content": "알림: 사용자 가입신청"
+}

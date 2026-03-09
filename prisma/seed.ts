@@ -136,7 +136,6 @@ async function main() {
         targetId: adminCreated.id,
         content: `알림: 관리자 가입신청`,
         isChecked: true,
-        checkedAt: new Date(),
         receiver: { connect: { id: superAdminCreated.id } }
       }
     });
@@ -219,7 +218,6 @@ async function main() {
         targetId: userCreated.id,
         content: '알림: 사용자 가입신청',
         isChecked: true,
-        checkedAt: new Date(),
         receiver: { connect: { id: admin.id } }
       }
     });
@@ -305,7 +303,6 @@ async function main() {
           targetId: complaintCreated.id,
           content: `알림(${item.title}): 민원 등록`,
           isChecked: true,
-          checkedAt: new Date(),
           receiver: { connect: { id: adminId } }
         }
       });
@@ -316,7 +313,6 @@ async function main() {
           targetId: complaintCreated.id,
           content: `알림(${item.title}): 민원 종결`,
           isChecked: true,
-          checkedAt: new Date(),
           receiver: { connect: { id: complainantId } }
         }
       });
@@ -423,7 +419,6 @@ async function main() {
               targetId: pollCreated.id,
               content: `알림: 투표 개시 (${item.startDate} ~ ${item.endDate})`,
               isChecked: true,
-              checkedAt: new Date(),
               receiver: { connect: { id: voter.id } }
             }
           });
@@ -435,7 +430,6 @@ async function main() {
               targetId: pollCreated.id,
               content: `알림(${item.title}): 투표 종료 (${item.startDate} ~ ${item.endDate})`,
               isChecked: true,
-              checkedAt: new Date(),
               receiver: { connect: { id: voter.id } }
             }
           });
@@ -572,7 +566,6 @@ async function main() {
             targetId: noticeCreated.id,
             content: `알림: 공지 등록 (${item.title})`,
             isChecked: true,
-            checkedAt: new Date(),
             receiver: { connect: { id: user.id } }
           }
         });

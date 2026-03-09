@@ -1,8 +1,9 @@
+import { getDevAccessToken } from '../lib/tokenDev';
 import { verifyAccessToken } from '../lib/token';
 import authService from '../module/auth/auth.service';
 import { Request, Response, NextFunction } from 'express';
 import UnauthorizedError from './errors/UnauthorizedError';
-import { ACCESS_TOKEN_COOKIE_NAME } from '../lib/constants';
+import { ACCESS_TOKEN_COOKIE_NAME, NODE_ENV } from '../lib/constants';
 import residentRepo from '../module/resident/resident.repo';
 import prisma from '../lib/prisma';
 import userRepo from '../module/user/user.repo';
@@ -16,6 +17,7 @@ function authenticate(options?: { optional?: boolean }) {
         if (options?.optional) return next();
         throw new UnauthorizedError();
       }
+
       const { userId } = verifyAccessToken(accessToken);
 
       const user = await authService.verifyUserExist(userId);
@@ -71,7 +73,6 @@ function authenticate(options?: { optional?: boolean }) {
       //   adminId,
       //   residentId: resident?.id
       // };
-
       next();
     } catch (err) {
       next(err);
@@ -80,8 +81,17 @@ function authenticate(options?: { optional?: boolean }) {
 }
 
 function check_accessTokenExist(cookieData: Record<string, string | undefined>) {
-  const accessToken = cookieData[ACCESS_TOKEN_COOKIE_NAME];
+  let accessToken = cookieData[ACCESS_TOKEN_COOKIE_NAME];
+
+  if (!accessToken && process.env.NODE_ENV === 'development') {
+    accessToken = getDevAccessToken() ?? undefined;
+  }
   return accessToken;
 }
+
+// function check_accessTokenExist(cookieData: Record<string, string | undefined>) {
+//   const accessToken = cookieData[ACCESS_TOKEN_COOKIE_NAME];
+//   return accessToken;
+// }
 
 export default authenticate;

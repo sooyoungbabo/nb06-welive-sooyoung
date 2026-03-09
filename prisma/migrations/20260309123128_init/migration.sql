@@ -195,8 +195,7 @@ CREATE TABLE "notifications" (
     "targetId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "isChecked" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "checkedAt" TIMESTAMP(3),
+    "notifiedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
 );

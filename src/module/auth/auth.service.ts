@@ -5,6 +5,7 @@ import {
   BoardType,
   HouseholdRole,
   JoinStatus,
+  NotificationType,
   Prisma,
   ResidenceStatus,
   User,
@@ -18,8 +19,8 @@ import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import UnauthorizedError from '../../middleware/errors/UnauthorizedError';
-//import { getIO } from '../../websocket/socketIO';
 import { check_passwordValidity, hashingPassword } from '../user/user.service';
+import notiService from '../notification/notification.service';
 import aptRepo from '../apartment/apartment.repo';
 import userRepo from '../user/user.repo';
 import residentRepo from '../resident/resident.repo';
@@ -31,7 +32,12 @@ import ConflictError from '../../middleware/errors/ConflictError';
 import { CreateResident } from '../resident/resident.struct';
 import { AuthUser } from '../../type/express';
 import { requireApartmentUser, requireUser } from '../../lib/require';
-import { ensureSameApartment, validateDongHo } from '../../lib/utils';
+import {
+  ensureSameApartment,
+  getAdminIdByAparatmentId,
+  getSuperAdminId,
+  validateDongHo
+} from '../../lib/utils';
 import {
   UserSignupDto,
   ResidentSignupDto,
@@ -45,6 +51,7 @@ import {
   UserSignupRequestDto,
   PatchAdminAptRequestDto
 } from '../user/user.dto';
+import { CreateNotification } from '../notification/notification.struct';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
   // validation: (1) 아파트 (2) 동호수
@@ -70,6 +77,17 @@ async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto
     await residentRepo.create(tx, residentArgs);
     return user;
   });
+
+  // 알림 생성
+  const adminId = await getAdminIdByAparatmentId(apt.id);
+  const notiData = {
+    notiType: NotificationType.AUTH_USER_APPLIED,
+    targetId: userCreated.id,
+    content: `알림: 사용자 ${userCreated.name}님 가입신청`
+  };
+  assert(notiData, CreateNotification);
+  const noti = await notiService.notify(adminId, notiData);
+
   // 출력형식에 맞추 재가공하여 리턴
   return buildSignupUserRes(userCreated);
 }
@@ -104,6 +122,18 @@ async function signupAdmin(body: AdminSignupRequestDto): Promise<UserSignupRespo
     return admin;
   });
 
+  // 알림 생성
+  const superAdminIds = await getSuperAdminId();
+  for (const id of superAdminIds) {
+    const notiData = {
+      notiType: NotificationType.AUTH_USER_APPLIED,
+      targetId: adminCreated.id,
+      content: `알림: 관리자 ${adminCreated.name}님 가입신청`
+    };
+    assert(notiData, CreateNotification);
+    const noti = await notiService.notify(id, notiData);
+  }
+
   // 데이터 재가공하여 리턴
   return buildSignupUserRes(adminCreated);
 }
@@ -119,14 +149,14 @@ async function signupSuperAdmin(body: SuperAdminSignupRequestDto): Promise<UserS
 }
 
 async function login(data: LoginDto): Promise<LoginToControlDto> {
-  const userInfoRequired = {
+  const requiredUserInfo = {
     where: { username: data.username },
     include: {
       notifications: true,
       apartment: { include: { boards: true } }
     }
   };
-  const user = await userRepo.find(userInfoRequired);
+  const user = await userRepo.find(requiredUserInfo);
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다');
 
   const isPasswordOk = await check_passwordValidity(data.password, user.password);
@@ -147,13 +177,6 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
 
 function logout(tokenData: Response): void {
   clearTokenCookies(tokenData);
-
-  // const io = getIO();
-  // for (const s of io.of('/').sockets.values()) {
-  //   if (s.data.userId === userId) {
-  //     s.disconnect(true);
-  //   }
-  // }
 }
 
 async function issueTokens(refreshToken: string): Promise<TokenType> {

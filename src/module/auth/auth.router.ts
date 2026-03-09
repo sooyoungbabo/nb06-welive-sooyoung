@@ -32,7 +32,7 @@ authRouter.post(
 
 // 로그인 / 로그아웃
 authRouter.post('/login', validateBody(loginBody), withTryCatch(authControl.login));
-authRouter.post('/logout', authenticate(), withTryCatch(authControl.logout));
+authRouter.post('/logout', withTryCatch(authControl.logout));
 
 // 토큰 재발행
 authRouter.post('/refresh', withTryCatch(authControl.issueTokens));

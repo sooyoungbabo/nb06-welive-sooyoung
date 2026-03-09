@@ -1,28 +1,32 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-// import path from 'path';
-// import http from 'http';
-// import { setupSocket } from './websocket/socketIO';
+import path from 'path';
 import { defaultNotFoundHandler, globalErrorHandler } from './middleware/errorHandler';
 import authRouter from './module/auth/auth.router';
 import userRouter from './module/user/user.router';
 import aptRouter from './module/apartment/apartment.router';
 import residentRouter from './module/resident/resident.router';
 import complaintRouter from './module/complaint/complaint.router';
+import notiRouter from './module/notification/notification.router';
+import devRouter from './module/development/development.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
-
-// socket.io
-// app.use(express.static(path.join(process.cwd(), 'public')));
-// const server = http.createServer(app);
-// setupSocket(server);
+// app.use(cors());
+app.use(
+  cors({
+    //origin: true,
+    origin: 'http://localhost:5173',
+    credentials: true
+  })
+);
 
 if (NODE_ENV === 'development') app.use('/images', express.static(STATIC_IMG_PATH));
+
+if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 
 app.use('/auth', authRouter);
 app.use('/users', userRouter);
@@ -32,7 +36,7 @@ app.use('/complaints', complaintRouter);
 // app.use('/polls', pollRouter);
 // app.use('/notices', noticeRouter);
 // app.use('/comments', commentRouter);
-// app.use('/notifications', notiRouter);
+app.use('/notifications', notiRouter);
 // app.use('/events', eventRouter);
 
 app.use(defaultNotFoundHandler);

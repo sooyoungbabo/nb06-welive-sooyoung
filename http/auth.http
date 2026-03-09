@@ -1,17 +1,18 @@
 @baseUrl = http://localhost:3000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlhNzQ2ODhjLTQyZjItNDkwZC04N2MwLTMxNTY1OGU4NjgzYSIsImlhdCI6MTc3MzA0Mjc4NSwiZXhwIjoxNzczMDQ2Mzg1fQ.9ZYQK427c-9wIioLiIvTg7oBxX6ZmWrY3-WVmo5s9QI
 
 ### 회원가입: 사용자
 POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "bawoo",
+  "username": "frodo",
   "password": "password0!",
-  "contact": "010-9498-9528",
-  "name": "가슴아픈바우",
-  "email": "bawoo@test.com",
+  "contact": "010-9498-9529",
+  "name": "착한프로도",
+  "email": "frodo@test.com",
   "role": "USER",
-  "apartmentName": "힐리아파트",
+  "apartmentName": "아파트1",
   "apartmentDong": "101",
   "apartmentHo": "101"
 }
@@ -20,11 +21,11 @@ POST {{baseUrl}}/auth/signup/admin
 Content-Type: application/json
 
 {
-  "username": "hillie",
+  "username": "hillie2",
   "password": "password0!",
-  "contact": "010-1111-1111",
+  "contact": "010-2222-2222",
   "name": "보고싶은힐리",
-  "email": "hillie@test.com",
+  "email": "hillie2@test.com",
   "description": "질서, 정리정돈, 청결 등 관리상태가 완벽한 아파트",
   "startComplexNumber": 1,
   "endComplexNumber": 5,
@@ -35,9 +36,9 @@ Content-Type: application/json
   "startHoNumber": 1,
   "endHoNumber": 10,
   "role": "ADMIN",
-  "apartmentName": "힐리아파트",
-  "apartmentAddress": "서울시 성북구 화랑로 277",
-  "apartmentManagementNumber": "02-111-1111"
+  "apartmentName": "힐리아파트2",
+  "apartmentAddress": "서울시 성북구 화랑로 2277",
+  "apartmentManagementNumber": "02-222-2222"
 }
 
 ### 회원가입: 최고관리자

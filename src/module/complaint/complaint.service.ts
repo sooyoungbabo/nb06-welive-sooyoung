@@ -6,7 +6,8 @@ import {
   Resident,
   CommentType,
   ComplaintStatus,
-  UserType
+  UserType,
+  NotificationType
 } from '@prisma/client';
 import userRepo from '../user/user.repo';
 import complaintRepo from './complaint.repo';
@@ -28,20 +29,47 @@ import prisma from '../../lib/prisma';
 import { AuthUser } from '../../type/express';
 import { requireApartmentUser, requireResidentUser, requireUser } from '../../lib/require';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
+import { assert } from 'node:console';
+import { CreateNotification } from '../notification/notification.struct';
+import notiService from '../notification/notification.service';
 
 async function create(user: AuthUser, data: ComplaintCreateRequestDto) {
   requireResidentUser(user);
   const boardId = await getBoardId(user.apartmentId, CommentType.COMPLAINT);
-  const complaintData: Prisma.ComplaintCreateInput = {
-    title: data.title,
-    content: data.content,
-    isPublic: data.isPublic,
-    status: data.status,
-    creator: { connect: { id: user.id } },
-    board: { connect: { id: boardId } },
-    admin: { connect: { id: user.adminId } }
+  // const complaintData: Prisma.ComplaintCreateInput = {
+  //   title: data.title,
+  //   content: data.content,
+  //   isPublic: data.isPublic,
+  //   status: data.status,
+  //   creator: { connect: { id: user.id } },
+  //   board: { connect: { id: boardId } },
+  //   admin: { connect: { id: user.adminId } }
+  // };
+  // const complaint = await complaintRepo.create(complaintData);
+
+  const complaint = await prisma.complaint.create({
+    data: {
+      title: data.title,
+      content: data.content,
+      isPublic: data.isPublic,
+      status: data.status,
+      creator: { connect: { id: user.id } },
+      board: { connect: { id: boardId } },
+      admin: { connect: { id: user.adminId } }
+    },
+    include: { creator: true }
+  });
+
+  // 알림 생성
+  const notiData = {
+    notiType: NotificationType.COMPLAINT_RAISED,
+    targetId: user.id,
+    content: `알림: ${complaint.creator.name}님 민원등록`
   };
-  return await complaintRepo.create(complaintData);
+  assert(notiData, CreateNotification);
+  const noti = await notiService.notify(user.adminId, notiData);
+
+  return complaint;
 }
 
 async function getList(
@@ -156,6 +184,7 @@ async function changeStatus(
     data: { status },
     select: { creatorId: true }
   });
+
   const resident = await residentRepo.find(prisma, {
     where: { userId: complaint.creatorId }
   });
@@ -164,7 +193,18 @@ async function changeStatus(
     where: { targetId: complaintId, targetType: CommentType.COMPLAINT }
   });
 
-  return buildComplaintRes(complaint, comments, resident);
+  const formattedComplaint = buildComplaintRes(complaint, comments, resident);
+
+  // 알림 생성
+  const notiData = {
+    notiType: NotificationType.AUTH_USER_APPLIED,
+    targetId: complaintId,
+    content: `알림: 사용자 ${resident.name}님 민원종결`
+  };
+  assert(notiData, CreateNotification);
+  const noti = await notiService.notify(complaint.creatorId, notiData);
+
+  return formattedComplaint;
 }
 
 //------------------------------------------

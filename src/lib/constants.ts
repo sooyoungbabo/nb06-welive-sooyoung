@@ -11,10 +11,12 @@ export const JWT_REFRESH_TOKEN_SECRET =
   process.env.JWT_REFRESH_TOKEN_SECRET || 'your_jwt_refresh_token_secret';
 export const ACCESS_TOKEN_COOKIE_NAME = 'access-token';
 export const REFRESH_TOKEN_COOKIE_NAME = 'refresh-token';
+// export const ACCESS_TOKEN_COOKIE_NAME = 'accessToken';
+// export const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken';
 
 export const ACCESS_TOKEN_EXPIRESIN = '1h';
 export const REFRESH_TOKEN_EXPIRESIN = '1d';
-export const ACCESS_TOKEN_MAXAGE = 1 * 60 * 60 * 1000; // 1 hour
+export const ACCESS_TOKEN_MAXAGE = 10 * 60 * 60 * 1000; // 1 hour
 export const REFRESH_TOKEN_MAXAGE = 1 * 24 * 60 * 60 * 1000; // 1 day
 
 // image paths
