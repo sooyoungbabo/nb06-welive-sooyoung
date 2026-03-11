@@ -1,7 +1,12 @@
 import { sendToUser } from './sse.manager';
-import { NotificationType } from '@prisma/client';
+import { Notification, NotificationType } from '@prisma/client';
 import notiRepo from './notification.repo';
 import prisma from '../../lib/prisma';
+import { AuthUser } from '../../type/express';
+import { requireUser } from '../../lib/require';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
+import NotFoundError from '../../middleware/errors/NotFoundError';
+import userRepo from '../user/user.repo';
 
 type NotifyArgs = {
   notiType: NotificationType;
@@ -27,6 +32,53 @@ async function notify(userId: string, data: NotifyArgs) {
 //   });
 // }
 
+async function read(user: AuthUser, notiId: string) {
+  requireUser(user);
+  const noti = await notiRepo.findById(notiId);
+  if (!noti) throw new NotFoundError('알림이 DB에 존재하지 않습니다.');
+
+  if (user.id !== noti.receiverId) throw new ForbiddenError(); // 권한: 수신자
+
+  const notiUpdated = await notiRepo.patch({
+    where: { id: notiId },
+    data: { isChecked: true }
+  });
+  return buildNotificationRes(notiUpdated);
+}
+
+async function readAll(userId: string): Promise<string> {
+  const notis = await notiRepo.patchMany({
+    where: { receiverId: userId, isChecked: false },
+    data: { isChecked: true }
+  });
+  const user = await userRepo.findById(userId, { select: { name: true } });
+  return `${user?.name}님이 ${notis.count}건의 알림을 읽음으로 처리하였습니다.`;
+}
+
+async function getList(userId: string) {
+  return await notiRepo.findMany({ where: { receiverId: userId } });
+}
+
+async function getUnreadList(userId: string) {
+  return await notiRepo.findMany({ where: { receiverId: userId, isChecked: false } });
+}
+
+//-------------------------------
+function buildNotificationRes(noti: Notification) {
+  return {
+    notificationId: noti.id,
+    receiverId: noti.receiverId,
+    content: noti.content,
+    notiType: noti.notiType,
+    notifiedAt: noti.notifiedAt,
+    isChecked: noti.isChecked
+  };
+}
+
 export default {
-  notify
+  notify,
+  getList,
+  getUnreadList,
+  read,
+  readAll
 };

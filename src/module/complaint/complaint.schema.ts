@@ -11,7 +11,6 @@ export const complaintCreateBody = object({
   title: string(),
   content: string(),
   isPublic: boolean(),
-  boardId: string(),
   status: enums(['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'])
 });
 

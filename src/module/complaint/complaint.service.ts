@@ -64,7 +64,7 @@ async function create(user: AuthUser, data: ComplaintCreateRequestDto) {
   const notiData = {
     notiType: NotificationType.COMPLAINT_RAISED,
     targetId: user.id,
-    content: `알림: ${complaint.creator.name}님 민원등록`
+    content: `[알림] ${complaint.creator.name}님 민원등록`
   };
   assert(notiData, CreateNotification);
   const noti = await notiService.notify(user.adminId, notiData);
@@ -199,7 +199,7 @@ async function changeStatus(
   const notiData = {
     notiType: NotificationType.AUTH_USER_APPLIED,
     targetId: complaintId,
-    content: `알림: 사용자 ${resident.name}님 민원종결`
+    content: `[알림] ${resident.name}님 민원종결`
   };
   assert(notiData, CreateNotification);
   const noti = await notiService.notify(complaint.creatorId, notiData);

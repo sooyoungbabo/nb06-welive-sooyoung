@@ -13,7 +13,7 @@ type DB = PrismaClient | Prisma.TransactionClient;
 // }
 
 async function getList<T extends Prisma.ApartmentFindManyArgs>(
-  args: Prisma.SelectSubset<T, Prisma.ApartmentFindManyArgs>
+  args?: Prisma.SelectSubset<T, Prisma.ApartmentFindManyArgs>
 ): Promise<Prisma.ApartmentGetPayload<T>[]> {
   return prisma.apartment.findMany(args);
 }

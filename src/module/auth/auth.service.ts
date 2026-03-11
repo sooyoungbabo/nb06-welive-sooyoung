@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../../lib/prisma';
 import {
+  Apartment,
   ApprovalStatus,
   BoardType,
   HouseholdRole,
@@ -52,6 +53,8 @@ import {
   PatchAdminAptRequestDto
 } from '../user/user.dto';
 import { CreateNotification } from '../notification/notification.struct';
+import { setDevTokens } from '../../lib/tokenDev';
+import { access } from 'node:fs';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
   // validation: (1) 아파트 (2) 동호수
@@ -83,7 +86,7 @@ async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto
   const notiData = {
     notiType: NotificationType.AUTH_USER_APPLIED,
     targetId: userCreated.id,
-    content: `알림: 사용자 ${userCreated.name}님 가입신청`
+    content: `[알림] ${userCreated.name}님 가입신청`
   };
   assert(notiData, CreateNotification);
   const noti = await notiService.notify(adminId, notiData);
@@ -126,9 +129,9 @@ async function signupAdmin(body: AdminSignupRequestDto): Promise<UserSignupRespo
   const superAdminIds = await getSuperAdminId();
   for (const id of superAdminIds) {
     const notiData = {
-      notiType: NotificationType.AUTH_USER_APPLIED,
+      notiType: NotificationType.AUTH_ADMIN_APPLIED,
       targetId: adminCreated.id,
-      content: `알림: 관리자 ${adminCreated.name}님 가입신청`
+      content: `[알림] ${adminCreated.name}님 가입신청`
     };
     assert(notiData, CreateNotification);
     const noti = await notiService.notify(id, notiData);
@@ -158,13 +161,17 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
   };
   const user = await userRepo.find(requiredUserInfo);
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다');
-
+  console.log('');
+  console.log(`${user.role} ${user.name}님이 로그인하셨습니다.`);
   const isPasswordOk = await check_passwordValidity(data.password, user.password);
   if (!isPasswordOk) throw new ForbiddenError('비밀번호가 틀렸습니다');
 
   if (user.notifications.length) {
     const unreadCount = user.notifications.filter((n) => n.isChecked === false).length;
-    if (NODE_ENV === 'development') console.log(`읽지 않은 알림이 ${unreadCount}개 있습니다.`);
+    if (NODE_ENV === 'development') {
+      console.log(`읽지 않은 알림이 ${unreadCount}개 있습니다.`);
+      console.log('');
+    }
   }
   const { accessToken, refreshToken } = generateTokens(user.id);
 
@@ -183,6 +190,17 @@ async function issueTokens(refreshToken: string): Promise<TokenType> {
   const { userId } = verifyRefreshToken(refreshToken);
   const user = await verifyUserExist(userId);
   return generateTokens(user.id);
+}
+
+async function getAdminList(): Promise<User[]> {
+  return await userRepo.findMany(prisma, {
+    where: { role: UserType.ADMIN },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+async function getAptList(): Promise<Apartment[]> {
+  return await aptRepo.getList({ orderBy: { createdAt: 'desc' } });
 }
 
 async function changeAdminStatus(adminId: string, status: JoinStatus) {
@@ -531,6 +549,8 @@ export default {
   login,
   logout,
   issueTokens,
+  getAdminList,
+  getAptList,
   changeAdminStatus,
   changeAllAdminsStatus,
   changeResidentStatus,

@@ -2,10 +2,9 @@
 let devAccessToken: string | undefined;
 let devRefreshToken: string | undefined;
 
-export function setDevTokens(access?: string, refresh?: string) {
-  console.log('DEV TOKENS SAVED');
+export function setDevTokens(access?: string) {
+  console.log('DEV TOKEN SAVED IN SERVER');
   devAccessToken = access;
-  devRefreshToken = refresh;
 }
 
 export function getDevAccessToken() {

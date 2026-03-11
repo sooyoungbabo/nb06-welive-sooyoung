@@ -6,11 +6,11 @@ POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "frodo",
+  "username": "bailey",
   "password": "password0!",
-  "contact": "010-9498-9529",
-  "name": "착한프로도",
-  "email": "frodo@test.com",
+  "contact": "010-9498-9532",
+  "name": "귀여운베일리",
+  "email": "bailey@test.com",
   "role": "USER",
   "apartmentName": "아파트1",
   "apartmentDong": "101",
@@ -21,11 +21,11 @@ POST {{baseUrl}}/auth/signup/admin
 Content-Type: application/json
 
 {
-  "username": "hillie2",
+  "username": "hillie1",
   "password": "password0!",
-  "contact": "010-2222-2222",
+  "contact": "010-1111-1111",
   "name": "보고싶은힐리",
-  "email": "hillie2@test.com",
+  "email": "hillie1@test.com",
   "description": "질서, 정리정돈, 청결 등 관리상태가 완벽한 아파트",
   "startComplexNumber": 1,
   "endComplexNumber": 5,
@@ -36,9 +36,9 @@ Content-Type: application/json
   "startHoNumber": 1,
   "endHoNumber": 10,
   "role": "ADMIN",
-  "apartmentName": "힐리아파트2",
+  "apartmentName": "힐리아파트1",
   "apartmentAddress": "서울시 성북구 화랑로 2277",
-  "apartmentManagementNumber": "02-222-2222"
+  "apartmentManagementNumber": "02-111-1111"
 }
 
 ### 회원가입: 최고관리자
@@ -63,7 +63,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin0",
+  "username": "admin2",
   "password": "password0!"
 }
 
@@ -76,10 +76,17 @@ POST {{baseUrl}}/auth/refresh
 GET {{baseUrl}}/auth/refresh/view
 
 
+########################################################################
+#                                                최고관리자 Auth 기능
+######################################################################## 
+### 최고관리자: 관리자 목록 조회: 개발용 부가 기능
+GET {{baseUrl}}/auth/admins
+### 최고관리자: 아파트 목록 조회: 개발용 부가 기능
+GET {{baseUrl}}/auth/apartments
 
 # 아래의 가입승인 --> 모두 가입상태 변경으로 작성 (APPROVED, REJECTED 가능)
 ### 최고관리자: 관리자 1명 가입상태 변경
-PATCH {{baseUrl}}/auth/admins/c56db6c9-b8e2-4494-bc57-c56eb8d7ace8/status
+PATCH {{baseUrl}}/auth/admins/b74e5fb5-e4de-4cac-8ac8-77cb22428731/status
 Content-Type: application/json
 
 {
@@ -92,23 +99,6 @@ Content-Type: application/json
 
 {
   "status": "REJECTED"
-}
-
-### 관리자: 사용자 1명 가입상태 변경, residentId 사용
-PATCH {{baseUrl}}/auth/residents/de7f2f11-6ab7-4e3f-9bb1-ad0f1f695a72/status
-Content-Type: application/json
-
-{
-  "status": "APPROVED"
-}
-
-### 관리자: 사용자 일괄 가입상태 변경
-### 명부 only 입주자는 제외 (isRegistered = false) 
-PATCH {{baseUrl}}/auth/residents/status
-Content-Type: application/json
-
-{
-  "status": "APPROVED"
 }
 
 ### 최고관리자: 관리자 정보 수정
@@ -127,8 +117,32 @@ Content-Type: application/json
 
 
 ### 최고관리자: 관리자/아파트/보드 동시 삭제
-DELETE {{baseUrl}}/auth/admins/33ff9eaf-52e3-4c44-9db1-f06390ebf683
+DELETE {{baseUrl}}/auth/admins/4a81fe16-ee59-44e7-b82f-18091bd162e1
 
 ### 최고관리자: 거절된 관리자 일괄 삭제 
 ### 관리자: 거절된 사용자 일괄 삭제
 POST {{baseUrl}}/auth/cleanup
+
+
+########################################################################
+#                                                  관리자 Auth 기능
+######################################################################## 
+
+### 관리자: 사용자 1명 가입상태 변경, residentId 사용
+PATCH {{baseUrl}}/auth/residents/de7f2f11-6ab7-4e3f-9bb1-ad0f1f695a72/status
+Content-Type: application/json
+
+{
+  "status": "APPROVED"
+}
+
+### 관리자: 사용자 일괄 가입상태 변경
+### 명부 only 입주자는 제외 (isRegistered = false) 
+PATCH {{baseUrl}}/auth/residents/status
+Content-Type: application/json
+
+{
+  "status": "APPROVED"
+}
+
+

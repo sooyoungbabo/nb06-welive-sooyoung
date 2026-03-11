@@ -20,7 +20,7 @@
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
-            username: 'admin1',
+            username: 'superadmin',
             password: 'password0!'
           })
         });
@@ -33,7 +33,7 @@
       function connect() {
         if (es) return; // 이미 연결되어 있으면 다시 안 만듦
 
-        es = new EventSource('/notifications/stream', { withCredentials: true });
+        es = new EventSource('/notifications/SSE', { withCredentials: true });
 
         es.onopen = () => {
           log('SSE connected');

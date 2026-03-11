@@ -28,6 +28,7 @@ async function signupSuperAdmin(req: Request, res: Response, next: NextFunction)
 async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { userRes, accessToken, refreshToken } = await authService.login(req.body);
   setTokenCookies(res, accessToken, refreshToken);
+  if (NODE_ENV === 'development') setDevTokens(accessToken);
   res.status(200).json(userRes);
 }
 
@@ -37,8 +38,10 @@ function logout(req: Request, res: Response, next: NextFunction) {
   res.clearCookie('refreshToken', { path: '/auth/refresh' });
   res.clearCookie('access-token', { path: '/' });
   res.clearCookie('refresh-token', { path: '/' });
+  res.clearCookie('refresh-Token', { path: '/auth/refresh' });
   res.clearCookie('connect.sid', { path: '/' });
   res.clearCookie('token', { path: '/' });
+
   authService.logout(res);
   res.status(200).send({ message: '사용자가 로그아웃 하였습니다' });
 }
@@ -48,8 +51,8 @@ function viewTokens(req: Request, res: Response, next: NextFunction) {
   let refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
 
   console.log('');
-  console.log('URL:', req.originalUrl);
-  console.log('RAW COOKIE HEADER:', req.headers.cookie);
+  // console.log('URL:', req.originalUrl);
+  // console.log('RAW COOKIE HEADER:', req.headers.cookie);
   console.log(`accessToken:  ${accessToken}`);
   console.log(`refreshToken: ${refreshToken}`);
   console.log('');
@@ -57,12 +60,19 @@ function viewTokens(req: Request, res: Response, next: NextFunction) {
 
 async function issueTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
   let currRefreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
-  if (!currRefreshToken && NODE_ENV === 'development') currRefreshToken = getDevRefreshToken();
-
   const { accessToken, refreshToken } = await authService.issueTokens(currRefreshToken);
   setTokenCookies(res, accessToken, refreshToken);
-  if (NODE_ENV === 'development') setDevTokens(accessToken, refreshToken);
   res.status(201).send({ accessToken });
+}
+
+async function getAdminList(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const admins = await authService.getAdminList();
+  res.status(200).json(admins);
+}
+
+async function getAptList(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const apts = await authService.getAptList();
+  res.status(200).json(apts);
 }
 
 async function changeAdminStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -148,6 +158,8 @@ export default {
   logout,
   viewTokens,
   issueTokens,
+  getAdminList,
+  getAptList,
   changeAdminStatus,
   changeAllAdminsStatus,
   changeResidentStatus,

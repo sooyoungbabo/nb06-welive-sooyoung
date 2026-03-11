@@ -43,6 +43,7 @@ function authenticate(options?: { optional?: boolean }) {
         residentId,
         adminId
       };
+      console.log(`${user.role} ${user.name} authenticated.`);
 
       // const { userId } = verifyAccessToken(accessToken);
 
@@ -83,7 +84,7 @@ function authenticate(options?: { optional?: boolean }) {
 function check_accessTokenExist(cookieData: Record<string, string | undefined>) {
   let accessToken = cookieData[ACCESS_TOKEN_COOKIE_NAME];
 
-  if (!accessToken && process.env.NODE_ENV === 'development') {
+  if (!accessToken && NODE_ENV === 'development') {
     accessToken = getDevAccessToken() ?? undefined;
   }
   return accessToken;
