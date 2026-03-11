@@ -5,15 +5,13 @@ import { uploadFile } from '../../middleware/multer';
 import express from 'express';
 import authorize from '../../middleware/authorize';
 import { UserType } from '@prisma/client';
-import { validateBody } from '../../middleware/validateBody';
+import { validateParams, validateQuery, validateBody } from '../../middleware/validateReq';
 import {
   residentCreateBody,
   residentListQuery,
   residentListQueryShape,
   residentParams
 } from './resident.schema';
-import { validateQuery } from '../../middleware/validateQuery';
-import { validateParams } from '../../middleware/validateParams';
 
 const residentRouter = express.Router();
 
@@ -43,7 +41,7 @@ residentRouter.post(
 //   withTryCatch(residentControl.user2resident)
 // );
 
-// 입주민 업로드 템플릿 다운로다
+// 입주민 업로드용 템플릿 다운로드
 residentRouter.get(
   '/file/template',
   authenticate(),
@@ -65,6 +63,7 @@ residentRouter.get(
   '/file',
   authenticate(),
   authorize(UserType.ADMIN),
+  validateQuery(residentListQuery, residentListQueryShape),
   withTryCatch(residentControl.downloadList)
 );
 
@@ -83,6 +82,7 @@ residentRouter.patch(
   authenticate(),
   authorize(UserType.ADMIN),
   validateParams(residentParams),
+  validateBody(residentCreateBody),
   withTryCatch(residentControl.patch)
 );
 

@@ -1,4 +1,5 @@
-import { boolean, enums, object, optional, pattern, size, string } from 'superstruct';
+import { boolean, enums, object, optional, size, string } from 'superstruct';
+import { str4numStruct } from '../../middleware/commonStructs';
 
 //-------------------------------------------- Params schema
 export const complaintParams = object({
@@ -10,13 +11,14 @@ export const complaintCreateBody = object({
   title: string(),
   content: string(),
   isPublic: boolean(),
-  boardId: string(),
   status: enums(['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'])
 });
 
-//-------------------------------------------- Query schema
-const str4numStruct = pattern(string(), /^\d+$/);
+export const complaintStatusBody = object({
+  status: enums(['APPROVED', 'REJECTED'])
+});
 
+//-------------------------------------------- Query schema
 export const complaintListQueryShape = {
   page: optional(str4numStruct),
   limit: optional(str4numStruct),

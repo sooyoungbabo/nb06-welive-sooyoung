@@ -232,7 +232,7 @@ model Notification {
   content   String
   isChecked Boolean          @default(false)
 
-  notifiedAt DateTime? // updatedAt으로 출력해야 함
+  notifiedAt DateTime @default(now())
 
   receiver User @relation(fields: [receiverId], references: [id])
 

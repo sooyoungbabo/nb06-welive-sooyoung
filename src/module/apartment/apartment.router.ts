@@ -11,8 +11,7 @@ import {
   publicApartmentListQuery,
   publicApartmentListQueryShape
 } from './apartment.schema';
-import { validateQuery } from '../../middleware/validateQuery';
-import { validateParams } from '../../middleware/validateParams';
+import { validateParams, validateQuery } from '../../middleware/validateReq';
 
 const aptRouter = express.Router();
 

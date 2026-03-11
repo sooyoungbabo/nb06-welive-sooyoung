@@ -1,18 +1,17 @@
-import { assign, enums, integer, literal, min, object, pattern, size, string } from 'superstruct';
+import { assign, enums, integer, literal, min, object, string } from 'superstruct';
+import {
+  contactStruct,
+  emailStruct,
+  passwordStruct,
+  str4numStruct,
+  usernameStruct
+} from '../../middleware/commonStructs';
 
 //-------------------------------------------- params schema
 export const authParams = object({
   adminId: string()
 });
 //-------------------------------------------- body schema
-const usernameStruct = size(string(), 5, 50);
-const passwordStruct = pattern(
-  size(string(), 8, 128),
-  /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])[^\s<>'"`\\\/]{8,128}$/
-);
-const emailStruct = pattern(size(string(), 5, 254), /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/);
-const str4numStruct = pattern(string(), /^\d+$/);
-const contactStruct = pattern(size(string(), 11, 13), /^\d{2,3}-\d{3,4}-\d{4}$/);
 
 export const baseSignupBody = object({
   username: usernameStruct,
@@ -64,7 +63,7 @@ export const loginBody = object({
   password: passwordStruct
 });
 
-export const statusBody = object({
+export const authStatusBody = object({
   status: enums(['APPROVED', 'REJECTED'])
 });
 

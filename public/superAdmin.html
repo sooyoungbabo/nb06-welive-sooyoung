@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <body>
+    <h2>SSE Test</h2>
+
+    <button onclick="login()">Login</button>
+    <button onclick="connect()">Connect SSE</button>
+
+    <div id="log"></div>
+
+    <script>
+      function log(msg) {
+        const el = document.getElementById('log');
+        el.innerHTML += '<p>' + msg + '</p>';
+      }
+
+      async function login() {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            username: 'superadmin',
+            password: 'password0!'
+          })
+        });
+
+        log('login status: ' + res.status);
+      }
+
+      let es;
+
+      function connect() {
+        if (es) return; // 이미 연결되어 있으면 다시 안 만듦
+
+        es = new EventSource('/notifications/SSE', { withCredentials: true });
+
+        es.onopen = () => {
+          log('SSE connected');
+        };
+
+        es.onmessage = (event) => {
+          log('SSE message: ' + event.data);
+        };
+
+        es.onerror = () => {
+          log('SSE error');
+        };
+      }
+
+      log('SSE connecting...');
+
+      es.onopen = () => {
+        log('SSE connected');
+      };
+
+      es.onmessage = (event) => {
+        log('SSE message: ' + event.data);
+      };
+
+      es.onerror = (err) => {
+        log('SSE error');
+        console.error(err);
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:3000
+
+### 
+GET {{baseUrl}}/development/superAdmin
+###
+GET {{baseUrl}}/development/admin
+###
+GET {{baseUrl}}/development/user
+### 
+GET {{baseUrl}}/development/test-noti
+### 
+GET {{baseUrl}}/development/token
+###
+GET {{baseUrl}}/development/token/refresh
+
+

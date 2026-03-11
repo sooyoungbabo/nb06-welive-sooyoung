@@ -1,4 +1,5 @@
-import { object, string, pattern, enums, optional } from 'superstruct';
+import { object, string, enums, optional } from 'superstruct';
+import { str4numStruct } from '../../middleware/commonStructs';
 
 //------------------------------------------------- params schema
 export const apartmentParams = object({
@@ -6,7 +7,6 @@ export const apartmentParams = object({
 });
 
 //------------------------------------------------- query schema
-const str4numStruct = pattern(string(), /^\d+$/);
 
 export const publicApartmentListQueryShape = {
   keyword: optional(string()),

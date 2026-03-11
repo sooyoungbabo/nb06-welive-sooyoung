@@ -45,6 +45,10 @@ async function findById(id: string, args?: PrismaSelectIncludeWithoutWhere) {
   });
 }
 
+async function findMany(db: DB, args: Prisma.UserFindManyArgs): Promise<User[]> {
+  return db.user.findMany(args);
+}
+
 async function patch(db: DB, args: Prisma.UserUpdateArgs) {
   return db.user.update(args);
 }
@@ -109,6 +113,7 @@ export default {
   find,
   findFirst,
   findById,
+  findMany,
   del,
   deleteById,
   cleanup

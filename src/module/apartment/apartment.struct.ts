@@ -1,4 +1,3 @@
-import { ResidenceStatus } from '@prisma/client';
 import * as s from 'superstruct';
 
 export const CreateApartment = s.object({
