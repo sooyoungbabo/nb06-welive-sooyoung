@@ -17,7 +17,7 @@ CREATE TYPE "HouseholdRole" AS ENUM ('HOUSEHOLDER', 'MEMBER');
 CREATE TYPE "ComplaintStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "PollStatus" AS ENUM ('UPCOMING', 'ONGOING', 'CLOSED');
+CREATE TYPE "PollStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'CLOSED');
 
 -- CreateEnum
 CREATE TYPE "NoticeType" AS ENUM ('MAINTENANCE', 'EMERGENCY', 'COMMUNITY', 'RESIDENT_VOTE', 'RESIDENT_COUNCIL', 'ETC');
@@ -113,6 +113,7 @@ CREATE TABLE "notices" (
     "id" TEXT NOT NULL,
     "boardId" TEXT NOT NULL,
     "adminId" TEXT NOT NULL,
+    "pollId" TEXT,
     "category" "NoticeType" NOT NULL,
     "isPinned" BOOLEAN NOT NULL DEFAULT false,
     "startDate" TIMESTAMP(3),
@@ -152,10 +153,10 @@ CREATE TABLE "polls" (
     "adminId" TEXT NOT NULL,
     "buildingPermission" INTEGER NOT NULL DEFAULT 0,
     "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
-    "status" "PollStatus" NOT NULL,
+    "status" "PollStatus" NOT NULL DEFAULT 'IN_PROGRESS',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -167,7 +168,7 @@ CREATE TABLE "polls" (
 CREATE TABLE "poll_options" (
     "id" TEXT NOT NULL,
     "pollId" TEXT NOT NULL,
-    "content" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
     "voteCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -220,6 +221,8 @@ CREATE TABLE "events" (
     "noticeId" TEXT,
     "eventType" "EventType" NOT NULL DEFAULT 'NOTICE',
     "title" TEXT NOT NULL,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -254,6 +257,9 @@ CREATE UNIQUE INDEX "apartments_name_address_key" ON "apartments"("name", "addre
 CREATE UNIQUE INDEX "boards_apartmentId_boardType_key" ON "boards"("apartmentId", "boardType");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "notices_pollId_key" ON "notices"("pollId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "votes_pollId_voterId_key" ON "votes"("pollId", "voterId");
 
 -- CreateIndex
@@ -281,13 +287,16 @@ ALTER TABLE "residents" ADD CONSTRAINT "residents_userId_fkey" FOREIGN KEY ("use
 ALTER TABLE "residents" ADD CONSTRAINT "residents_apartmentId_fkey" FOREIGN KEY ("apartmentId") REFERENCES "apartments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "boards" ADD CONSTRAINT "boards_apartmentId_fkey" FOREIGN KEY ("apartmentId") REFERENCES "apartments"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "boards" ADD CONSTRAINT "boards_apartmentId_fkey" FOREIGN KEY ("apartmentId") REFERENCES "apartments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "notices" ADD CONSTRAINT "notices_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "boards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "notices" ADD CONSTRAINT "notices_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notices" ADD CONSTRAINT "notices_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "complaints" ADD CONSTRAINT "complaints_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -305,13 +314,13 @@ ALTER TABLE "polls" ADD CONSTRAINT "polls_adminId_fkey" FOREIGN KEY ("adminId") 
 ALTER TABLE "polls" ADD CONSTRAINT "polls_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "boards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "poll_options" ADD CONSTRAINT "poll_options_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "poll_options" ADD CONSTRAINT "poll_options_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "votes" ADD CONSTRAINT "votes_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "votes" ADD CONSTRAINT "votes_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "polls"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "votes" ADD CONSTRAINT "votes_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "poll_options"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "votes" ADD CONSTRAINT "votes_optionId_fkey" FOREIGN KEY ("optionId") REFERENCES "poll_options"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "votes" ADD CONSTRAINT "votes_voterId_fkey" FOREIGN KEY ("voterId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

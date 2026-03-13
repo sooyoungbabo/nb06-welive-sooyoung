@@ -16,6 +16,10 @@ async function getList(
   });
 }
 
+async function findMany(db: DB, args: Prisma.ResidentFindManyArgs): Promise<Resident[]> {
+  return db.resident.findMany(args);
+}
+
 async function count(where: Prisma.ResidentWhereInput): Promise<number> {
   return await prisma.resident.count({ where });
 }
@@ -28,10 +32,10 @@ async function create(
 }
 
 async function createMany(
-  tx: Prisma.TransactionClient,
+  db: DB,
   data: Prisma.ResidentCreateManyInput[]
 ): Promise<Prisma.BatchPayload> {
-  return await tx.resident.createMany({ data });
+  return await db.resident.createMany({ data });
 }
 
 async function find(db: DB, args: Prisma.ResidentFindUniqueArgs) {
@@ -59,6 +63,7 @@ async function cleanup(db: DB, args: Prisma.ResidentDeleteManyArgs): Promise<Pri
 
 export default {
   find,
+  findMany,
   getList,
   count,
   create,

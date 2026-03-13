@@ -5,6 +5,12 @@ psql postgresql://postgres:password@localhost:5432/mission7
 
 psql -U 아이디 -h localhost -p 5432 -d 데이터베이스
 
+
+rm -rf prisma/migrations
+npx prisma migrate reset
+npx prisma migrate dev --name init
+
+
 -- 모든 테이블, 스키마 죽이기
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;

@@ -2,6 +2,12 @@ import { Prisma, PrismaClient, Board } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
+async function find<T extends Prisma.BoardFindUniqueArgs>(
+  args: Prisma.SelectSubset<T, Prisma.BoardFindUniqueArgs>
+): Promise<Prisma.BoardGetPayload<T> | null> {
+  return prisma.board.findUnique(args);
+}
+
 async function findMany<T extends Prisma.BoardFindManyArgs>(
   args?: Prisma.SelectSubset<T, Prisma.BoardFindManyArgs>
 ): Promise<Prisma.BoardGetPayload<T>[]> {
@@ -20,6 +26,7 @@ async function deleteMany(db: DB, args: Prisma.BoardDeleteManyArgs): Promise<Pri
 }
 
 export default {
+  find,
   findMany,
   createMany,
   deleteMany

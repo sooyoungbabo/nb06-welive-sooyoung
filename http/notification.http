@@ -14,14 +14,13 @@ Content-Type: application/json
 }
 
 
-
-### 알림 읽음 처리
-PATCH {{baseUrl}}/notifications/74305da1-0f5d-45ba-9247-dc459c9ce607/read
-
-### 알림 읽음 일괄 처리
-PATCH {{baseUrl}}/notifications/read
-
 ### 알림 목록 조회: all
 GET {{baseUrl}}/notifications
 ### 알림 목록 조회: unread
 GET {{baseUrl}}/notifications/unread
+
+### 알림 읽음 처리
+PATCH {{baseUrl}}/notifications/6f5ce64b-9aca-42e4-8953-3dab6d2e98e8/read
+
+### 알림 읽음 일괄 처리
+PATCH {{baseUrl}}/notifications/read

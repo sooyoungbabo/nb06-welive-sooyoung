@@ -33,7 +33,7 @@ Content-Type: application/json
 DELETE {{baseUrl}}/complaints/5d335528-769b-45cd-891e-b7d69b891f98
 
 ### 슈퍼관리자, 관리자: 민원 수정
-PATCH {{baseUrl}}/complaints/0014961a-0fc8-4146-a33b-821508b9e8a0/status
+PATCH {{baseUrl}}/complaints/ee9cc55a-970d-472e-9763-e518250910b9/status
 Content-Type: application/json
 
 {

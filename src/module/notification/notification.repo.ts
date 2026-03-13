@@ -6,8 +6,19 @@ async function create(db: DB, data: Prisma.NotificationCreateInput): Promise<Not
   return db.notification.create({ data });
 }
 
+async function createMany(
+  db: DB,
+  data: Prisma.NotificationCreateManyInput[]
+): Promise<Prisma.BatchPayload> {
+  return db.notification.createMany({ data });
+}
+
 async function findById(id: string): Promise<Notification | null> {
   return prisma.notification.findUnique({ where: { id }, include: { receiver: true } });
+}
+
+async function findFirst(args: Prisma.NotificationFindFirstArgs): Promise<Notification | null> {
+  return prisma.notification.findFirst(args);
 }
 
 async function findMany(args?: Prisma.NotificationFindManyArgs): Promise<Notification[] | null> {
@@ -24,7 +35,9 @@ async function patchMany(args: Prisma.NotificationUpdateManyArgs): Promise<Prism
 
 export default {
   create,
+  createMany,
   findById,
+  findFirst,
   findMany,
   patch,
   patchMany

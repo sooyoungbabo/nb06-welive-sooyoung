@@ -43,7 +43,7 @@ function authenticate(options?: { optional?: boolean }) {
         residentId,
         adminId
       };
-      console.log(`${user.role} ${user.name} authenticated.`);
+      if (NODE_ENV === 'development') console.log(`${user.role} ${user.name} authenticated.`);
 
       // const { userId } = verifyAccessToken(accessToken);
 

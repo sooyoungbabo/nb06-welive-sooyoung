@@ -6,11 +6,11 @@ POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "bailey",
+  "username": "younghee",
   "password": "password0!",
-  "contact": "010-9498-9532",
-  "name": "귀여운베일리",
-  "email": "bailey@test.com",
+  "contact": "010-9498-9533",
+  "name": "잘견디고있는영희",
+  "email": "younghee@test.com",
   "role": "USER",
   "apartmentName": "아파트1",
   "apartmentDong": "101",
@@ -21,11 +21,11 @@ POST {{baseUrl}}/auth/signup/admin
 Content-Type: application/json
 
 {
-  "username": "hillie1",
+  "username": "hillie4",
   "password": "password0!",
-  "contact": "010-1111-1111",
-  "name": "보고싶은힐리",
-  "email": "hillie1@test.com",
+  "contact": "010-1111-4444",
+  "name": "보고싶은힐리4",
+  "email": "hillie4@test.com",
   "description": "질서, 정리정돈, 청결 등 관리상태가 완벽한 아파트",
   "startComplexNumber": 1,
   "endComplexNumber": 5,
@@ -36,9 +36,9 @@ Content-Type: application/json
   "startHoNumber": 1,
   "endHoNumber": 10,
   "role": "ADMIN",
-  "apartmentName": "힐리아파트1",
+  "apartmentName": "힐리아파트4",
   "apartmentAddress": "서울시 성북구 화랑로 2277",
-  "apartmentManagementNumber": "02-111-1111"
+  "apartmentManagementNumber": "02-111-4444"
 }
 
 ### 회원가입: 최고관리자
@@ -56,6 +56,8 @@ Content-Type: application/json
 }
 
 
+###
+GET {{baseUrl}}/users/me/myInfo
 
 
 ### 
@@ -63,7 +65,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin2",
+  "username": "admin1",
   "password": "password0!"
 }
 

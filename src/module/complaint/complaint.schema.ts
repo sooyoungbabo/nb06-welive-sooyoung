@@ -15,7 +15,7 @@ export const complaintCreateBody = object({
 });
 
 export const complaintStatusBody = object({
-  status: enums(['APPROVED', 'REJECTED'])
+  status: enums(['APPROVED', 'RESOLVED', 'REJECTED'])
 });
 
 //-------------------------------------------- Query schema

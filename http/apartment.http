@@ -15,7 +15,7 @@ GET {{baseUrl}}/apartments/public/fa1331b1-ca0c-4a8f-be39-9ef346bda066
 ### query filters: name, address
 ### query exactFilters: apartmentStatus
 ### query keyword: name, address, (관계형) admin name, admin email
-GET {{baseUrl}}/apartments?keyword=보고싶은
+GET {{baseUrl}}/apartments?name=아파트
 
 ### 슈퍼관리자/관리자: 아파트 상세 조회
 GET {{baseUrl}}/apartments/fa1331b1-ca0c-4a8f-be39-9ef346bda066
