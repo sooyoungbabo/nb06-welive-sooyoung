@@ -2,16 +2,6 @@ import { Apartment, PrismaClient, Prisma, Resident } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
-// async function getList(args: Prisma.ApartmentFindManyArgs) {
-//   return prisma.apartment.findMany(args);
-// }
-
-// async function getList<T extends Prisma.ApartmentFindManyArgs>(
-//   args: T
-// ): Promise<Prisma.ApartmentGetPayload<T>[]> {
-//   return prisma.apartment.findMany(args);
-// }
-
 async function getList<T extends Prisma.ApartmentFindManyArgs>(
   args?: Prisma.SelectSubset<T, Prisma.ApartmentFindManyArgs>
 ): Promise<Prisma.ApartmentGetPayload<T>[]> {

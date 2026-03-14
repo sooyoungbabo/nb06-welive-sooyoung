@@ -8,6 +8,12 @@ async function find<T extends Prisma.BoardFindUniqueArgs>(
   return prisma.board.findUnique(args);
 }
 
+async function findFirst<T extends Prisma.BoardFindFirstArgs>(
+  args?: Prisma.SelectSubset<T, Prisma.BoardFindFirstArgs>
+): Promise<Prisma.BoardGetPayload<T> | null> {
+  return prisma.board.findFirst(args);
+}
+
 async function findMany<T extends Prisma.BoardFindManyArgs>(
   args?: Prisma.SelectSubset<T, Prisma.BoardFindManyArgs>
 ): Promise<Prisma.BoardGetPayload<T>[]> {
@@ -27,6 +33,7 @@ async function deleteMany(db: DB, args: Prisma.BoardDeleteManyArgs): Promise<Pri
 
 export default {
   find,
+  findFirst,
   findMany,
   createMany,
   deleteMany

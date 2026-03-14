@@ -1,6 +1,6 @@
 import { PollCreateRequestDto, PollPatchRequestDto, PollQuery, PollWithOptions } from './poll.dto';
 import pollRepo from './poll.repo';
-import { BoardType, Poll, PollStatus, Prisma, UserType } from '@prisma/client';
+import { BoardType, EventType, Poll, PollStatus, Prisma, UserType } from '@prisma/client';
 import { requireApartmentUser, requireUser } from '../../lib/require';
 import { AuthUser } from '../../type/express';
 import { getBoardId } from '../../lib/utils';
@@ -12,13 +12,21 @@ import BadRequestError from '../../middleware/errors/BadRequestError';
 import { NODE_ENV } from '../../lib/constants';
 
 async function create(admin: AuthUser, body: PollCreateRequestDto) {
+  if (body.endDate < body.startDate)
+    throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
   if (body.endDate < new Date()) throw new BadRequestError('종료일은 현재보다 이전일 수 없습니다.');
 
   requireApartmentUser(admin);
   const boardId = await getBoardId(admin.apartmentId, BoardType.POLL);
   const pollData = buildPollData(admin.id, boardId, body);
+  const eventData = {
+    eventType: EventType.POLL,
+    title: pollData.title,
+    startDate: pollData.startDate,
+    endDate: pollData.endDate
+  };
   return await pollRepo.create(prisma, {
-    data: pollData,
+    data: { ...pollData, event: { create: eventData } },
     include: { pollOptions: true }
   });
 }

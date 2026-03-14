@@ -23,9 +23,9 @@ export const pollCreateBody = object({
 
 export const pollPatchBody = partial(pollCreateBody);
 
-export const pollStatusBody = object({
-  status: enums(['PENDING', 'IN_PROGRESS', 'CLOSED'])
-});
+// export const pollStatusBody = object({
+//   status: enums(['PENDING', 'IN_PROGRESS', 'CLOSED'])
+// });
 
 //-------------------------------------------- Query schema
 export const pollListQueryShape = {
