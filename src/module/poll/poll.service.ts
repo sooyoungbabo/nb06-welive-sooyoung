@@ -1,4 +1,4 @@
-import { PollCreateRequestDto, PollPatchRequestDto, PollQuery } from './poll.dto';
+import { PollCreateRequestDto, PollPatchRequestDto, PollQuery, PollWithOptions } from './poll.dto';
 import pollRepo from './poll.repo';
 import { BoardType, Poll, PollStatus, Prisma, UserType } from '@prisma/client';
 import { requireApartmentUser, requireUser } from '../../lib/require';
@@ -26,7 +26,7 @@ async function create(admin: AuthUser, body: PollCreateRequestDto) {
 async function getList(user: AuthUser, query: PollQuery) {
   requireUser(user);
   if (user.userType === UserType.USER && query.status === 'PENDING')
-    throw new BadRequestError('입주민은 PENDING 상태의 투표는 조회할 수 없습니다.');
+    throw new BadRequestError('PENDING 상태의 투표는 조회할 수 없습니다.');
 
   const usr = await userRepo.find({ where: { id: user.id }, select: { apartmentId: true } });
   if (!usr) throw new NotFoundError('사용자가 존재하지 않습니다.');
@@ -69,43 +69,43 @@ async function get(user: AuthUser, pollId: string) {
     where: { id: pollId, deletedAt: null },
     include: { pollOptions: true }
   });
-  if (!poll) throw new NotFoundError('투표 기록이 존재하지 않습니다.');
+  if (!poll) throw new NotFoundError('투표가 존재하지 않습니다.');
 
   requireUser(user);
   if (user.userType === UserType.USER && poll.status === 'PENDING')
-    throw new BadRequestError('입주민은 PENDING 상태의 투표는 조회할 수 없습니다.');
+    throw new BadRequestError('PENDING 상태의 투표는 조회할 수 없습니다.');
 
   return buildPollDetailRes(poll);
 }
 
 async function patch(pollId: string, body: PollPatchRequestDto) {
+  const poll = await pollRepo.find({ where: { id: pollId } });
+  if (!poll) throw new NotFoundError('해당 투표가 존재하지 않습니다.');
+  if (poll.startDate <= new Date())
+    throw new BadRequestError('진행 중이거나 종료된 투표는 수정할 수 없습니다.');
+
   const pollData: Prisma.PollUpdateInput = buildPollPatchData(body);
-  return await pollRepo.patch(prisma, { where: { id: pollId }, data: pollData });
-}
-
-function buildPollPatchData(body: PollPatchRequestDto): Prisma.PollUpdateInput {
-  const data: Prisma.PollUpdateInput = {
-    title: body.title,
-    content: body.content,
-    buildingPermission: body.buildingPermission,
-    startDate: body.startDate,
-    endDate: body.endDate,
-    status: body.status
-  };
-
-  if (body.options) {
-    data.pollOptions = {
-      deleteMany: {},
-      create: body.options
-    };
-  }
-  return data;
+  return await pollRepo.patch(prisma, {
+    where: { id: pollId },
+    data: pollData
+  });
 }
 
 async function del(pollId: string) {
+  const poll = await pollRepo.find({ where: { id: pollId } });
+  if (!poll) throw new NotFoundError('해당 투표가 존재하지 않습니다.');
+  if (poll.startDate <= new Date())
+    throw new BadRequestError('진행 중이거나 종료된 투표는 삭제할 수 없습니다.');
+
   // PollOption과 Vote는 onDelete = Cascase로 자동 삭제
-  if (NODE_ENV === 'development') await pollRepo.del(prisma, { where: { id: pollId } });
-  else await pollRepo.patch(prisma, { where: { id: pollId }, data: { deletedAt: new Date() } });
+  if (NODE_ENV === 'development') {
+    await pollRepo.del(prisma, { where: { id: pollId } });
+  } else {
+    await pollRepo.patch(prisma, {
+      where: { id: pollId },
+      data: { deletedAt: new Date() }
+    });
+  }
 }
 
 //------------------------------------------ 지역함수
@@ -162,10 +162,6 @@ async function buildPollListRes(polls: Poll[]) {
   );
 }
 
-type PollWithOptions = Prisma.PollGetPayload<{
-  include: { pollOptions: true };
-}>;
-
 function buildPollDetailRes(poll: PollWithOptions) {
   const options = poll.pollOptions.map((o) => ({
     id: o.id,
@@ -186,6 +182,25 @@ function buildPollDetailRes(poll: PollWithOptions) {
     boardName: 'POLL',
     options
   };
+}
+
+function buildPollPatchData(body: PollPatchRequestDto): Prisma.PollUpdateInput {
+  const data: Prisma.PollUpdateInput = {
+    title: body.title,
+    content: body.content,
+    buildingPermission: body.buildingPermission,
+    startDate: body.startDate,
+    endDate: body.endDate,
+    status: body.status
+  };
+
+  if (body.options) {
+    data.pollOptions = {
+      deleteMany: {},
+      create: body.options
+    };
+  }
+  return data;
 }
 
 export default {

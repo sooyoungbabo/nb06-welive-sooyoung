@@ -7,12 +7,12 @@ POST {{baseUrl}}/polls
 Content-Type: application/json
 
 {
-  "status": "PENDING",
+  "status": "IN_PROGRESS",
   "title": "플리마켓 개최일 선정",
   "content": "5월 플리마켓 날짜 투표입니다.",
   "buildingPermission": 0,
-  "startDate": "2026-03-13 21:21:00",
-  "endDate": "2026-03-13 22:22:00",
+  "startDate": "2026-03-14 11:40:00",
+  "endDate": "2026-03-14 11:50:00",
   "options": [
     { "title": "5일 수요일" },
     { "title": "9일 토요일" },
@@ -29,18 +29,18 @@ Content-Type: application/json
 GET {{baseUrl}}/polls
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/a5ac30b6-c133-4347-b96c-18ade72a0b3f
+GET {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
 
 ### 투표 글 수정
-PATCH {{baseUrl}}/polls/a5ac30b6-c133-4347-b96c-18ade72a0b3f
+PATCH {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
 Content-Type: application/json
 
 {
   "title": "플리마켓 개최일 선정",
   "content": "5월 플리마켓 날짜 투표입니다.",
   "buildingPermission": 0,
-  "startDate": "2026-03-14 16:21:00",
-  "endDate": "2026-03-14 16:22:00",
+  "startDate": "2026-03-14 11:40:00",
+  "endDate": "2026-03-14 11:55:00",
   "status": "IN_PROGRESS",
   "options": [
     { "title": "5일 수요일" },
@@ -49,9 +49,16 @@ Content-Type: application/json
   ]
 }
 
-
 ### 투표 글 삭제
-DELETE {{baseUrl}}/polls/7ff58840-fd07-41b7-ab5d-027665fecd71
+DELETE {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
 
+
+
+
+### 투표하기
+POST {{baseUrl}}/options/acfd20da-caa4-4672-bed7-e538fba1c7b4/vote
+
+### 투표 취소
+DELETE {{baseUrl}}/options/acfd20da-caa4-4672-bed7-e538fba1c7b4/vote
 
 

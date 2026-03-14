@@ -20,6 +20,10 @@ async function find<T extends Prisma.PollFindUniqueArgs>(
   return prisma.poll.findUnique(args);
 }
 
+async function findFirst(args: Prisma.PollFindFirstArgs) {
+  return prisma.poll.findFirst(args);
+}
+
 async function patch(db: DB, args: Prisma.PollUpdateArgs) {
   return db.poll.update(args);
 }
@@ -33,6 +37,7 @@ export default {
   getList,
   count,
   find,
+  findFirst,
   patch,
   del
 };

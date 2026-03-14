@@ -17,10 +17,10 @@ PATCH {{baseUrl}}/users/me/avatar
 Content-Type: multipart/form-data; boundary=MyBoundary
 
 --MyBoundary
-Content-Disposition: form-data; name="image"; filename="Karma.png"
+Content-Disposition: form-data; name="image"; filename="Hillie.png"
 Content-Type: image/png
 
-< ./images/users/Karma.png
+< ./images/users/Hillie.png
 --MyBoundary--
 
 ###

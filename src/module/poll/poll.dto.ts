@@ -1,5 +1,5 @@
 import { PollStatus } from '@prisma/client';
-import { optional } from 'superstruct';
+import { Prisma } from '@prisma/client';
 
 export interface PollOptionDto {
   title: string;
@@ -22,4 +22,20 @@ export interface PollQuery {
   buildingPermission?: string;
   status?: string;
   keyword?: string;
+}
+
+export type PollWithOptions = Prisma.PollGetPayload<{
+  include: { pollOptions: true };
+}>;
+
+export interface VoteOptionDto {
+  id: string;
+  title: string;
+  votes: number;
+}
+export interface VoteResDto {
+  message: string;
+  updatedOption: VoteOptionDto;
+  winnerOption: VoteOptionDto;
+  options: VoteOptionDto[];
 }
