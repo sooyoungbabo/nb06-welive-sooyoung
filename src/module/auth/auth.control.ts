@@ -33,14 +33,14 @@ async function login(req: Request, res: Response, next: NextFunction): Promise<v
 }
 
 function logout(req: Request, res: Response, next: NextFunction) {
-  res.clearCookie('accessToken', { path: '/' });
-  res.clearCookie('refreshToken', { path: '/' });
-  res.clearCookie('refreshToken', { path: '/auth/refresh' });
-  res.clearCookie('access-token', { path: '/' });
-  res.clearCookie('refresh-token', { path: '/' });
-  res.clearCookie('refresh-Token', { path: '/auth/refresh' });
-  res.clearCookie('connect.sid', { path: '/' });
-  res.clearCookie('token', { path: '/' });
+  // res.clearCookie('accessToken', { path: '/' });
+  // res.clearCookie('refreshToken', { path: '/' });
+  // res.clearCookie('refreshToken', { path: '/auth/refresh' });
+  // res.clearCookie('access-token', { path: '/' });
+  // res.clearCookie('refresh-token', { path: '/' });
+  // res.clearCookie('refresh-Token', { path: '/auth/refresh' });
+  // res.clearCookie('connect.sid', { path: '/' });
+  // res.clearCookie('token', { path: '/' });
 
   authService.logout(res);
   res.status(200).send({ message: '사용자가 로그아웃 하였습니다' });
