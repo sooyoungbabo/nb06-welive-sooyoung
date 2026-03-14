@@ -1,7 +1,6 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import path from 'path';
 import { defaultNotFoundHandler, globalErrorHandler } from './middleware/errorHandler';
 import authRouter from './module/auth/auth.router';
 import userRouter from './module/user/user.router';
@@ -10,7 +9,11 @@ import residentRouter from './module/resident/resident.router';
 import complaintRouter from './module/complaint/complaint.router';
 import notiRouter from './module/notification/notification.router';
 import devRouter from './module/development/development.router';
+import pollRouter from './module/poll/poll.router';
+import pollSchedulerRouter from './module/pollScheduler/pollSchedular.router';
+import voteRouter from './module/pollVote/vote.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
+import { startPollScheduler } from './module/pollScheduler/pollSchedular';
 
 const app = express();
 app.use(express.json());
@@ -33,7 +36,9 @@ app.use('/users', userRouter);
 app.use('/apartments', aptRouter);
 app.use('/residents', residentRouter);
 app.use('/complaints', complaintRouter);
-// app.use('/polls', pollRouter);
+app.use('/polls', pollRouter);
+app.use('/poll-scheduler', pollSchedulerRouter);
+app.use('/options', voteRouter);
 // app.use('/notices', noticeRouter);
 // app.use('/comments', commentRouter);
 app.use('/notifications', notiRouter);
@@ -44,4 +49,5 @@ app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  startPollScheduler();
 });

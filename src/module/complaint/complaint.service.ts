@@ -32,6 +32,7 @@ import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import { assert } from 'node:console';
 import { CreateNotification } from '../notification/notification.struct';
 import notiService from '../notification/notification.service';
+import { getBoardId } from '../../lib/utils';
 
 async function create(user: AuthUser, data: ComplaintCreateRequestDto) {
   requireResidentUser(user);
@@ -221,14 +222,6 @@ async function isMyApartment(userId: string, complaintId: string): Promise<boole
     select: { creatorId: true, adminId: true }
   });
   return complaint?.adminId === userId;
-}
-
-async function getBoardId(apartmentId: string, boardType: BoardType): Promise<string> {
-  const board = await boardRepo.findMany({
-    where: { apartmentId, boardType }
-  });
-  if (!board) throw new NotFoundError('민원 보드가 없습니다.');
-  return board[0].id;
 }
 
 function buildQueryParams(query: ComplaintQueryDto) {

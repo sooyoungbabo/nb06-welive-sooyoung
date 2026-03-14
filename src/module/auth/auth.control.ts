@@ -28,7 +28,7 @@ async function signupSuperAdmin(req: Request, res: Response, next: NextFunction)
 async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { userRes, accessToken, refreshToken } = await authService.login(req.body);
   setTokenCookies(res, accessToken, refreshToken);
-  if (NODE_ENV === 'development') setDevTokens(accessToken);
+  if (!accessToken && NODE_ENV === 'development') setDevTokens(accessToken);
   res.status(200).json(userRes);
 }
 

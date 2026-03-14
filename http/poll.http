@@ -1,0 +1,64 @@
+@baseUrl = http://localhost:3000
+
+GET {{baseUrl}}/poll-scheduler/ping
+
+### 투표 글 작성
+POST {{baseUrl}}/polls
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS",
+  "title": "플리마켓 개최일 선정",
+  "content": "5월 플리마켓 날짜 투표입니다.",
+  "buildingPermission": 0,
+  "startDate": "2026-03-14 11:40:00",
+  "endDate": "2026-03-14 11:50:00",
+  "options": [
+    { "title": "5일 수요일" },
+    { "title": "9일 토요일" },
+    { "title": "16일 토요일" },
+    { "title": "23일 토요일" }
+  ]
+}
+
+### 투표 글 전체 조회
+### page(1), limit(11)
+### buildingPermission
+### status
+### keyword: title, content
+GET {{baseUrl}}/polls
+
+### 투표 글 상세 조회
+GET {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
+
+### 투표 글 수정
+PATCH {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
+Content-Type: application/json
+
+{
+  "title": "플리마켓 개최일 선정",
+  "content": "5월 플리마켓 날짜 투표입니다.",
+  "buildingPermission": 0,
+  "startDate": "2026-03-14 11:40:00",
+  "endDate": "2026-03-14 11:55:00",
+  "status": "IN_PROGRESS",
+  "options": [
+    { "title": "5일 수요일" },
+    { "title": "9일 토요일" },
+    { "title": "16일 토요일" }
+  ]
+}
+
+### 투표 글 삭제
+DELETE {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
+
+
+
+
+### 투표하기
+POST {{baseUrl}}/options/acfd20da-caa4-4672-bed7-e538fba1c7b4/vote
+
+### 투표 취소
+DELETE {{baseUrl}}/options/acfd20da-caa4-4672-bed7-e538fba1c7b4/vote
+
+

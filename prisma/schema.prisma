@@ -28,7 +28,7 @@ model User {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // soft delete
+  deletedAt DateTime?
 
   apartment Apartment? @relation(fields: [apartmentId], references: [id], onDelete: SetNull)
   resident  Resident?
@@ -61,7 +61,7 @@ model Resident {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // soft delete
+  deletedAt DateTime?
 
   user      User?     @relation(fields: [userId], references: [id])
   apartment Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
@@ -88,7 +88,7 @@ model Apartment {
   apartmentStatus ApprovalStatus @default(PENDING)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-  deletedAt       DateTime? // soft delete
+  deletedAt       DateTime?
 
   users     User[] // users, admim
   residents Resident[] // residents 
@@ -106,7 +106,7 @@ model Board {
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
-  apartment  Apartment   @relation(fields: [apartmentId], references: [id])
+  apartment  Apartment   @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
   complaints Complaint[]
   polls      Poll[]
   notices    Notice[]
@@ -117,9 +117,10 @@ model Board {
 
 // 마감된 투표는 공지에 자동 등록
 model Notice {
-  id      String @id @default(uuid())
+  id      String  @id @default(uuid())
   boardId String // FK
   adminId String // FK
+  pollId  String? @unique // FK
 
   category  NoticeType
   isPinned  Boolean    @default(false)
@@ -128,15 +129,14 @@ model Notice {
   title     String
   content   String
   viewCount Int        @default(0)
-  //commentCount Int        @default(0) // 중복 comments.length
-  //writerName String // 중복 admin.name
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // soft delete
+  deletedAt DateTime?
 
   board Board  @relation(fields: [boardId], references: [id])
   admin User   @relation(fields: [adminId], references: [id])
+  poll  Poll?  @relation(fields: [pollId], references: [id])
   event Event?
 
   @@map("notices")
@@ -153,10 +153,9 @@ model Complaint {
   isPublic  Boolean         @default(true)
   status    ComplaintStatus @default(PENDING)
   viewCount Int             @default(0)
-  // commentCount Int // 중복 comments.length
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
-  deletedAt DateTime? // soft delete
+  deletedAt DateTime?
 
   creator User  @relation(name: "User2Creator", fields: [creatorId], references: [id])
   admin   User  @relation(name: "User2Admin", fields: [adminId], references: [id])
@@ -172,20 +171,21 @@ model Poll {
 
   buildingPermission Int        @default(0)
   title              String
-  description        String
+  content            String
   startDate          DateTime
   endDate            DateTime
-  status             PollStatus
+  status             PollStatus @default(IN_PROGRESS)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  deletedAt DateTime? // soft delete
+  deletedAt DateTime?
 
   admin       User         @relation(fields: [adminId], references: [id])
   board       Board        @relation(fields: [boardId], references: [id])
   votes       Vote[]
   pollOptions PollOption[]
   event       Event?
+  notice      Notice?
 
   @@map("polls")
 }
@@ -193,12 +193,12 @@ model Poll {
 model PollOption {
   id        String   @id @default(uuid())
   pollId    String // FK
-  content   String // 각 선택지
+  title     String // 각 선택지
   voteCount Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  poll  Poll   @relation(fields: [pollId], references: [id])
+  poll  Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
   votes Vote[]
 
   @@map("poll_options")
@@ -212,8 +212,8 @@ model Vote {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  poll    Poll       @relation(fields: [pollId], references: [id])
-  options PollOption @relation(fields: [optionId], references: [id])
+  poll    Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  options PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
   voter   User       @relation(fields: [voterId], references: [id])
 
   @@unique([pollId, voterId])
@@ -264,8 +264,11 @@ model Event {
   noticeId  String?   @unique //FA
   eventType EventType @default(NOTICE)
   title     String // notice.title 또는 poll.title
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  startDate DateTime
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   notice Notice? @relation(fields: [noticeId], references: [id], onDelete: Cascade)
   poll   Poll?   @relation(fields: [pollId], references: [id], onDelete: Cascade)
@@ -311,8 +314,8 @@ enum ComplaintStatus {
 }
 
 enum PollStatus {
-  UPCOMING
-  ONGOING
+  PENDING
+  IN_PROGRESS
   CLOSED
 }
 

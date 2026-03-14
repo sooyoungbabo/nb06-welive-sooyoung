@@ -1,4 +1,4 @@
-import { Apartment, UserType } from '@prisma/client';
+import { Apartment, BoardType, UserType } from '@prisma/client';
 import prisma from './prisma';
 import apartmentRepo from '../module/apartment/apartment.repo';
 import residentRepo from '../module/resident/resident.repo';
@@ -6,6 +6,15 @@ import ForbiddenError from '../middleware/errors/ForbiddenError';
 import BadRequestError from '../middleware/errors/BadRequestError';
 import userRepo from '../module/user/user.repo';
 import NotFoundError from '../middleware/errors/NotFoundError';
+import boardRepo from '../module/board/board.repo';
+
+export async function getBoardId(apartmentId: string, boardType: BoardType): Promise<string> {
+  const board = await boardRepo.findMany({
+    where: { apartmentId, boardType }
+  });
+  if (!board) throw new NotFoundError('민원 보드가 없습니다.');
+  return board[0].id;
+}
 
 export async function ensureSameApartment(apartmentId: string, residentId: string) {
   const resident = await residentRepo.find(prisma, {
@@ -25,12 +34,27 @@ export async function getSuperAdminId(): Promise<string[]> {
   return superAdmins.map((sa) => sa.id);
 }
 
+// export async function getAdminId1(userId: string) {
+//   const user = await userRepo.findById(userId);
+//   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
+//   const admin = await userRepo.findFirst({
+//     where: { apartmentId: user.apartmentId, role: UserType.ADMIN, deletedAt: null }
+//   });
+//   if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
+//   return admin.id;
+// }
+
 export async function getAdminId(userId: string) {
-  const myApts = await apartmentRepo.getList({
-    where: { users: { some: { id: userId, role: UserType.ADMIN, deletedAt: null } } },
-    include: { users: { where: { id: userId, role: UserType.ADMIN, deletedAt: null } } }
+  const admin = await userRepo.findFirst({
+    where: {
+      role: UserType.ADMIN,
+      deletedAt: null,
+      apartment: { users: { some: { id: userId, deletedAt: null } } }
+    },
+    select: { id: true }
   });
-  return myApts[0].users[0].id;
+  if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
+  return admin.id;
 }
 
 export async function getAdminIdByAparatmentId(apartmentId: string): Promise<string> {

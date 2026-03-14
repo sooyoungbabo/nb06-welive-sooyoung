@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { Struct, StructError, assert } from 'superstruct';
+import { Struct, StructError, assert, create } from 'superstruct';
 import BadRequestError from './errors/BadRequestError';
 
 export function validateParams(schema: Struct<any, any>) {
@@ -38,7 +38,7 @@ export function validateQuery(schema: Struct<any, any>, shape: Record<string, an
 export function validateBody(schema: Struct<any, any>) {
   return (req: Request, _res: Response, next: NextFunction) => {
     try {
-      assert(req.body, schema);
+      req.body = create(req.body, schema);
       next();
     } catch (err) {
       if (err instanceof StructError) {

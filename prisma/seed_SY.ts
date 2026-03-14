@@ -72,7 +72,7 @@ async function main() {
     joinStatus: JoinStatus.APPROVED
   };
 
-  const rawAdminData = [];
+  const adminData = [];
   for (let i = 0; i < apartmentData.length; i++) {
     const tempAdmin = {
       username: `admin${i}`,
@@ -83,7 +83,7 @@ async function main() {
       role: UserType.ADMIN,
       joinStatus: JoinStatus.APPROVED
     };
-    rawAdminData.push(tempAdmin);
+    adminData.push(tempAdmin);
   }
 
   const rawUserData = [];
@@ -102,6 +102,9 @@ async function main() {
 
   console.log('Seeding started...');
   console.log('');
+  const apts = [];
+  const admins = [];
+  const boards = [];
   const notifications = [];
 
   //----------------------------------------------------------------------------
@@ -110,48 +113,65 @@ async function main() {
 
   //----------------------------------------------------------------------------
   console.log('🌱 Seeding apartments, admins and boards (3/apt)...');
+  for (let i = 0; i < apartmentData.length; i++) {
+    // 아파트 등록
+    const tempAptData = apartmentData[i];
+    const aptCreated = await prisma.apartment.create({ data: tempAptData });
+    apts.push(aptCreated);
 
-  // 아파트 등록
-  await prisma.apartment.createMany({ data: apartmentData });
-  const apts = await prisma.apartment.findMany();
+    // 관리자 등록
+    const tempAdminData = adminData[i];
+    const adminCreated = await prisma.user.create({
+      data: {
+        ...tempAdminData,
+        apartment: { connect: { id: aptCreated.id } }
+      }
+    });
+    admins.push(adminCreated);
 
-  // 관리자 등록
-  const adminData = rawAdminData.map((a, i) => ({
-    ...a,
-    apartmentId: apts[i].id
-  }));
-  await prisma.user.createMany({ data: adminData });
-  const admins = await prisma.user.findMany({
-    where: { role: UserType.ADMIN },
-    select: { id: true, name: true }
-  });
+    // Notification 등록: 수퍼관리자에게 관리자 가입신청 알림
+    const notiCreated = await prisma.notification.create({
+      data: {
+        notiType: NotificationType.AUTH_ADMIN_APPLIED,
+        targetId: adminCreated.id,
+        content: `[알림] 가입신청 (${adminCreated.name}님)`,
+        isChecked: true,
+        receiver: { connect: { id: superAdminCreated.id } }
+      }
+    });
+    notifications.push(notiCreated);
 
-  // 관리자 가입신청 알림 등록
-  const notiData = admins.map((a, i) => ({
-    notiType: NotificationType.AUTH_ADMIN_APPLIED,
-    targetId: admins[i].id,
-    content: `[알림]: 가입신청 (${admins[i].name}님)`,
-    isChecked: true,
-    receiverId: superAdminCreated.id
-  }));
-  await prisma.notification.createMany({ data: notiData });
+    // 3종 보드 생성
+    const createdNoticeBoard = await prisma.board.create({
+      data: {
+        boardType: BoardType.NOTICE,
+        apartment: { connect: { id: aptCreated.id } }
+      }
+    });
+    boards.push(createdNoticeBoard);
 
-  // 3종 보드 생성
-  const boardData = apts
-    .map((apt) =>
-      Object.values(BoardType).map((type) => ({
-        apartmentId: apt.id,
-        boardType: type
-      }))
-    )
-    .flat();
-  await prisma.board.createMany({ data: boardData });
+    const createdComplaintBoard = await prisma.board.create({
+      data: {
+        boardType: BoardType.COMPLAINT,
+        apartment: { connect: { id: aptCreated.id } }
+      }
+    });
+    boards.push(createdComplaintBoard);
+
+    const createdPollBoard = await prisma.board.create({
+      data: {
+        boardType: BoardType.POLL,
+        apartment: { connect: { id: aptCreated.id } }
+      }
+    });
+    boards.push(createdPollBoard);
+  }
 
   //----------------------------------------------------------------------------
   console.log('🌱 Seeding users, residents...');
 
   // User 등록
-  let users = [];
+  const users = [];
   for (let i = 0; i < rawUserData.length; i++) {
     const aptNo = getRandomNo(0, apts.length - 1);
     const aptId = apts[aptNo].id;
@@ -210,6 +230,7 @@ async function main() {
   const notices = [];
   const polls = [];
   const pollOptions = [];
+  const votes = [];
   const events = [];
 
   for (let i = 0; i < nSeeds; i++) {
@@ -223,6 +244,10 @@ async function main() {
 
     const adminId = apt.users.find((user) => user.role === UserType.ADMIN)?.id;
     if (!adminId) throw new NotFoundError('Admin not found');
+
+    // const residents = await prisma.resident.findMany({
+    //   where: { apartmentId: apt.id, isRegistered: true }
+    // });
 
     if (!apt.users) throw new NotFoundError('Users not found');
     const users = apt.users.filter((user) => user.role === UserType.USER);
@@ -314,6 +339,7 @@ async function main() {
       };
 
       // 공지 유형이 투표인 경우, poll, pollOptions, votes, event, notification 등록
+      let pollCreated;
       if (randomType === NoticeType.RESIDENT_VOTE) {
         // poll 등록
         const dongRange = getDongRange(apts[aptNo].endComplexNumber, apts[aptNo].endBuildingNumber);
@@ -340,14 +366,14 @@ async function main() {
         const pollData = {
           buildingPermission: pollTarget,
           title: item.title,
-          content: item.content,
+          description: item.content,
           startDate: item.startDate ? new Date(item.startDate) : new Date('2025-01-01'),
           endDate: item.endDate ? new Date(item.endDate) : new Date('2025-12-31'),
           status: PollStatus.CLOSED,
           board: { connect: { id: boardId_poll } },
           admin: { connect: { id: adminId } }
         };
-        const pollCreated = await prisma.poll.create({ data: pollData });
+        pollCreated = await prisma.poll.create({ data: pollData });
         polls.push(pollCreated);
 
         // pollOption 등록
@@ -371,8 +397,8 @@ async function main() {
         let optionData;
         if (pollResult === '찬성') {
           optionData = [
-            { title: '찬성', voteCount: nVotes_win },
-            { title: '반대', voteCount: nVotes_lost }
+            { content: '찬성', voteCount: nVotes_win },
+            { content: '반대', voteCount: nVotes_lost }
           ];
           for (const option of optionData) {
             const optionCreated = await prisma.pollOption.create({
@@ -385,8 +411,8 @@ async function main() {
           }
         } else {
           optionData = [
-            { title: '찬성', voteCount: nVotes_lost },
-            { title: '반대', voteCount: nVotes_win }
+            { content: '찬성', voteCount: nVotes_lost },
+            { content: '반대', voteCount: nVotes_win }
           ];
           for (const option of optionData) {
             const optionCreated = await prisma.pollOption.create({
@@ -403,39 +429,59 @@ async function main() {
         // 투표에 참가한 수만큼 user를 random하게 뽑아서, 순서를 뒤섞어 놓기
         const votedShuffled = shuffleArray(getUniqueRandomNOs(0, voters.length - 1, nVotes));
 
-        const optionAgree = pollOptions[pollOptions.length - 2].id;
-        const optionDisagree = pollOptions[pollOptions.length - 1].id;
-
-        const winOption = pollResult === '찬성' ? optionAgree : optionDisagree;
-        const loseOption = pollResult === '찬성' ? optionDisagree : optionAgree;
-
-        const winVoters = votedShuffled.slice(0, nVotes_win);
-        const loseVoters = votedShuffled.slice(nVotes - nVotes_lost);
-
-        const winVotes = winVoters.map((idx) => ({
-          pollId: pollCreated.id,
-          optionId: winOption,
-          voterId: voters[idx].id
-        }));
-
-        const loseVotes = loseVoters.map((idx) => ({
-          pollId: pollCreated.id,
-          optionId: loseOption,
-          voterId: voters[idx].id
-        }));
-
-        await prisma.pollOption.update({
-          where: { id: loseVotes[0].optionId },
-          data: { voteCount: loseVotes.length }
-        });
-        await prisma.pollOption.update({
-          where: { id: winVotes[0].optionId },
-          data: { voteCount: winVotes.length }
-        });
-
-        await prisma.vote.createMany({
-          data: [...winVotes, ...loseVotes]
-        });
+        let optionId;
+        // winning vote를 한 사람들 수 만큼 앞에서 자름
+        if (pollResult === '찬성') {
+          for (let n = 0; n < nVotes_win; n++) {
+            optionId = pollOptions[pollOptions.length - 2].id;
+            const voterId = voters[votedShuffled[n]].id;
+            const voteCreated = await prisma.vote.create({
+              data: {
+                poll: { connect: { id: pollCreated.id } },
+                options: { connect: { id: optionId } },
+                voter: { connect: { id: voterId } }
+              }
+            });
+            votes.push(voteCreated);
+          }
+          for (let n = 0; n < nVotes_lost; n++) {
+            optionId = pollOptions[pollOptions.length - 1].id;
+            const voterId = voters[votedShuffled[nVotes - n - 1]].id;
+            const voteCreated = await prisma.vote.create({
+              data: {
+                poll: { connect: { id: pollCreated.id } },
+                options: { connect: { id: optionId } },
+                voter: { connect: { id: voterId } }
+              }
+            });
+            votes.push(voteCreated);
+          }
+        } else {
+          for (let n = 0; n < nVotes_lost; n++) {
+            optionId = pollOptions[pollOptions.length - 2].id;
+            const voterId = voters[votedShuffled[n]].id;
+            const voteCreated = await prisma.vote.create({
+              data: {
+                poll: { connect: { id: pollCreated.id } },
+                options: { connect: { id: optionId } },
+                voter: { connect: { id: voterId } }
+              }
+            });
+            votes.push(voteCreated);
+          }
+          for (let n = 0; n < nVotes_win; n++) {
+            optionId = pollOptions[pollOptions.length - 1].id;
+            const voterId = voters[votedShuffled[nVotes - n - 1]].id;
+            const voteCreated = await prisma.vote.create({
+              data: {
+                poll: { connect: { id: pollCreated.id } },
+                options: { connect: { id: optionId } },
+                voter: { connect: { id: voterId } }
+              }
+            });
+            votes.push(voteCreated);
+          }
+        }
 
         // 투표 notice 등록
         const noticeCreated = await prisma.notice.create({
@@ -456,15 +502,12 @@ async function main() {
         events.push(eventCreated);
 
         // notification 등록: poll 종료시 전체 공지
-        const target =
-          pollCreated.buildingPermission === 0 ? `전체)` : `${pollCreated.buildingPermission}동`;
-
         for (const user of users) {
           const notiCreated = await prisma.notification.create({
             data: {
               notiType: NotificationType.POLL_CLOSED,
               targetId: pollCreated.id,
-              content: `[알림] 투표종료 (${item.title}, ${target})`,
+              content: `[알림] 투표종료 (${item.title}, 전체)`,
               isChecked: true,
               receiver: { connect: { id: user.id } }
             }
