@@ -8,7 +8,7 @@ GET {{baseUrl}}/apartments/public
 GET {{baseUrl}}/apartments/public?address=길목
 
 ### 공개: 아파트 상세 조회
-GET {{baseUrl}}/apartments/public/fa1331b1-ca0c-4a8f-be39-9ef346bda066
+GET {{baseUrl}}/apartments/public/924b3e3d-6ce1-42b8-ba8b-97d0c04ae286
 
 ### 슈퍼관리자/관리자: 아파트 목록 조회
 ### pagination: page, limit
@@ -18,4 +18,4 @@ GET {{baseUrl}}/apartments/public/fa1331b1-ca0c-4a8f-be39-9ef346bda066
 GET {{baseUrl}}/apartments?name=아파트
 
 ### 슈퍼관리자/관리자: 아파트 상세 조회
-GET {{baseUrl}}/apartments/fa1331b1-ca0c-4a8f-be39-9ef346bda066
+GET {{baseUrl}}/apartments/200be2a8-a0f9-4f89-91b9-beed0571da38

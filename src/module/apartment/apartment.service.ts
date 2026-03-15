@@ -16,7 +16,7 @@ import NotFoundError from '../../middleware/errors/NotFoundError';
 async function publicGetList(query: ApartmentQuery): Promise<AptListPublicResponseDto[]> {
   const queryParams = buildPublicListQueryParams(query);
   const where = buildWhere(queryParams);
-  const apts = await aptRepo.getList({ where });
+  const apts = await aptRepo.findMany({ where });
   return buildPublicAptListRes(apts);
 }
 
@@ -31,7 +31,10 @@ const adminSearchBase = {
   deletedAt: null
 };
 
-async function getList(user: AuthUser, query: ApartmentQuery): Promise<AptListResponseDto[]> {
+async function getList(
+  user: AuthUser,
+  query: ApartmentQuery
+): Promise<{ apartments: AptListResponseDto[]; totalCount: number }> {
   const params = buildListQueryParams(query);
 
   const { skip, take } = buildPagination(params.pagination, {
@@ -42,7 +45,6 @@ async function getList(user: AuthUser, query: ApartmentQuery): Promise<AptListRe
 
   // 관리자인 경우, 담당 아파트만 보여줌
   requireUser(user);
-
   if (user.userType === UserType.ADMIN)
     where = {
       AND: [where, { users: { some: { id: user.id, ...adminSearchBase } } }]
@@ -52,18 +54,16 @@ async function getList(user: AuthUser, query: ApartmentQuery): Promise<AptListRe
   if (params.searchKey?.keyword)
     addAdminRelationSearch(where, params.searchKey.keyword, params.relationSearch.admin);
 
-  // console.dir(where, { depth: null });
-
-  const args: Prisma.ApartmentFindManyArgs = {
+  console.dir(where, { depth: null });
+  const args = {
     where,
     skip,
     take,
-    include: { users: true },
-    orderBy: { createdAt: 'desc' }
+    include: { users: { where: { role: UserType.ADMIN, deletedAt: null } } }
   };
-
-  const apts = await aptRepo.getList(args);
-  return buildMemberAptListRes(apts as ApartmentWithUsers[]);
+  const totalCount = await aptRepo.count({ where });
+  const apts = await aptRepo.findMany(args);
+  return { apartments: buildMemberAptListRes(apts), totalCount };
 }
 
 async function get(user: AuthUser, aptId: string) {
@@ -151,10 +151,12 @@ function buildPublicAptRes(apt: Apartment): AptPublicResponseDto {
   };
 }
 
-type ApartmentWithUsers = Apartment & { users: User[] };
+type ApartmentWithAdmins = Apartment & { users: User[] };
 
-function buildMemberAptListRes(apts: ApartmentWithUsers[]): AptListResponseDto[] {
+function buildMemberAptListRes(apts: ApartmentWithAdmins[]): AptListResponseDto[] {
   return apts.map((apt) => {
+    const admin = apt.users[0];
+    if (!admin) throw new NotFoundError('관리자를 찾을 수 없습니다.');
     return {
       id: apt.id,
       name: apt.name,
@@ -170,15 +172,15 @@ function buildMemberAptListRes(apts: ApartmentWithUsers[]): AptListResponseDto[]
       startHoNumber: apt.startUnitNumber,
       endHoNumber: apt.endUnitNumber,
       apartmentStatus: apt.apartmentStatus,
-      adminId: apt.users[0].id,
-      adminName: apt.users[0].name,
-      adminContact: apt.users[0].contact,
-      adminEmail: apt.users[0].email
+      adminId: admin.id,
+      adminName: admin.name,
+      adminContact: admin.contact,
+      adminEmail: admin.email
     };
   });
 }
 
-function buildMemberAptRes(apt: ApartmentWithUsers): AptResponseDto {
+function buildMemberAptRes(apt: ApartmentWithAdmins): AptResponseDto {
   return {
     id: apt.id,
     name: apt.name,

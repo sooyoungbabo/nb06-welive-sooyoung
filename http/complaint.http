@@ -13,8 +13,10 @@ Content-Type: application/json
 
 ### 전체 민원 조회
 GET {{baseUrl}}/complaints
-### 전체 민원 조회: 검색 by status, isPublic, dong, ho, keyword(title, content)
-GET {{baseUrl}}/complaints?status=PENDING&keyword=한밤중
+### 전체 민원 조회: 검색
+### status, isPublic, dong, ho, 
+### keyword(title, content)
+GET {{baseUrl}}/complaints?keyword=의심
 
 ### 민원 상세 조회
 GET {{baseUrl}}/complaints/b02d3c2a-deac-49bc-8adb-4c9bce336a9f

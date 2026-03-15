@@ -33,15 +33,6 @@ async function login(req: Request, res: Response, next: NextFunction): Promise<v
 }
 
 function logout(req: Request, res: Response, next: NextFunction) {
-  // res.clearCookie('accessToken', { path: '/' });
-  // res.clearCookie('refreshToken', { path: '/' });
-  // res.clearCookie('refreshToken', { path: '/auth/refresh' });
-  // res.clearCookie('access-token', { path: '/' });
-  // res.clearCookie('refresh-token', { path: '/' });
-  // res.clearCookie('refresh-Token', { path: '/auth/refresh' });
-  // res.clearCookie('connect.sid', { path: '/' });
-  // res.clearCookie('token', { path: '/' });
-
   authService.logout(res);
   res.status(200).send({ message: '사용자가 로그아웃 하였습니다' });
 }
@@ -117,9 +108,10 @@ async function patchAdminApt(req: Request, res: Response, next: NextFunction): P
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다' });
 }
 
-async function deleteAdminApt(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function deleteAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   const adminId = req.params.adminId as string;
-  const deletedAdmin = await authService.deleteAdminApt(adminId);
+  if (NODE_ENV === 'development') await authService.deleteAdmin(adminId);
+  else await authService.softDeleteAdmin(adminId);
   res.status(200).send({ message: '관리자/아파트/보드가 성공적으로 삭제되었습니다' });
 }
 
@@ -165,6 +157,6 @@ export default {
   changeResidentStatus,
   changeAllResidentsStatus,
   patchAdminApt,
-  deleteAdminApt,
+  deleteAdmin,
   cleanup
 };

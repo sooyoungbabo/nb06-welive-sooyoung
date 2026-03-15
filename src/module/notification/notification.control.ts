@@ -52,16 +52,16 @@ async function readAll(req: Request, res: Response, next: NextFunction) {
   res.status(200).send({ message });
 }
 
-async function notify(req: Request, res: Response, next: NextFunction) {
-  const noti = await notiService.notify(req.user.id, req.body);
+async function send(req: Request, res: Response, next: NextFunction) {
+  const noti = await notiService.send(req.user.id, req.body);
   res.status(200).json(noti);
 }
 
 export default {
   stream,
-  notify,
+  read,
   getList,
   getUnreadList,
-  read,
-  readAll
+  readAll,
+  send
 };

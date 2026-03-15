@@ -1,23 +1,24 @@
 import { PollCreateRequestDto, PollPatchRequestDto, PollQuery, PollWithOptions } from './poll.dto';
 import pollRepo from './poll.repo';
 import { BoardType, EventType, Poll, PollStatus, Prisma, UserType } from '@prisma/client';
-import { requireApartmentUser, requireUser } from '../../lib/require';
 import { AuthUser } from '../../type/express';
-import { getBoardId } from '../../lib/utils';
+import { getBoardIdByUserId } from '../../lib/utils';
 import prisma from '../../lib/prisma';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import userRepo from '../user/user.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import { NODE_ENV } from '../../lib/constants';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
 
 async function create(admin: AuthUser, body: PollCreateRequestDto) {
+  // req.body 데이터 로직 점검
   if (body.endDate < body.startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
   if (body.endDate < new Date()) throw new BadRequestError('종료일은 현재보다 이전일 수 없습니다.');
 
-  requireApartmentUser(admin);
-  const boardId = await getBoardId(admin.apartmentId, BoardType.POLL);
+  // 데이터 가공
+  const boardId = await getBoardIdByUserId(admin.id, BoardType.POLL);
   const pollData = buildPollData(admin.id, boardId, body);
   const eventData = {
     eventType: EventType.POLL,
@@ -25,6 +26,7 @@ async function create(admin: AuthUser, body: PollCreateRequestDto) {
     startDate: pollData.startDate,
     endDate: pollData.endDate
   };
+  // DB 생성
   return await pollRepo.create(prisma, {
     data: { ...pollData, event: { create: eventData } },
     include: { pollOptions: true }
@@ -32,14 +34,10 @@ async function create(admin: AuthUser, body: PollCreateRequestDto) {
 }
 
 async function getList(user: AuthUser, query: PollQuery) {
-  requireUser(user);
   if (user.userType === UserType.USER && query.status === 'PENDING')
     throw new BadRequestError('PENDING 상태의 투표는 조회할 수 없습니다.');
 
-  const usr = await userRepo.find({ where: { id: user.id }, select: { apartmentId: true } });
-  if (!usr) throw new NotFoundError('사용자가 존재하지 않습니다.');
-  if (!usr.apartmentId) throw new BadRequestError('사용자의 아파트 정보가 없습니다.');
-  const boardId = await getBoardId(usr.apartmentId, BoardType.POLL);
+  const boardId = await getBoardIdByUserId(user.id, BoardType.POLL);
 
   const params = buildPollQueryParams(query);
   const { skip, take } = buildPagination(params.pagination, {
@@ -48,6 +46,10 @@ async function getList(user: AuthUser, query: PollQuery) {
   });
 
   let where = { ...buildWhere(params), deletedAt: null };
+
+  // 최고관리자는 목록조회가 안 되는 듯, 그러나 상세조회는 되므로, 목록조회도 가능하게 해놓겠음
+  // 이 기능 쓰려면, 라우터에서 최고관리자에게 권한을 주어야 함
+
   // 최고관리자는 모든 투표 조회가능, 관리자/입주민은 해당 아파트 것만 조회 가능
   if (user.userType !== UserType.SUPER_ADMIN) where = { ...where, boardId };
   // 입주민은 PENDING 상태의 투표는 조회 불가
@@ -63,7 +65,7 @@ async function getList(user: AuthUser, query: PollQuery) {
     take,
     orderBy: { createdAt: 'desc' }
   };
-  const polls = await pollRepo.getList(args);
+  const polls = await pollRepo.findMany(args);
 
   where = { boardId, deletedAt: null };
   if (user.userType === UserType.USER) where = { ...where, status: { not: PollStatus.PENDING } };
@@ -78,17 +80,19 @@ async function get(user: AuthUser, pollId: string) {
     include: { pollOptions: true }
   });
   if (!poll) throw new NotFoundError('투표가 존재하지 않습니다.');
+  if (poll.adminId !== user.id) throw new ForbiddenError();
 
-  requireUser(user);
   if (user.userType === UserType.USER && poll.status === 'PENDING')
     throw new BadRequestError('PENDING 상태의 투표는 조회할 수 없습니다.');
 
   return buildPollDetailRes(poll);
 }
 
-async function patch(pollId: string, body: PollPatchRequestDto) {
-  const poll = await pollRepo.find({ where: { id: pollId } });
+async function patch(user: AuthUser, pollId: string, body: PollPatchRequestDto) {
+  const poll = await pollRepo.find({ where: { id: pollId, deletedAt: null } });
   if (!poll) throw new NotFoundError('해당 투표가 존재하지 않습니다.');
+  if (poll.adminId !== user.id) throw new ForbiddenError();
+
   if (poll.startDate <= new Date())
     throw new BadRequestError('진행 중이거나 종료된 투표는 수정할 수 없습니다.');
 
@@ -99,9 +103,10 @@ async function patch(pollId: string, body: PollPatchRequestDto) {
   });
 }
 
-async function del(pollId: string) {
-  const poll = await pollRepo.find({ where: { id: pollId } });
+async function del(user: AuthUser, pollId: string) {
+  const poll = await pollRepo.find({ where: { id: pollId, deletedAt: null } });
   if (!poll) throw new NotFoundError('해당 투표가 존재하지 않습니다.');
+  if (poll.adminId !== user.id) throw new ForbiddenError();
   if (poll.startDate <= new Date())
     throw new BadRequestError('진행 중이거나 종료된 투표는 삭제할 수 없습니다.');
 
@@ -151,7 +156,7 @@ function buildPollQueryParams(query: PollQuery) {
 async function buildPollListRes(polls: Poll[]) {
   return Promise.all(
     polls.map(async (p) => {
-      const admin = await userRepo.findById(p.adminId);
+      const admin = await userRepo.find({ where: { id: p.adminId } });
       if (!admin) throw new NotFoundError('관리자가 계정에 존재하지 않습니다.');
 
       return {

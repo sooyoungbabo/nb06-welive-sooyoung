@@ -2,41 +2,54 @@ import { PrismaClient, Prisma, Notification } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
-async function create(db: DB, data: Prisma.NotificationCreateInput): Promise<Notification> {
-  return db.notification.create({ data });
-}
-
-async function createMany(
+async function create<T extends Prisma.NotificationCreateArgs>(
   db: DB,
-  data: Prisma.NotificationCreateManyInput[]
+  args: Prisma.SelectSubset<T, Prisma.NotificationCreateArgs>
+): Promise<Prisma.NotificationGetPayload<T>> {
+  return db.notification.create(args);
+}
+
+async function createMany<T extends Prisma.NotificationCreateManyArgs>(
+  db: DB,
+  args: Prisma.SelectSubset<T, Prisma.NotificationCreateManyArgs>
 ): Promise<Prisma.BatchPayload> {
-  return db.notification.createMany({ data });
+  return db.notification.createMany(args);
 }
 
-async function findById(id: string): Promise<Notification | null> {
-  return prisma.notification.findUnique({ where: { id }, include: { receiver: true } });
+async function find<T extends Prisma.NotificationFindUniqueArgs>(
+  args: Prisma.SelectSubset<T, Prisma.NotificationFindUniqueArgs>
+): Promise<Prisma.NotificationGetPayload<T> | null> {
+  return prisma.notification.findUnique(args);
 }
 
-async function findFirst(args: Prisma.NotificationFindFirstArgs): Promise<Notification | null> {
+async function findFirst<T extends Prisma.NotificationFindFirstArgs>(
+  args: Prisma.SelectSubset<T, Prisma.NotificationFindFirstArgs>
+): Promise<Prisma.NotificationGetPayload<T> | null> {
   return prisma.notification.findFirst(args);
 }
 
-async function findMany(args?: Prisma.NotificationFindManyArgs): Promise<Notification[] | null> {
-  return prisma.notification.findMany({ ...args, orderBy: { notifiedAt: 'desc' } });
+async function findMany<T extends Prisma.NotificationFindManyArgs>(
+  args: Prisma.SelectSubset<T, Prisma.NotificationFindManyArgs>
+): Promise<Prisma.NotificationGetPayload<T>[]> {
+  return prisma.notification.findMany(args);
 }
 
-async function patch(data: Prisma.NotificationUpdateArgs): Promise<Notification> {
-  return prisma.notification.update({ ...data, include: { receiver: true } });
+async function patch<T extends Prisma.NotificationUpdateArgs>(
+  args: Prisma.SelectSubset<T, Prisma.NotificationUpdateArgs>
+): Promise<Prisma.NotificationGetPayload<T>> {
+  return prisma.notification.update(args);
 }
 
-async function patchMany(args: Prisma.NotificationUpdateManyArgs): Promise<Prisma.BatchPayload> {
+async function patchMany<T extends Prisma.NotificationUpdateManyArgs>(
+  args: Prisma.SelectSubset<T, Prisma.NotificationUpdateManyArgs>
+): Promise<Prisma.BatchPayload> {
   return prisma.notification.updateMany(args);
 }
 
 export default {
   create,
   createMany,
-  findById,
+  find,
   findFirst,
   findMany,
   patch,

@@ -241,7 +241,7 @@ async function del(adminApartmentId: string, residentId: string) {
       const resident = await residentRepo.del(tx, {
         where: { id: residentId, apartmentId: adminApartmentId }
       });
-      const user = await userRepo.del(tx, {
+      await userRepo.del(tx, {
         where: { id: resident.userId!, apartmentId: adminApartmentId }
       });
       return resident;
@@ -250,6 +250,31 @@ async function del(adminApartmentId: string, residentId: string) {
   }
 }
 
+async function softDel(adminApartmentId: string, residentId: string) {
+  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
+  if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
+  if (resident.apartmentId != adminApartmentId) throw new ForbiddenError(); //
+
+  if (!resident.userId)
+    return await residentRepo.patch(prisma, {
+      where: { id: residentId, apartmentId: adminApartmentId },
+      data: { deletedAt: new Date() }
+    });
+  else {
+    const deleted = await prisma.$transaction(async (tx) => {
+      const resident = await residentRepo.patch(tx, {
+        where: { id: residentId, apartmentId: adminApartmentId },
+        data: { deletedAt: new Date() }
+      });
+      await userRepo.patch(tx, {
+        where: { id: resident.userId!, apartmentId: adminApartmentId },
+        data: { deletedAt: new Date() }
+      });
+      return resident;
+    });
+    return deleted;
+  }
+}
 //----------------------------------------------------------- 지역 함수
 
 function buildQueryParams(query: ResidentQueryDto) {
@@ -324,5 +349,6 @@ export default {
   downloadListCsv,
   get,
   patch,
-  del
+  del,
+  softDel
 };

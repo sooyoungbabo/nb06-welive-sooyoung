@@ -3,24 +3,28 @@
 ### SSE
 GET {{baseUrl}}/notifications/SSE
 
-### 아파트1
-POST {{baseUrl}}/notifications/test
-Content-Type: application/json
+### 알림 읽음 처리
+PATCH {{baseUrl}}/notifications/4d2ae7ce-c65f-49e6-8d95-5e6c594b6f9c/read
 
-{
-  "notiType": "AUTH_USER_APPLIED",
-  "targetId": "9ebc9d3d-2b2e-4e77-937a-9a2b877cfd1b",
-  "content": "알림: 사용자 가입신청"
-}
 
+#################################### 부가 기능
 
 ### 알림 목록 조회: all
 GET {{baseUrl}}/notifications
 ### 알림 목록 조회: unread
 GET {{baseUrl}}/notifications/unread
 
-### 알림 읽음 처리
-PATCH {{baseUrl}}/notifications/6f5ce64b-9aca-42e4-8953-3dab6d2e98e8/read
-
 ### 알림 읽음 일괄 처리
 PATCH {{baseUrl}}/notifications/read
+
+### 알림 보내기
+POST {{baseUrl}}/notifications/send
+Content-Type: application/json
+
+{ 
+  "receiverId": "bf4440e6-4f29-4cc3-a23f-25dd830c4cf1",
+  "notiType": "NOTICE",
+  "targetId": "9ebc9d3d-2b2e-4e77-937a-9a2b877cfd1b",
+  "content": "[알림] 테스트"
+}
+

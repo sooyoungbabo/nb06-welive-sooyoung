@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import pollService from './poll.service';
 import { PollQuery } from './poll.dto';
-import { requireUser } from '../../lib/require';
 
 async function create(req: Request, res: Response, next: NextFunction) {
   const poll = await pollService.create(req.user, req.body);
@@ -22,14 +21,13 @@ async function get(req: Request, res: Response, next: NextFunction) {
 
 async function patch(req: Request, res: Response, next: NextFunction) {
   const pollId = req.params.pollId as string;
-  requireUser(req.user);
-  const poll = await pollService.patch(pollId, req.body);
+  const poll = await pollService.patch(req.user, pollId, req.body);
   res.status(200).send({ message: '정상적으로 수정되었습니다.' });
 }
 
 async function del(req: Request, res: Response, next: NextFunction) {
   const pollId = req.params.pollId as string;
-  const poll = await pollService.del(pollId);
+  const poll = await pollService.del(req.user, pollId);
   res.status(200).send({ message: '정상적으로 삭제처리되었습니다.' });
 }
 

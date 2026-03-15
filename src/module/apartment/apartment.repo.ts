@@ -1,23 +1,15 @@
-import { Apartment, PrismaClient, Prisma, Resident } from '@prisma/client';
+import { PrismaClient, Prisma, Resident } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
-async function getList<T extends Prisma.ApartmentFindManyArgs>(
+async function findMany<T extends Prisma.ApartmentFindManyArgs>(
   args?: Prisma.SelectSubset<T, Prisma.ApartmentFindManyArgs>
 ): Promise<Prisma.ApartmentGetPayload<T>[]> {
   return prisma.apartment.findMany(args);
 }
-async function findByName(name: string): Promise<Apartment | null> {
-  return prisma.apartment.findUnique({
-    where: { name },
-    include: { residents: true }
-  });
-}
 
-async function findById(id: string): Promise<Apartment> {
-  return prisma.apartment.findUniqueOrThrow({
-    where: { id }
-  });
+async function count(args: Prisma.ApartmentCountArgs): Promise<number> {
+  return prisma.apartment.count(args);
 }
 
 async function find<T extends Prisma.ApartmentFindUniqueArgs>(
@@ -26,38 +18,52 @@ async function find<T extends Prisma.ApartmentFindUniqueArgs>(
   return prisma.apartment.findUnique(args);
 }
 
-async function patch(db: DB, data: Prisma.ApartmentUpdateArgs): Promise<Apartment> {
-  return db.apartment.update(data);
+async function findFirst<T extends Prisma.ApartmentFindFirstArgs>(
+  args: Prisma.SelectSubset<T, Prisma.ApartmentFindFirstArgs>
+): Promise<Prisma.ApartmentGetPayload<T> | null> {
+  return prisma.apartment.findFirst(args);
 }
 
-async function patchMany(
+async function patch<T extends Prisma.ApartmentUpdateArgs>(
   db: DB,
-  args: Prisma.ApartmentUpdateManyArgs
+  args: Prisma.SelectSubset<T, Prisma.ApartmentUpdateArgs>
+): Promise<Prisma.ApartmentGetPayload<T>> {
+  return db.apartment.update(args);
+}
+
+async function patchMany<T extends Prisma.ApartmentUpdateManyArgs>(
+  db: DB,
+  args: Prisma.SelectSubset<T, Prisma.ApartmentUpdateManyArgs>
 ): Promise<Prisma.BatchPayload> {
   return db.apartment.updateMany(args);
 }
 
-async function create(db: DB, data: Prisma.ApartmentCreateInput): Promise<Apartment> {
-  return db.apartment.create({ data });
+async function create<T extends Prisma.ApartmentCreateArgs>(
+  db: DB,
+  args: Prisma.SelectSubset<T, Prisma.ApartmentCreateArgs>
+): Promise<Prisma.ApartmentGetPayload<T>> {
+  return db.apartment.create(args);
 }
 
-async function deleteById(db: DB, id: string) {
-  return db.apartment.delete({ where: { id } });
-  //return db.apartment.update({ where: { id }, data: { deletedAt: new Date() } });
+async function del(db: DB, args: Prisma.ApartmentDeleteArgs) {
+  return db.apartment.delete(args);
 }
 
-async function cleanup(db: DB, args: Prisma.ApartmentDeleteManyArgs): Promise<Prisma.BatchPayload> {
+async function deleteMany(
+  db: DB,
+  args: Prisma.ApartmentDeleteManyArgs
+): Promise<Prisma.BatchPayload> {
   return db.apartment.deleteMany(args);
 }
 
 export default {
-  getList,
-  findByName,
-  findById,
+  findMany,
+  count,
   find,
+  findFirst,
   patch,
   patchMany,
   create,
-  deleteById,
-  cleanup
+  del,
+  deleteMany
 };

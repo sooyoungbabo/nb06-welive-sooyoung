@@ -47,7 +47,7 @@ complaintRouter.get(
 complaintRouter.patch(
   '/:complaintId',
   authenticate(),
-  authorize(UserType.USER, UserType.ADMIN),
+  authorize(UserType.USER),
   validateParams(complaintParams),
   validateBody(complaintPatchBody),
   withTryCatch(complaintControl.patch)
