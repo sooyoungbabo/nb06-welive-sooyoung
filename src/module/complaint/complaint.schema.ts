@@ -1,4 +1,4 @@
-import { boolean, enums, object, optional, size, string } from 'superstruct';
+import { boolean, enums, object, optional, partial, size, string } from 'superstruct';
 import { str4numStruct } from '../../middleware/commonStructs';
 
 //-------------------------------------------- Params schema
@@ -12,6 +12,12 @@ export const complaintCreateBody = object({
   content: string(),
   isPublic: boolean(),
   status: enums(['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'])
+});
+
+export const complaintPatchBody = partial({
+  title: string(),
+  content: string(),
+  isPublic: boolean()
 });
 
 export const complaintStatusBody = object({

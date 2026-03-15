@@ -1,3 +1,25 @@
+import NotFoundError from '../../middleware/errors/NotFoundError';
+import prisma from '../../lib/prisma';
+import { AuthUser } from '../../type/express';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
+import { assert } from 'node:console';
+import { CreateNotification } from '../notification/notification.struct';
+import notiService from '../notification/notification.service';
+import { getAdminId, getBoardIdByUserId } from '../../lib/utils';
+import userRepo from '../user/user.repo';
+import complaintRepo from './complaint.repo';
+import commentRepo from '../comment/comment.repo';
+import residentRepo from '../resident/resident.repo';
+import { buildPagination, buildWhere } from '../../lib/buildQuery';
+import {
+  CommentResDto,
+  ComplaintCreateRequestDto,
+  ComplaintDetailResDto,
+  ComplaintListResDto,
+  ComplaintPatchRequestDto,
+  ComplaintPatchResDto,
+  ComplaintQueryDto
+} from './complaint.dto';
 import {
   BoardType,
   Complaint,
@@ -9,45 +31,9 @@ import {
   UserType,
   NotificationType
 } from '@prisma/client';
-import userRepo from '../user/user.repo';
-import complaintRepo from './complaint.repo';
-import commentRepo from '../comment/comment.repo';
-import residentRepo from '../resident/resident.repo';
-import boardRepo from '../board/board.repo';
-import { buildPagination, buildWhere } from '../../lib/buildQuery';
-import {
-  CommentResDto,
-  ComplaintCreateRequestDto,
-  ComplaintDetailResDto,
-  ComplaintListResDto,
-  ComplaintPatchRequestDto,
-  ComplaintPatchResDto,
-  ComplaintQueryDto
-} from './complaint.dto';
-import NotFoundError from '../../middleware/errors/NotFoundError';
-import prisma from '../../lib/prisma';
-import { AuthUser } from '../../type/express';
-import { requireApartmentUser, requireResidentUser, requireUser } from '../../lib/require';
-import ForbiddenError from '../../middleware/errors/ForbiddenError';
-import { assert } from 'node:console';
-import { CreateNotification } from '../notification/notification.struct';
-import notiService from '../notification/notification.service';
-import { getBoardId } from '../../lib/utils';
 
 async function create(user: AuthUser, data: ComplaintCreateRequestDto) {
-  requireResidentUser(user);
-  const boardId = await getBoardId(user.apartmentId, CommentType.COMPLAINT);
-  // const complaintData: Prisma.ComplaintCreateInput = {
-  //   title: data.title,
-  //   content: data.content,
-  //   isPublic: data.isPublic,
-  //   status: data.status,
-  //   creator: { connect: { id: user.id } },
-  //   board: { connect: { id: boardId } },
-  //   admin: { connect: { id: user.adminId } }
-  // };
-  // const complaint = await complaintRepo.create(complaintData);
-
+  const boardId = await getBoardIdByUserId(user.id, CommentType.COMPLAINT);
   const complaint = await prisma.complaint.create({
     data: {
       title: data.title,
@@ -65,10 +51,11 @@ async function create(user: AuthUser, data: ComplaintCreateRequestDto) {
   const notiData = {
     notiType: NotificationType.COMPLAINT_RAISED,
     targetId: user.id,
-    content: `[알림] ${complaint.creator.name}님 민원등록`
+    content: `[알림] ${complaint.creator.name}님 민원접수`
   };
   assert(notiData, CreateNotification);
-  const noti = await notiService.notify(user.adminId, notiData);
+  const adminId = await getAdminId(user.id);
+  const noti = await notiService.notify(adminId, notiData);
 
   return complaint;
 }
@@ -83,8 +70,7 @@ async function getList(
     limitMax: 100
   });
 
-  requireApartmentUser(user);
-  const boardId = await getBoardId(user.apartmentId, BoardType.COMPLAINT);
+  const boardId = await getBoardIdByUserId(user.id, BoardType.COMPLAINT);
 
   let where: Prisma.ComplaintWhereInput = buildWhere({
     searchKey: queryParams.searchKey,
@@ -106,14 +92,14 @@ async function getList(
     };
   }
 
-  const totalCount = await complaintRepo.count(where);
+  const totalCount = await complaintRepo.count({ where });
   const rawComplaints = await complaintRepo.findMany(where, skip, take);
 
   return { complaints: await buildComplaintListRes(rawComplaints), totalCount };
 }
 
 async function get(userId: string, complaintId: string): Promise<ComplaintDetailResDto> {
-  if (!(await isMyComplaint(userId, complaintId))) throw new ForbiddenError();
+  if (!(await belongsToMyApartment(userId, complaintId))) throw new ForbiddenError();
 
   const complaint = await complaintRepo.patch({
     where: { id: complaintId },
@@ -136,9 +122,9 @@ async function patch(
   complaintId: string,
   body: ComplaintPatchRequestDto
 ): Promise<ComplaintPatchResDto> {
-  requireApartmentUser(user);
-  if (!(await isMyApartment(user.id, complaintId))) throw new ForbiddenError();
-  if (!(await isMyComplaint(user.id, complaintId))) throw new ForbiddenError();
+  if (!(await belongsToMyApartment(user.id, complaintId))) throw new ForbiddenError();
+  if (user.userType === UserType.USER && !(await isMyComplaint(user.id, complaintId)))
+    throw new ForbiddenError();
 
   const complaint = await complaintRepo.patch({
     where: { id: complaintId },
@@ -158,9 +144,9 @@ async function patch(
 }
 
 async function del(user: AuthUser, complaintId: string): Promise<void> {
-  requireApartmentUser(user);
-  if (!(await isMyApartment(user.id, complaintId))) throw new ForbiddenError();
-  if (!(await isMyComplaint(user.id, complaintId))) throw new ForbiddenError();
+  if (!(await belongsToMyApartment(user.id, complaintId))) throw new ForbiddenError();
+  if (user.userType === UserType.USER && !(await isMyComplaint(user.id, complaintId)))
+    throw new ForbiddenError();
 
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
@@ -176,8 +162,8 @@ async function changeStatus(
   complaintId: string,
   status: ComplaintStatus
 ): Promise<ComplaintDetailResDto> {
-  requireUser(user);
-  if (!(await isMyApartment(user.id, complaintId)) && user.userType !== UserType.SUPER_ADMIN)
+  if (!(await belongsToMyApartment(user.id, complaintId))) throw new ForbiddenError();
+  if (user.userType === UserType.USER && !(await isMyComplaint(user.id, complaintId)))
     throw new ForbiddenError();
 
   const complaint = await complaintRepo.patch({
@@ -209,19 +195,22 @@ async function changeStatus(
 }
 
 //------------------------------------------
-async function isMyComplaint(userId: string, complaintId: string) {
+async function isMyComplaint(userId: string, complaintId: string): Promise<boolean> {
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
     select: { creatorId: true }
   });
-  return userId === complaint?.creatorId;
+  if (!complaint) throw new NotFoundError('민원이 존재하지 않습니다.');
+  return userId === complaint.creatorId;
 }
-async function isMyApartment(userId: string, complaintId: string): Promise<boolean> {
+async function belongsToMyApartment(userId: string, complaintId: string): Promise<boolean> {
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
-    select: { creatorId: true, adminId: true }
+    select: { boardId: true }
   });
-  return complaint?.adminId === userId;
+  if (!complaint) throw new NotFoundError('민원이 존재하지 않습니다.');
+  const boardId = await getBoardIdByUserId(userId, BoardType.COMPLAINT);
+  return complaint.boardId === boardId;
 }
 
 function buildQueryParams(query: ComplaintQueryDto) {
@@ -251,7 +240,7 @@ async function buildComplaintRes(
 ): Promise<ComplaintDetailResDto> {
   return {
     complaintId: complaint.id,
-    userId: creator.id,
+    userId: complaint.creatorId,
     title: complaint.title,
     writerName: creator.name,
     createdAt: complaint.createdAt,

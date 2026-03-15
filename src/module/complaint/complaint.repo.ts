@@ -25,8 +25,8 @@ async function findMany(
   });
 }
 
-async function count(where: Prisma.ComplaintWhereInput): Promise<number> {
-  return await prisma.complaint.count({ where });
+async function count(args: Prisma.ComplaintCountArgs): Promise<number> {
+  return await prisma.complaint.count(args);
 }
 
 async function patch(data: Prisma.ComplaintUpdateArgs): Promise<Complaint> {
