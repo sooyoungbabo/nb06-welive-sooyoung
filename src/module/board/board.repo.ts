@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, Board } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
@@ -24,10 +24,14 @@ async function createMany(
   db: DB,
   data: Prisma.BoardCreateManyInput[]
 ): Promise<Prisma.BatchPayload> {
-  return await db.board.createMany({ data });
+  return db.board.createMany({ data });
 }
 
-async function deleteMany(db: DB, args: Prisma.BoardDeleteManyArgs): Promise<Prisma.BatchPayload> {
+async function updateMany(db: DB, args: Prisma.BoardUpdateManyArgs): Promise<Prisma.BatchPayload> {
+  return db.board.updateMany(args);
+}
+
+async function deleteMany(db: DB, args: Prisma.BoardDeleteManyArgs) {
   return db.board.deleteMany(args);
 }
 
@@ -36,5 +40,6 @@ export default {
   findFirst,
   findMany,
   createMany,
+  updateMany,
   deleteMany
 };

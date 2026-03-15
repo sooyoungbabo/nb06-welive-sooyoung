@@ -4,6 +4,7 @@ import { ResidentQueryDto } from './resident.dto';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import { requireApartmentUser } from '../../lib/require';
 import { getTimestamp } from '../../lib/myFuns';
+import { NODE_ENV } from '../../lib/constants';
 
 async function getList(req: Request, res: Response, next: NextFunction) {
   requireApartmentUser(req.user);
@@ -106,7 +107,8 @@ async function patch(req: Request, res: Response, next: NextFunction) {
 async function del(req: Request, res: Response, next: NextFunction) {
   const residentId = req.params.id as string;
   requireApartmentUser(req.user);
-  const resident = await residentService.del(req.user.apartmentId, residentId);
+  if (NODE_ENV === 'development') await residentService.del(req.user.apartmentId, residentId);
+  else await residentService.softDel(req.user.apartmentId, residentId);
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다.' });
 }
 

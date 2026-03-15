@@ -27,7 +27,7 @@ pollRouter.post(
 pollRouter.get(
   '/',
   authenticate(),
-  //authorize(UserType.ADMIN, UserType.USER), // 사용자 모두 조회 가능
+  authorize(UserType.ADMIN, UserType.USER), // 사용자 모두 조회 가능?
   validateQuery(pollListQuery, pollListQueryShape),
   withTryCatch(pollControl.getList)
 );
@@ -36,7 +36,7 @@ pollRouter.get(
 pollRouter.get(
   '/:pollId',
   authenticate(),
-  //authorize(UserType.ADMIN, UserType.USER), // 사용자 모두 조회 가능
+  authorize(UserType.ADMIN, UserType.USER), // 사용자 모두 조회 가능?
   validateParams(pollParams),
   withTryCatch(pollControl.get)
 );

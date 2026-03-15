@@ -2,11 +2,16 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import prisma from '../../lib/prisma';
 type DB = PrismaClient | Prisma.TransactionClient;
 
-async function create(db: DB, args: Prisma.PollCreateArgs) {
+async function create<T extends Prisma.PollCreateArgs>(
+  db: DB,
+  args: Prisma.SelectSubset<T, Prisma.PollCreateArgs>
+): Promise<Prisma.PollGetPayload<T>> {
   return await db.poll.create(args);
 }
 
-async function getList(args?: Prisma.PollFindManyArgs) {
+async function findMany<T extends Prisma.PollFindManyArgs>(
+  args?: Prisma.SelectSubset<T, Prisma.PollFindManyArgs>
+): Promise<Prisma.PollGetPayload<T>[]> {
   return await prisma.poll.findMany(args);
 }
 
@@ -20,11 +25,16 @@ async function find<T extends Prisma.PollFindUniqueArgs>(
   return prisma.poll.findUnique(args);
 }
 
-async function findFirst(args: Prisma.PollFindFirstArgs) {
+async function findFirst<T extends Prisma.PollFindFirstArgs>(
+  args: Prisma.SelectSubset<T, Prisma.PollFindFirstArgs>
+): Promise<Prisma.PollGetPayload<T> | null> {
   return prisma.poll.findFirst(args);
 }
 
-async function patch(db: DB, args: Prisma.PollUpdateArgs) {
+async function patch<T extends Prisma.PollUpdateArgs>(
+  db: DB,
+  args: Prisma.SelectSubset<T, Prisma.PollUpdateArgs>
+): Promise<Prisma.PollGetPayload<T>> {
   return db.poll.update(args);
 }
 
@@ -34,7 +44,7 @@ async function del(db: DB, args: Prisma.PollDeleteArgs) {
 
 export default {
   create,
-  getList,
+  findMany,
   count,
   find,
   findFirst,

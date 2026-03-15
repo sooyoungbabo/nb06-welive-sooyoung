@@ -13,6 +13,7 @@ import pollRouter from './module/poll/poll.router';
 import pollSchedulerRouter from './module/pollScheduler/pollSchedular.router';
 import noticeRouter from './module/notice/notice.router';
 import voteRouter from './module/pollVote/vote.router';
+import commentRouter from './module/comment/comment.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
 import { startPollScheduler } from './module/pollScheduler/pollSchedular';
 
@@ -41,7 +42,7 @@ app.use('/polls', pollRouter);
 app.use('/poll-scheduler', pollSchedulerRouter);
 app.use('/options', voteRouter);
 app.use('/notices', noticeRouter);
-// app.use('/comments', commentRouter);
+app.use('/comments', commentRouter);
 app.use('/notifications', notiRouter);
 // app.use('/events', eventRouter);
 

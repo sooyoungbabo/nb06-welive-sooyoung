@@ -1,17 +1,5 @@
 import { Response } from 'express';
 import prisma from '../../lib/prisma';
-import {
-  Apartment,
-  ApprovalStatus,
-  BoardType,
-  HouseholdRole,
-  JoinStatus,
-  NotificationType,
-  Prisma,
-  ResidenceStatus,
-  User,
-  UserType
-} from '@prisma/client';
 import { assert } from 'superstruct';
 import { CreateUser, PatchUser } from '../user/user.struct';
 import { NODE_ENV, ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/constants';
@@ -21,18 +9,19 @@ import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import UnauthorizedError from '../../middleware/errors/UnauthorizedError';
 import { check_passwordValidity, hashingPassword } from '../user/user.service';
-import notiService from '../notification/notification.service';
+import notificationRepo from '../notification/notification.repo';
 import aptRepo from '../apartment/apartment.repo';
 import userRepo from '../user/user.repo';
 import residentRepo from '../resident/resident.repo';
 import boardRepo from '../board/board.repo';
 import { TokenType } from './auth.dto';
-import { CreateApartment, PatchApartment } from '../apartment/apartment.struct';
+import { PatchApartment } from '../apartment/apartment.struct';
 import { AptSignupRequestDto } from '../apartment/apartment.dto';
 import ConflictError from '../../middleware/errors/ConflictError';
-import { CreateResident } from '../resident/resident.struct';
 import { AuthUser } from '../../type/express';
 import { requireApartmentUser, requireUser } from '../../lib/require';
+import { CreateNotification } from '../notification/notification.struct';
+import { sendToUser } from '../notification/sse.manager';
 import {
   ensureSameApartment,
   getAdminIdByAparatmentId,
@@ -52,42 +41,62 @@ import {
   UserSignupRequestDto,
   PatchAdminAptRequestDto
 } from '../user/user.dto';
-import { CreateNotification } from '../notification/notification.struct';
+import {
+  Apartment,
+  ApprovalStatus,
+  BoardType,
+  HouseholdRole,
+  JoinStatus,
+  NotificationType,
+  Prisma,
+  ResidenceStatus,
+  User,
+  UserType
+} from '@prisma/client';
 
 async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto> {
-  // validation: (1) 아파트 (2) 동호수
-  const apt = await aptRepo.findByName(body.apartmentName);
+  // rea.body 데이터 로직 검토: (1) 아파트 (2) 동호수
+  const apt = await aptRepo.findFirst({
+    where: { name: body.apartmentName, deletedAt: null }
+  });
   if (!apt) throw new BadRequestError('아파트가 존재하지 않습니다.');
   validateDongHo(body.apartmentDong, body.apartmentHo, apt);
+  const adminId = await getAdminIdByAparatmentId(apt.id);
 
-  // data transformation & validation by superstruct
+  // 데이터 가공
   const userData = await buildSignupUserData(body);
   const residentData = await buildSignupResidentData(body);
-  assert(userData, CreateUser);
-  assert({ ...residentData, apartmentId: apt.id }, CreateResident);
 
-  // DB creation
+  // DB creation: (1) user 생성 (2) resident 생성 (3) 알림 생성 <- 트랜젝션
+  //              (4) SSE (to 관리자)
   const userCreated = await prisma.$transaction(async (tx) => {
-    const userArgs = { ...userData, apartment: { connect: { id: apt.id } } };
-    const user = await userRepo.create(tx, userArgs);
+    // (1) User 생성
+    const user = await userRepo.create(tx, {
+      data: { ...userData, apartment: { connect: { id: apt.id } } }
+    });
+    // (2) Resident 생성
     const residentArgs = {
       ...residentData,
       apartment: { connect: { id: apt.id } },
       user: { connect: { id: user.id } }
     };
     await residentRepo.create(tx, residentArgs);
+
+    // (3) 알림 생성
+    const notiData = {
+      notiType: NotificationType.AUTH_USER_APPLIED,
+      targetId: user.id,
+      content: `[알림] ${user.name}님 가입신청`
+    };
+    assert(notiData, CreateNotification);
+    await notificationRepo.create(tx, {
+      data: { ...notiData, receiver: { connect: { id: adminId } } }
+    });
     return user;
   });
 
-  // 알림 생성
-  const adminId = await getAdminIdByAparatmentId(apt.id);
-  const notiData = {
-    notiType: NotificationType.AUTH_USER_APPLIED,
-    targetId: userCreated.id,
-    content: `[알림] ${userCreated.name}님 가입신청`
-  };
-  assert(notiData, CreateNotification);
-  const noti = await notiService.notify(adminId, notiData);
+  // (4) SSE to admin
+  sendToUser(adminId, `[알림] ${userCreated.name}님 가입신청`);
 
   // 출력형식에 맞추 재가공하여 리턴
   return buildSignupUserRes(userCreated);
@@ -103,36 +112,42 @@ async function signupAdmin(body: AdminSignupRequestDto): Promise<UserSignupRespo
   // 데이터 가공, 검증
   const aptData = buildSignupApartmentData(body);
   const adminData = await buildSignupAdminData(body);
-  assert(aptData, CreateApartment);
-  assert(adminData, CreateUser);
+  const superAdminIds = await getSuperAdminId();
 
-  // DB 생성: User, Apartment, Board
+  // DB 생성: 트렌젝션 (1) Apartment (2) User (3) Board (4) 알림
   const adminCreated = await prisma.$transaction(async (tx) => {
-    const apt = await aptRepo.create(tx, aptData);
-    const adminArgs = {
-      ...adminData,
-      apartment: { connect: { id: apt.id } }
-    };
-    const admin = await userRepo.create(tx, adminArgs);
+    // (1) Apartment 생성
+    const apt = await aptRepo.create(tx, { data: aptData });
+    // (2) User 생성 (admin)
+    const admin = await userRepo.create(tx, {
+      data: { ...adminData, apartment: { connect: { id: apt.id } } }
+    });
+    // (3) 3종 보드 생성
     const boardData = [
       { boardType: BoardType.NOTICE, apartmentId: apt.id },
       { boardType: BoardType.COMPLAINT, apartmentId: apt.id },
       { boardType: BoardType.POLL, apartmentId: apt.id }
     ];
     await boardRepo.createMany(tx, boardData);
+
+    // (4) 알림 생성
+    for (const id of superAdminIds) {
+      const notiData = {
+        notiType: NotificationType.AUTH_ADMIN_APPLIED,
+        targetId: admin.id,
+        content: `[알림] ${admin.name}님 가입신청`
+      };
+      assert(notiData, CreateNotification);
+      const noti = await notificationRepo.create(tx, {
+        data: { ...notiData, receiver: { connect: { id } } }
+      });
+    }
     return admin;
   });
 
-  // 알림 생성
-  const superAdminIds = await getSuperAdminId();
+  // SSE to superAdmins: 트렌젝션 바깥
   for (const id of superAdminIds) {
-    const notiData = {
-      notiType: NotificationType.AUTH_ADMIN_APPLIED,
-      targetId: adminCreated.id,
-      content: `[알림] ${adminCreated.name}님 가입신청`
-    };
-    assert(notiData, CreateNotification);
-    const noti = await notiService.notify(id, notiData);
+    sendToUser(id, `[알림] ${adminCreated.name}님 가입신청`);
   }
 
   // 데이터 재가공하여 리턴
@@ -145,7 +160,7 @@ async function signupSuperAdmin(body: SuperAdminSignupRequestDto): Promise<UserS
     password: await hashingPassword(body.password)
   };
   assert(data, CreateUser);
-  const superAdminCreated = await userRepo.create(prisma, data);
+  const superAdminCreated = await userRepo.create(prisma, { data });
   return buildSignupUserRes(superAdminCreated);
 }
 
@@ -198,7 +213,7 @@ async function getAdminList(): Promise<User[]> {
 }
 
 async function getAptList(): Promise<Apartment[]> {
-  return await aptRepo.getList({ orderBy: { createdAt: 'desc' } });
+  return await aptRepo.findMany({ orderBy: { createdAt: 'desc' } });
 }
 
 async function changeAdminStatus(adminId: string, status: JoinStatus) {
@@ -317,12 +332,33 @@ async function patchAdminApt(adminId: string, body: PatchAdminAptRequestDto): Pr
   });
 }
 
-async function deleteAdminApt(adminId: string): Promise<User> {
+async function deleteAdmin(adminId: string): Promise<User> {
+  // 트렌젝션: user, apartment, boards
   return prisma.$transaction(async (tx) => {
-    const admin = await userRepo.deleteById(tx, adminId);
+    const admin = await userRepo.del(tx, { where: { id: adminId } });
     if (!admin.apartmentId) throw new NotFoundError('관리자 계정에 아파트 ID가 존재하지 않습니다.');
     await boardRepo.deleteMany(tx, { where: { apartmentId: admin.apartmentId } });
-    await aptRepo.deleteById(tx, admin.apartmentId);
+    await aptRepo.del(tx, { where: { id: admin.apartmentId } });
+    return admin;
+  });
+}
+
+async function softDeleteAdmin(adminId: string): Promise<User> {
+  // 트렌젝션: user, apartment, boards
+  return prisma.$transaction(async (tx) => {
+    const admin = await userRepo.patch(tx, {
+      where: { id: adminId },
+      data: { deletedAt: new Date() }
+    });
+    if (!admin.apartmentId) throw new NotFoundError('관리자 계정에 아파트 ID가 존재하지 않습니다.');
+    await boardRepo.updateMany(tx, {
+      where: { apartmentId: admin.apartmentId },
+      data: { deletedAt: new Date() }
+    });
+    await aptRepo.patch(tx, {
+      where: { id: admin.apartmentId },
+      data: { deletedAt: new Date() }
+    });
     return admin;
   });
 }
@@ -340,8 +376,8 @@ async function cleanupSuperAdmin(): Promise<string> {
 
   const deleted = await prisma.$transaction(async (tx) => {
     const users = await userRepo.cleanup(tx, userArgs);
-    const boards = await boardRepo.deleteMany(tx, boardArgs);
-    const apts = await aptRepo.cleanup(tx, aptArgs);
+    await boardRepo.deleteMany(tx, boardArgs);
+    await aptRepo.deleteMany(tx, aptArgs);
     return users;
   });
   return `[슈퍼관리자] 거절된 관리자 가입신청 ${deleted.count}건이 일괄정리되었습니다.`;
@@ -411,7 +447,7 @@ function buildSignupUserRes(user: User): UserSignupResponseDto {
   };
 }
 
-function buildSignupApartmentData(body: AdminSignupRequestDto): Prisma.ApartmentCreateInput {
+function buildSignupApartmentData(body: AdminSignupRequestDto) {
   const raw: AptSignupRequestDto = {
     name: body.apartmentName,
     address: body.apartmentAddress,
@@ -529,7 +565,7 @@ function getApprovalStatus(state: JoinStatus): ApprovalStatus {
 }
 
 async function verifyUserExist(userId: string): Promise<User> {
-  const user = await userRepo.findById(userId);
+  const user = await userRepo.find({ where: { id: userId } });
   if (!user) throw new UnauthorizedError();
   return user;
 }
@@ -555,6 +591,7 @@ export default {
   changeAllResidentsStatus,
   verifyUserExist,
   patchAdminApt,
-  deleteAdminApt,
+  deleteAdmin,
+  softDeleteAdmin,
   cleanup
 };

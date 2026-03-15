@@ -5,28 +5,30 @@ POST {{baseUrl}}/complaints
 Content-Type: application/json
 
 {
-  "title": "202호 한밤중의 피아노 연주",
-  "content": "밤 10시 이후 다음 날 아침 7시 이전엔 피아노 치지 말아 주세요.",
+  "title": "101동 화단 근처 끽연",
+  "content": "근처에 놀이터가 있어 아이들 2차 흡연이 염려됩니다. 담배꽁초도 제대로 치우세요.",
   "isPublic": true,
   "status": "PENDING"
 }
 
 ### 전체 민원 조회
 GET {{baseUrl}}/complaints
-### 전체 민원 조회: 검색 by status, isPublic, dong, ho, keyword(title, content)
-GET {{baseUrl}}/complaints?status=PENDING&keyword=한밤중
+### 전체 민원 조회: 검색
+### status, isPublic, dong, ho, 
+### keyword(title, content)
+GET {{baseUrl}}/complaints?keyword=의심
 
 ### 민원 상세 조회
-GET {{baseUrl}}/complaints/d965ec80-7d07-475d-b8c6-5013fa5a177d
+GET {{baseUrl}}/complaints/b02d3c2a-deac-49bc-8adb-4c9bce336a9f
 
 ### 사용자: 민원 수정
-PATCH {{baseUrl}}/complaints/4a329e05-7ed7-4441-8bf7-cbe96fb9f91e
+PATCH {{baseUrl}}/complaints/b02d3c2a-deac-49bc-8adb-4c9bce336a9f
 Content-Type: application/json
 
 {
-  "title": "302호 한밤중의 악기 연주 자제 요청",
-  "content": "다른 사람도 생각해 주세요.",
-  "isPublic": false
+  "title": "101동 화단 근처 끽연",
+  "content": "근처에 놀이터가 있어 아이들 2차 흡연이 염려됩니다.",
+  "isPublic": true
 }
 
 ### 민원 삭제

@@ -10,6 +10,7 @@ import {
   complaintListQuery,
   complaintListQueryShape,
   complaintParams,
+  complaintPatchBody,
   complaintStatusBody
 } from './complaint.schema';
 
@@ -46,9 +47,9 @@ complaintRouter.get(
 complaintRouter.patch(
   '/:complaintId',
   authenticate(),
-  authorize(UserType.USER, UserType.ADMIN),
+  authorize(UserType.USER),
   validateParams(complaintParams),
-  validateBody(complaintCreateBody),
+  validateBody(complaintPatchBody),
   withTryCatch(complaintControl.patch)
 );
 

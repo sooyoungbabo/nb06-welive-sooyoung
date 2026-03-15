@@ -18,7 +18,10 @@ async function getList(sortParam: Prisma.SortOrder) {
 }
 
 async function get(id: string) {
-  const user = await userRepo.findById(id, { include: { resident: true, apartment: true } });
+  const user = await userRepo.find({
+    where: { id },
+    include: { resident: true, apartment: true }
+  });
   if (!user) throw new NotFoundError('사용자를 찾을 수 없습니다.');
   const { password, ...rest } = user;
   return rest;
@@ -27,7 +30,10 @@ async function get(id: string) {
 async function patchPassword(id: string, oldPassword: string, newPassword: string) {
   if (oldPassword === newPassword) throw new BadRequestError('비밀번호가 같습니다.');
 
-  const user = await userRepo.findById(id, { select: { password: true, name: true } });
+  const user = await userRepo.find({
+    where: { id },
+    select: { password: true, name: true }
+  });
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
 
   if (!(await check_passwordValidity(oldPassword, user.password)))
@@ -50,7 +56,7 @@ async function postAvatar(file: Express.Multer.File, id: string) {
 
   const user = await userRepo.find({ where: { id }, select: { username: true, name: true } });
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
-  const key = `welive/images/${user.username}${normalizedExt}`;
+  const key = `images/${user.username}${normalizedExt}`;
   //const key = `welive/images/${id}${normalizedExt}`;
 
   await imgStorage.saveImg(key, file);

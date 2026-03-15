@@ -53,10 +53,10 @@ GET {{baseUrl}}/residents/file?limit=10
 GET {{baseUrl}}/residents/file?isRegistered=false
 
 ### 입주민 상세 조회
-GET {{baseUrl}}/residents/de7f2f11-6ab7-4e3f-9bb1-ad0f1f695a72
+GET {{baseUrl}}/residents/cf78be30-e187-4f03-931e-26e58d1c6842
 ###
 
-PATCH {{baseUrl}}/residents/86aea3fb-7e8e-417f-8a53-fd07143c9a41
+PATCH {{baseUrl}}/residents/cf78be30-e187-4f03-931e-26e58d1c6842
 Content-Type: application/json
 
 {
@@ -68,4 +68,4 @@ Content-Type: application/json
 }
 
 ###
-DELETE {{baseUrl}}/residents/47e67da1-aad5-49a6-9087-e7adc663c4c2
+DELETE {{baseUrl}}/residents/cf78be30-e187-4f03-931e-26e58d1c6842

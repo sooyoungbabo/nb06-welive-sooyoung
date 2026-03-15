@@ -6,7 +6,7 @@ GET {{baseUrl}}/users/getList?sort=desc
 
 
 ### 사용자 상세 조회
-GET {{baseUrl}}/users/0f94fae1-f306-4680-b258-4658ad1c0988
+GET {{baseUrl}}/users/4ec2020f-e4e2-4086-bcba-fa70df8083aa
 ### 내 정보 조회
 GET {{baseUrl}}/users/me/myInfo
 
@@ -28,6 +28,6 @@ PATCH {{baseUrl}}/users/me/password
 Content-Type: application/json
 
 {
-  "currentPassword": "password1!",
-  "newPassword": "password0!"
+  "currentPassword": "password0!",
+  "newPassword": "password1!"
 }

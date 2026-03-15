@@ -78,7 +78,7 @@ async function create(user: AuthUser, body: NoticeCreateRequestDto) {
 
     await Promise.all(
       userIds.map((id) =>
-        notificationRepo.create(tx, { ...notiData, receiver: { connect: { id } } })
+        notificationRepo.create(tx, { data: { ...notiData, receiver: { connect: { id } } } })
       )
     );
     return notice;

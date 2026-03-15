@@ -89,7 +89,7 @@ authRouter.delete(
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
   validateParams(authParams),
-  withTryCatch(authControl.deleteAdminApt)
+  withTryCatch(authControl.deleteAdmin)
 );
 
 // 관라지: 주민 관리상태 변경: PENDING --> 승인/거절

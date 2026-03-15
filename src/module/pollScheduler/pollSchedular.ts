@@ -87,9 +87,8 @@ async function sendClosedPollNoti(polls: Poll[]) {
         admin: { connect: { id: poll.adminId } }
       });
 
-      await notiRepo.createMany(
-        tx,
-        receivers
+      await notiRepo.createMany(tx, {
+        data: receivers
           .filter((r) => r.userId != null)
           .map((r) => ({
             receiverId: r.userId!,
@@ -97,7 +96,7 @@ async function sendClosedPollNoti(polls: Poll[]) {
             notiType: NotificationType.POLL_CLOSED,
             content
           }))
-      );
+      });
     });
 
     for (const r of receivers) {
@@ -125,65 +124,3 @@ async function getPollResult(pollId: string) {
     { sum: 0, max: -Infinity, maxStr: '' }
   );
 }
-
-// async function getStartingPolls() {
-//   return await prisma.poll.findMany({
-//     where: {
-//       status: 'IN_PROGRESS',
-//       startDate: { lte: new Date() }
-//     }
-//   });
-// }
-
-// async function sendStartPollNoti(polls: Poll[]): Promise<void> {
-//   console.log(new Date());
-//   console.log('Sending starting poll notification...');
-//   console.log('');
-
-//   for (const poll of polls) {
-//     const noti = await notiRepo.findFirst({
-//       where: { targetId: poll.id, notiType: NotificationType.POLL_START }
-//     });
-//     if (noti) continue; // 중복 알림 방지
-//     const receivers = await getNotiReceivers(poll); // Resident: receivers.userId
-
-//     // 투표개시: (1) DB Notification (2) SSE
-//     const target = poll.buildingPermission ? `${poll.buildingPermission}동` : '전체';
-//     const content = `[알림] 투표개시 (${poll.title}, ${target})`;
-
-//     await notiRepo.createMany(
-//       prisma,
-//       receivers
-//         .filter((r) => r.userId)
-//         .map((r) => ({
-//           receiverId: r.userId!,
-//           targetId: poll.id,
-//           notiType: NotificationType.POLL_START,
-//           content
-//         }))
-//     );
-
-//     for (const r of receivers) {
-//       if (!r.userId) continue;
-//       sendToUser(r.userId, content);
-//     }
-//   }
-// }
-
-// async function getNotiReceivers(poll: Poll): Promise<Resident[]> {
-//   if (poll.buildingPermission === 0) {
-//     return await residentRepo.findMany(prisma, {
-//       where: { deletedAt: null },
-//       select: { id: true }
-//     });
-//   } else {
-//     const board = await boardRepo.find({
-//       where: { id: poll.boardId },
-//       select: { apartmentId: true }
-//     });
-//     return await residentRepo.findMany(prisma, {
-//       where: { apartmentId: board?.apartmentId, apartmentDong: String(poll.buildingPermission) },
-//       select: { userId: true }
-//     });
-//   }
-// }
