@@ -1,7 +1,10 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { defaultNotFoundHandler, globalErrorHandler } from './middleware/errorHandler';
+import {
+  defaultNotFoundHandler,
+  globalErrorHandler
+} from './middleware/errorHandler';
 import authRouter from './module/auth/auth.router';
 import userRouter from './module/user/user.router';
 import aptRouter from './module/apartment/apartment.router';
@@ -14,6 +17,7 @@ import pollSchedulerRouter from './module/pollScheduler/pollSchedular.router';
 import noticeRouter from './module/notice/notice.router';
 import voteRouter from './module/pollVote/vote.router';
 import commentRouter from './module/comment/comment.router';
+import eventRouter from './module/event/event.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
 import { startPollScheduler } from './module/pollScheduler/pollSchedular';
 
@@ -29,7 +33,8 @@ app.use(
   })
 );
 
-if (NODE_ENV === 'development') app.use('/images', express.static(STATIC_IMG_PATH));
+if (NODE_ENV === 'development')
+  app.use('/images', express.static(STATIC_IMG_PATH));
 
 if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 
@@ -44,7 +49,7 @@ app.use('/options', voteRouter);
 app.use('/notices', noticeRouter);
 app.use('/comments', commentRouter);
 app.use('/notifications', notiRouter);
-// app.use('/events', eventRouter);
+app.use('/event', eventRouter);
 
 app.use(defaultNotFoundHandler);
 app.use(globalErrorHandler);

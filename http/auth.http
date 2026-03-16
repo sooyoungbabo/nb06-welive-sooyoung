@@ -65,7 +65,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "user1",
+  "username": "admin1",
   "password": "password0!"
 }
 

@@ -7,21 +7,16 @@ import userRepo from '../module/user/user.repo';
 import NotFoundError from '../middleware/errors/NotFoundError';
 import boardRepo from '../module/board/board.repo';
 
-export async function getApartmentId(userId: string): Promise<string> {
-  const user = await userRepo.find({ where: { id: userId }, select: { apartmentId: true } });
+export async function getAptIdByUserId(userId: string): Promise<string> {
+  const user = await userRepo.find({
+    where: { id: userId },
+    select: { apartmentId: true }
+  });
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
-  if (!user.apartmentId) throw new NotFoundError('해당 사용자 기록엔 아파트 Id가 없습니다.');
+  if (!user.apartmentId)
+    throw new NotFoundError('해당 사용자 기록엔 아파트 Id가 없습니다.');
   return user.apartmentId;
 }
-
-export async function getBoardId(apartmentId: string, boardType: BoardType): Promise<string> {
-  const board = await boardRepo.findMany({
-    where: { apartmentId, boardType }
-  });
-  if (!board) throw new NotFoundError('민원 보드가 없습니다.');
-  return board[0].id;
-}
-
 export async function getBoardIdByUserId(userId: string, boardType: BoardType) {
   const board = await boardRepo.findFirst({
     where: { boardType, apartment: { users: { some: { id: userId } } } },
@@ -31,7 +26,10 @@ export async function getBoardIdByUserId(userId: string, boardType: BoardType) {
   return board.id;
 }
 
-export async function ensureSameApartment(apartmentId: string, residentId: string) {
+export async function ensureSameApartment(
+  apartmentId: string,
+  residentId: string
+) {
   const resident = await residentRepo.find(prisma, {
     where: { id: residentId },
     select: { apartmentId: true }
@@ -62,15 +60,21 @@ export async function getAdminId(userId: string) {
   return admin.id;
 }
 
-export async function getAdminIdByAparatmentId(apartmentId: string): Promise<string> {
+export async function getAdminIdByAparatmentId(
+  apartmentId: string
+): Promise<string> {
   const admin = await userRepo.findFirst({
     where: { apartmentId, role: UserType.ADMIN, deletedAt: null }
   });
-  if (!admin) throw new NotFoundError('해당 아파트의 관리자를 찾을 수 없습니다.');
+  if (!admin)
+    throw new NotFoundError('해당 아파트의 관리자를 찾을 수 없습니다.');
   return admin.id;
 }
 
-export function getDongRange(maxComplex: number, maxBuilding: number): number[] {
+export function getDongRange(
+  maxComplex: number,
+  maxBuilding: number
+): number[] {
   const dongRange = [0];
   for (let k = 1; k <= maxComplex; k++) {
     for (let l = 1; l <= maxBuilding; l++) {

@@ -30,7 +30,8 @@ import { sendToUser } from '../notification/sse.manager';
 import eventRepo from '../event/event.repo';
 
 async function create(user: AuthUser, body: NoticeCreateRequestDto) {
-  const { category, isPinned, startDate, endDate, title, content, boardId } = body;
+  const { category, isPinned, startDate, endDate, title, content, boardId } =
+    body;
   if (endDate !== null && endDate < startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
 
@@ -48,10 +49,16 @@ async function create(user: AuthUser, body: NoticeCreateRequestDto) {
   // 알림 수신자 미리 준비
   requireApartmentUser(user);
   const receivers = await residentRepo.findMany(prisma, {
-    where: { apartmentId: user.apartmentId, deletedAt: null, userId: { not: null } },
+    where: {
+      apartmentId: user.apartmentId,
+      deletedAt: null,
+      userId: { not: null }
+    },
     select: { userId: true }
   });
-  const userIds = receivers.map((r) => r.userId).filter((id): id is string => id !== null);
+  const userIds = receivers
+    .map((r) => r.userId)
+    .filter((id): id is string => id !== null);
 
   // 트랜젝션: (1) Notice 생성 (2) Event 생성 (3) Notification 생성
   const notice = await prisma.$transaction(async (tx) => {
@@ -78,7 +85,9 @@ async function create(user: AuthUser, body: NoticeCreateRequestDto) {
 
     await Promise.all(
       userIds.map((id) =>
-        notificationRepo.create(tx, { data: { ...notiData, receiver: { connect: { id } } } })
+        notificationRepo.create(tx, {
+          data: { ...notiData, receiver: { connect: { id } } }
+        })
       )
     );
     return notice;
@@ -104,23 +113,31 @@ async function getList(user: AuthUser, query: NoticeQueryDto) {
     include: { admin: { select: { name: true } } },
     orderBy: { createdAt: 'desc' }
   });
-  const totalCount = await noticeRepo.count({ where: { boardId, deletedAt: null } });
+  const totalCount = await noticeRepo.count({
+    where: { boardId, deletedAt: null }
+  });
   return { notices: await buildNoticeListRes(notices), totalCount };
 }
 
 async function get(user: AuthUser, noticeId: string) {
   const boardId = await getBoardIdByUserId(user.id, BoardType.NOTICE);
-  const notice = await noticeRepo.update({
+  const notice = await noticeRepo.update(prisma, {
     where: { id: noticeId, deletedAt: null },
     data: { viewCount: { increment: 1 } }
   });
   if (!notice) throw new NotFoundError('공지 게시판이 존재하지 않습니다.');
-  if (notice.boardId !== boardId) throw new ForbiddenError('보드 아이디가 틀립니다.'); // 권한 검증
+  if (notice.boardId !== boardId)
+    throw new ForbiddenError('보드 아이디가 틀립니다.'); // 권한 검증
   return buildNoticeDetailRes(notice);
 }
 
-async function patch(user: AuthUser, noticeId: string, body: NoticePatchRequestDto) {
-  const { category, title, content, boardId, isPinned, startDate, endDate } = body;
+async function patch(
+  user: AuthUser,
+  noticeId: string,
+  body: NoticePatchRequestDto
+) {
+  const { category, title, content, boardId, isPinned, startDate, endDate } =
+    body;
 
   // 권한 검증
   const userBoardId = await getBoardIdByUserId(user.id, BoardType.NOTICE);
@@ -132,7 +149,8 @@ async function patch(user: AuthUser, noticeId: string, body: NoticePatchRequestD
   if (userBoardId !== notice.boardId) throw new ForbiddenError();
 
   // req.body내 로직 검증
-  if (boardId !== notice.boardId) throw new BadRequestError('boardId가 틀립니다.');
+  if (boardId !== notice.boardId)
+    throw new BadRequestError('boardId가 틀립니다.');
   if (endDate !== null && endDate < startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
 
@@ -146,13 +164,15 @@ async function patch(user: AuthUser, noticeId: string, body: NoticePatchRequestD
     endDate
   };
 
-  const noticeUpdated = await noticeRepo.update({
+  const noticeUpdated = await noticeRepo.update(prisma, {
     where: { id: noticeId },
     data: noticeData,
     include: { admin: { select: { name: true } } }
   });
 
-  const formattedNotice: NoticeListResponseDto[] = await buildNoticeListRes([noticeUpdated]);
+  const formattedNotice: NoticeListResponseDto[] = await buildNoticeListRes([
+    noticeUpdated
+  ]);
   return formattedNotice[0];
 }
 
@@ -166,8 +186,13 @@ async function del(user: AuthUser, noticeId: string) {
   if (!notice) throw new BadRequestError('해당 공지가 존재하지 않습니다.');
   if (userBoardId !== notice.boardId) throw new ForbiddenError();
 
-  if (NODE_ENV === 'development') await noticeRepo.del({ where: { id: noticeId } });
-  else await noticeRepo.update({ where: { id: noticeId }, data: { deletedAt: new Date() } });
+  if (NODE_ENV === 'development')
+    await noticeRepo.del({ where: { id: noticeId } });
+  else
+    await noticeRepo.update(prisma, {
+      where: { id: noticeId },
+      data: { deletedAt: new Date() }
+    });
 }
 
 //--------------------------------------------------- 지역함수
@@ -213,7 +238,10 @@ async function buildNoticeListRes(
 }
 
 async function buildNoticeDetailRes(notice: Notice) {
-  const admin = await userRepo.find({ where: { id: notice.adminId }, select: { name: true } });
+  const admin = await userRepo.find({
+    where: { id: notice.adminId },
+    select: { name: true }
+  });
   if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
   const comments = await commentRepo.findMany({
     where: { targetId: notice.id, targetType: CommentType.NOTICE },
@@ -240,6 +268,8 @@ async function buildNoticeDetailRes(notice: Notice) {
     viewsCount: notice.viewCount,
     commentsCount: comments.length,
     isPinned: notice.isPinned,
+    startDate: notice.startDate, // 개발용, 나중에 뺄 것. Dto도 수정
+    endDate: notice.endDate, // 개발용, 나중에 뺄 것. Dto도 수정
     content: notice.content,
     boardName: '공지사항',
     comments: formattedComments
