@@ -21,7 +21,7 @@ Content-Type: application/json
 GET {{baseUrl}}/notices?keyword=정기
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/cf9a7523-3a6a-4fb8-8920-ee209382331d
+GET {{baseUrl}}/notices/f3d9771c-8272-4515-983b-d6e7c2b37c64
 
 ### 공지사항 수정
 PATCH {{baseUrl}}/notices/f3d9771c-8272-4515-983b-d6e7c2b37c64

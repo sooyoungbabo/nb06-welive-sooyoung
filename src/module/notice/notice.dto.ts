@@ -40,6 +40,8 @@ interface CommentDto {
 }
 
 export interface NoticeDetailResponsDto extends NoticeListResponseDto {
+  startDate: Date;
+  endDate: Date;
   content: string;
   boardName: string;
   comments: CommentDto[];

@@ -21,9 +21,10 @@ async function find(args: Prisma.NoticeFindUniqueArgs) {
 }
 
 async function update<T extends Prisma.NoticeUpdateArgs>(
+  db: DB,
   args: Prisma.SelectSubset<T, Prisma.NoticeUpdateArgs>
 ): Promise<Prisma.NoticeGetPayload<T>> {
-  return prisma.notice.update(args);
+  return db.notice.update(args);
 }
 
 async function del(args: Prisma.NoticeDeleteArgs) {

@@ -13,7 +13,10 @@ export function validateParams(schema: Struct<any, any>) {
   };
 }
 
-export function validateQuery(schema: Struct<any, any>, shape: Record<string, any>) {
+export function validateQuery(
+  schema: Struct<any, any>,
+  shape: Record<string, any>
+) {
   return (req: Request, _res: Response, next: NextFunction) => {
     try {
       const invalidKeys = Object.keys(req.query).filter(
@@ -21,10 +24,12 @@ export function validateQuery(schema: Struct<any, any>, shape: Record<string, an
       );
 
       if (invalidKeys.length > 0) {
-        throw new BadRequestError(`Invalid query keys: ${invalidKeys.join(', ')}`);
+        throw new BadRequestError(
+          `Invalid query keys: ${invalidKeys.join(', ')}`
+        );
       }
 
-      assert(req.query, schema);
+      req.body = create(req.query, schema);
 
       next();
     } catch (err: any) {
