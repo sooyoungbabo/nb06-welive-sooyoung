@@ -73,32 +73,20 @@ async function changeAdminStatus(req: Request, res: Response, next: NextFunction
   res.status(200).send({ message });
 }
 
-async function changeAllAdminsStatus(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function changeAllAdminsStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   const message = await authService.changeAllAdminsStatus(req.body.status);
   res.status(200).send({ message });
 }
 
-async function changeResidentStatus(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function changeResidentStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   const residentId = req.params.residentId as string;
   if (!residentId) throw new BadRequestError('입주민 ID가 필요합니다.');
-  const message = await authService.changeResidentStatus(req.user, residentId, req.body.status);
+  const message = await authService.changeResidentStatus(req.user.id, residentId, req.body.status);
   res.status(200).send({ message });
 }
 
-async function changeAllResidentsStatus(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  const message = await authService.changeAllResidentsStatus(req.user, req.body.status);
+async function changeAllResidentsStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const message = await authService.changeAllResidentsStatus(req.user.id, req.body.status);
   res.status(200).send({ message });
 }
 
@@ -116,7 +104,7 @@ async function deleteAdmin(req: Request, res: Response, next: NextFunction): Pro
 }
 
 async function cleanup(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const message = await authService.cleanup(req.user);
+  const message = await authService.cleanup(req.user.id);
   res.status(201).send({ message });
 }
 

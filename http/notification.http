@@ -4,7 +4,7 @@
 GET {{baseUrl}}/notifications/SSE
 
 ### 알림 읽음 처리
-PATCH {{baseUrl}}/notifications/4d2ae7ce-c65f-49e6-8d95-5e6c594b6f9c/read
+PATCH {{baseUrl}}/notifications/6d53703d-4689-4bea-b031-35f0f7a246a7/read
 
 
 #################################### 부가 기능

@@ -2,8 +2,6 @@ import { sendToUser } from './sse.manager';
 import { Notification, NotificationType } from '@prisma/client';
 import notiRepo from './notification.repo';
 import prisma from '../../lib/prisma';
-import { AuthUser } from '../../type/express';
-import { requireUser } from '../../lib/require';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import userRepo from '../user/user.repo';
@@ -34,15 +32,14 @@ async function notify(userId: string, data: NotifyArgs) {
 //   });
 // }
 
-async function read(user: AuthUser, notiId: string) {
-  requireUser(user);
+async function read(userId: string, notiId: string) {
   const noti = await notiRepo.find({
     where: { id: notiId },
     select: { receiverId: true }
   });
-  if (!noti) throw new NotFoundError('알림이 DB에 존재하지 않습니다.');
+  if (!noti) throw new NotFoundError('알림이 존재하지 않습니다.');
 
-  if (user.id !== noti.receiverId) throw new ForbiddenError(); // 권한: 수신자
+  if (userId !== noti.receiverId) throw new ForbiddenError(); // 권한: 수신자
 
   const notiUpdated = await notiRepo.patch({
     where: { id: notiId },
@@ -78,7 +75,7 @@ interface NotificationSendDto extends NotifyArgs {
   receiverId: UUID;
 }
 
-async function send(userId: string, body: NotificationSendDto) {
+async function send(body: NotificationSendDto) {
   const { receiverId, notiType, targetId, content } = body;
   const noti = await notificationRepo.create(prisma, {
     data: {

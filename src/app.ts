@@ -1,10 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import {
-  defaultNotFoundHandler,
-  globalErrorHandler
-} from './middleware/errorHandler';
+import { defaultNotFoundHandler, globalErrorHandler } from './middleware/errorHandler';
 import authRouter from './module/auth/auth.router';
 import userRouter from './module/user/user.router';
 import aptRouter from './module/apartment/apartment.router';
@@ -33,8 +30,7 @@ app.use(
   })
 );
 
-if (NODE_ENV === 'development')
-  app.use('/images', express.static(STATIC_IMG_PATH));
+if (NODE_ENV === 'development') app.use('/images', express.static(STATIC_IMG_PATH));
 
 if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 

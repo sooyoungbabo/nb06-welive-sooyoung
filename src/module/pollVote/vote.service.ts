@@ -1,11 +1,15 @@
 import prisma from '../../lib/prisma';
+import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import pollRepo from '../poll/poll.repo';
+import residentRepo from '../resident/resident.repo';
 import voteRepo from './vote.repo';
-import BadRequestError from '../../middleware/errors/BadRequestError';
 import { VoteOptionDto, VoteResDto } from '../poll/poll.dto';
+import { ApprovalStatus } from '@prisma/client';
 
 async function vote(voterId: string, optionId: string) {
+  if (!validateVoter(voterId, optionId)) throw new BadRequestError('투표권자가 아닙니다.');
+
   const poll = await pollRepo.findFirst({
     where: { pollOptions: { some: { id: optionId } } }
   });
@@ -23,6 +27,7 @@ async function vote(voterId: string, optionId: string) {
 }
 
 async function cancelVote(voterId: string, optionId: string) {
+  if (!validateVoter(voterId, optionId)) throw new BadRequestError('투표권자가 아닙니다.');
   const option = await prisma.pollOption.findFirst({
     where: { id: optionId },
     select: { pollId: true }
@@ -30,29 +35,15 @@ async function cancelVote(voterId: string, optionId: string) {
   if (!option) throw new NotFoundError('해당 선택지를 갖는 투표가 존재하지 않습니다.');
   const poll = await pollRepo.find({ where: { id: option.pollId } });
   if (!poll) throw new NotFoundError('해당 투표가 존재하지 않습니다.');
+  if (poll.startDate > new Date()) throw new BadRequestError('아직 투표시작 전입니다.');
   if (poll.endDate <= new Date()) throw new BadRequestError('종료된 투표입니다.');
 
-  await voteRepo.deleteMany({ where: { voterId, pollId: option.pollId } });
-  return await buildCancelVoteRes(option.pollId, optionId);
-}
-
-async function buildCancelVoteRes(pollId: string, voteOptionId: string) {
-  const option = await prisma.pollOption.findFirst({
-    where: { id: voteOptionId },
-    include: { votes: true }
+  await voteRepo.deleteMany(prisma, {
+    where: { voterId, pollId: option.pollId }
   });
-  if (!option) throw new NotFoundError('취소한 선택지가 존재햐지 않습니다.');
-  option.voteCount = option.votes.length;
-
-  return {
-    message: '취소한 선택지 집계 현황',
-    updatedOption: {
-      id: option.id,
-      title: option.title,
-      votes: option.voteCount
-    }
-  };
+  return await buildCancelVoteRes(optionId);
 }
+
 //------------------------------------------
 // 공동 1위를 가정한 집계
 // { sum: 37, max: 12, winnerOption: PollOption[]}
@@ -60,7 +51,8 @@ async function buildVoteRes(pollId: string, voteOptionId: string): Promise<VoteR
   // pollOptions와 votes를 가져와서, 집계하고, DB에 저장
   const pollOptions = await prisma.pollOption.findMany({
     where: { pollId },
-    include: { votes: true }
+    include: { votes: true },
+    orderBy: { createdAt: 'asc' }
   });
   pollOptions.map((o) => (o.voteCount = o.votes.length)); // 집계
   await Promise.all(
@@ -87,7 +79,12 @@ async function buildVoteRes(pollId: string, voteOptionId: string): Promise<VoteR
       }
       return acc;
     },
-    { sum: 0, max: -Infinity, winnerTitle: [] as string[], winnerIdx: [] as number[] }
+    {
+      sum: 0,
+      max: -Infinity,
+      winnerTitle: [] as string[],
+      winnerIdx: [] as number[]
+    }
   );
 
   // 출력 포맷에 맞추어 데이터 가공
@@ -122,6 +119,51 @@ async function buildVoteRes(pollId: string, voteOptionId: string): Promise<VoteR
     winnerOption,
     options
   };
+}
+
+async function buildCancelVoteRes(voteOptionId: string) {
+  const option = await prisma.pollOption.findFirst({
+    where: { id: voteOptionId },
+    include: { votes: true }
+  });
+  if (!option) throw new NotFoundError('취소한 선택지가 존재햐지 않습니다.');
+  option.voteCount = option.votes.length;
+
+  return {
+    message: '취소한 선택지 집계 현황',
+    updatedOption: {
+      id: option.id,
+      title: option.title,
+      votes: option.voteCount
+    }
+  };
+}
+
+async function validateVoter(voterId: string, optionId: string): Promise<boolean> {
+  const option = await prisma.pollOption.findUnique({
+    where: { id: optionId },
+    include: {
+      poll: { select: { buildingPermission: true, board: { select: { apartmentId: true } } } }
+    }
+  });
+  if (!option) throw new NotFoundError('투표 옵션이 존재하지 않습니다.');
+  const apartmentId = option.poll.board.apartmentId;
+  const buildingPermission = option.poll.buildingPermission;
+
+  const resident = await residentRepo.findFirst(prisma, {
+    where: {
+      apartmentId,
+      approvalStatus: ApprovalStatus.APPROVED,
+      deletedAt: null,
+      userId: voterId,
+      ...(buildingPermission !== 0 && {
+        apartmentDong: String(buildingPermission)
+      })
+    },
+    select: { userId: true }
+  });
+
+  return !!resident;
 }
 
 export default {

@@ -1,19 +1,29 @@
-import { Comment, CommentType, UserType } from '@prisma/client';
-import { AuthUser } from '../../type/express';
+import { Comment, CommentType } from '@prisma/client';
 import { CommentCreateRequestDto, CommentPatchRequestDto } from './comment.dto';
 import commentRepo from './comment.repo';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import complaintRepo from '../complaint/complaint.repo';
 import noticeRepo from '../notice/notice.repo';
-import BadRequestError from '../../middleware/errors/BadRequestError';
+import { getAptInfoByUserId } from '../../lib/utils';
 
-async function create(user: AuthUser, body: CommentCreateRequestDto) {
+async function create(userId: string, body: CommentCreateRequestDto) {
   const { content, boardType: targetType, boardId: targetId } = body;
+  const { adminId } = await getAptInfoByUserId(userId);
 
-  // 댓글을 달고자하는 게시물 타입이 바른지 체크
-  if (!(await isValidCommentType(targetId, targetType)))
-    throw new BadRequestError('댓글이 존재하지 않거나 타입이 맞지 않습니다.');
+  // req.body 데이터 유효성 검사
+  const item =
+    targetType === CommentType.COMPLAINT
+      ? await complaintRepo.find({
+          where: { id: targetId, deletedAt: null },
+          select: { adminId: true }
+        })
+      : await noticeRepo.find({
+          where: { id: targetId, deletedAt: null },
+          select: { adminId: true }
+        });
+  if (!item) throw new NotFoundError('원 게시물이 존재하지 않거나 해당 타입이 아닙니다.');
+  if (item.adminId !== adminId) throw new ForbiddenError(); // 권한: 다른 아파트 게시물임
 
   // 데이터 가공
   const commentData = {
@@ -24,7 +34,7 @@ async function create(user: AuthUser, body: CommentCreateRequestDto) {
 
   // DB 생성
   const comment = await commentRepo.create({
-    data: { ...commentData, creator: { connect: { id: user.id } } },
+    data: { ...commentData, creator: { connect: { id: userId } } },
     include: { creator: { select: { name: true } } }
   });
 
@@ -32,15 +42,32 @@ async function create(user: AuthUser, body: CommentCreateRequestDto) {
   return buildCommentCreateRes(comment);
 }
 
-async function patch(user: AuthUser, commentId: string, body: CommentPatchRequestDto) {
-  // 먼저 권한 체크: 입주민은 작성자만 가능
-  if (user.userType === UserType.USER && !(await isMyComment(user.id, commentId)))
-    throw new ForbiddenError();
-
-  // 댓글을 달고자하는 게시물 타입이 바른지 체크
+async function patch(userId: string, commentId: string, body: CommentPatchRequestDto) {
   const { content, boardType: targetType, boardId: targetId } = body;
-  if (targetType && targetId && !(await isValidCommentType(targetId, targetType)))
-    throw new BadRequestError('댓글이 존재하지 않거나 타입이 맞지 않습니다.');
+  const { adminId } = await getAptInfoByUserId(userId);
+
+  // req.body 데이터 유효성 검사
+  const item =
+    targetType === CommentType.COMPLAINT
+      ? await complaintRepo.find({
+          where: { id: targetId, deletedAt: null },
+          select: { adminId: true }
+        })
+      : await noticeRepo.find({
+          where: { id: targetId, deletedAt: null },
+          select: { adminId: true }
+        });
+  if (!item) throw new NotFoundError('원 게시물이 존재하지 않거나 해당 타입이 아닙니다.');
+  if (item.adminId !== adminId) throw new ForbiddenError(); // 권한: 다른 아파트 게시물임 (필요없는 검사일 듯...)
+
+  // 권한: 작성자
+  const comment = await commentRepo.find({
+    where: { id: commentId },
+    select: { creatorId: true }
+  });
+  if (!comment) throw new NotFoundError('댓글이 존재하지 않습니다.');
+  if (userId !== comment.creatorId)
+    throw new ForbiddenError('본인이 작성한 댓글만 수정할 수 있습니다.');
 
   // 데이터 가공
   const commentData = {
@@ -52,7 +79,7 @@ async function patch(user: AuthUser, commentId: string, body: CommentPatchReques
   // DB update
   const commentUpdated = await commentRepo.patch({
     where: { id: commentId },
-    data: { ...commentData, creator: { connect: { id: user.id } } },
+    data: commentData,
     include: { creator: { select: { name: true } } }
   });
   if (!commentUpdated) throw new NotFoundError('댓글이 존재하지 않습니다.');
@@ -61,9 +88,11 @@ async function patch(user: AuthUser, commentId: string, body: CommentPatchReques
   return buildCommentCreateRes(commentUpdated);
 }
 
-async function del(user: AuthUser, commentId: string) {
-  if (user.userType === UserType.USER && !(await isMyComment(user.id, commentId)))
-    throw new ForbiddenError();
+async function del(userId: string, commentId: string) {
+  const comment = await commentRepo.find({ where: { id: commentId }, select: { creatorId: true } });
+  if (!comment) throw new NotFoundError('댓글이 존재하지 않습니다.');
+  if (userId !== comment.creatorId) throw new ForbiddenError(); // 권한: 작성자
+
   await commentRepo.del({ where: { id: commentId } });
 }
 
@@ -74,21 +103,6 @@ export default {
 };
 
 //------------------------------------------------- 지역함수
-async function isMyComment(userId: string, commentId: string): Promise<boolean> {
-  const comment = await commentRepo.find({
-    where: { id: commentId },
-    select: { creatorId: true }
-  });
-  if (!comment) throw new NotFoundError('댓글이 존재하지 않습니다.');
-  return userId === comment.creatorId;
-}
-
-async function isValidCommentType(targetId: string, targetType: CommentType): Promise<boolean> {
-  if (targetType === CommentType.COMPLAINT)
-    return Boolean(await complaintRepo.count({ where: { id: targetId, deletedAt: null } }));
-  else return Boolean(await noticeRepo.count({ where: { id: targetId, deletedAt: null } }));
-}
-
 type CommentWithAdminName = Comment & { creator: { name: string } };
 
 function buildCommentCreateRes(comment: CommentWithAdminName) {

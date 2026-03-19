@@ -8,6 +8,7 @@ export interface NoticeCreateRequestDto {
   isPinned: boolean;
   startDate: Date;
   endDate: Date;
+  pollId?: string;
 }
 
 export interface NoticeQueryDto {

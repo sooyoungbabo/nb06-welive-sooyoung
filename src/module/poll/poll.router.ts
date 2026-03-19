@@ -3,13 +3,7 @@ import pollControl from './poll.control';
 import authenticate from '../../middleware/authenticate';
 import withTryCatch from '../../lib/withTryCatch';
 import { validateBody, validateParams, validateQuery } from '../../middleware/validateReq';
-import {
-  pollCreateBody,
-  pollListQuery,
-  pollListQueryShape,
-  pollParams,
-  pollPatchBody
-} from './poll.schema';
+import { pollCreateBody, pollListQuery, pollListQueryShape, pollParams, pollPatchBody } from './poll.schema';
 import { UserType } from '@prisma/client';
 import authorize from '../../middleware/authorize';
 
@@ -41,7 +35,7 @@ pollRouter.get(
   withTryCatch(pollControl.get)
 );
 
-// 수정: 관리자, 최고관리자
+// 수정: 관리자
 pollRouter.patch(
   '/:pollId',
   authenticate(),
@@ -51,7 +45,7 @@ pollRouter.patch(
   withTryCatch(pollControl.patch)
 );
 
-// 삭제: 관리자, 최고관리자
+// 삭제: 관리자
 pollRouter.delete(
   '/:pollId',
   authenticate(),

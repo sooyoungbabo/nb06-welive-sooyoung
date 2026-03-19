@@ -21,7 +21,7 @@ devRouter.get('/user', (req, res) => {
 
 devRouter.get('/test-noti', authenticate(), (req, res) => {
   const user = req.user;
-  sendToUser(user.id, `[알림] 테스트 for ${user.userType}`);
+  sendToUser(user.id, `[알림] 테스트 for ${user.role}`);
   console.log('');
   res.send('sent');
 });
@@ -29,7 +29,7 @@ devRouter.get('/test-noti', authenticate(), (req, res) => {
 devRouter.get('/token', authenticate(), (req, res, next) => {
   // brower의 tokens을 서버에 전달하여 서버 개발용 인증으로 사용
   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
-  console.log(`${req.user.userType}`);
+  console.log(`${req.user.role}`);
   setDevTokens(access ?? null);
   // console.log(`accessToken_dev:  ${access}`);
   console.log('');

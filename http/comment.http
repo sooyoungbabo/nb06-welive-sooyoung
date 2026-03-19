@@ -5,20 +5,20 @@ POST {{baseUrl}}/comments
 Content-Type: application/json
 
 {
-  "content": "[관리자] 청소하시는 아줌마께 주기적인 청소 부탁드렸고, 전체 공지도 올렸습니다. 시정되지 않으면 다시 민원접수 부탁드립니다.",
-  "boardType": "COMPLAINT",
-  "boardId": "b02d3c2a-deac-49bc-8adb-4c9bce336a9f"
+  "content": "와~ 너무 기대됩니다.",
+  "boardType": "NOTICE",
+  "boardId": "5ca5fce9-deed-4e00-b35d-f8a3c7c679e8"
 }
 
 ### 댓글 수정
-PATCH {{baseUrl}}/comments/0a992a79-9e54-4df3-9ce3-777f188d42c9
+PATCH {{baseUrl}}/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
 Content-Type: application/json
 
 {
   "content": "맞아요. 너무 지저분해요.",
   "boardType": "COMPLAINT",
-  "boardId": "b02d3c2a-deac-49bc-8adb-4c9bce336a9f"
+  "boardId": "ae7c9a75-5191-41cc-95fa-b7ed9a07aba7"
 }
 
 ### 댓글 삭제
-DELETE {{baseUrl}}/comments/10f13d95-d875-453b-bce0-0ee4adc4222b
+DELETE {{baseUrl}}/comments/74eaecea-9945-4988-ab3a-a451d8e694cf

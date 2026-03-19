@@ -7,17 +7,16 @@ POST {{baseUrl}}/polls
 Content-Type: application/json
 
 {
+  "boardId": "1cdf6760-dbbc-4293-8c7d-518f72a012db",
   "status": "IN_PROGRESS",
-  "title": "플리마켓 개최일 선정",
-  "content": "5월 플리마켓 날짜 투표입니다.",
+  "title": "봄맞이 산행 날짜 선정",
+  "content": "매년 열리는 뒷산에서의 봄맞이 산행 날짜를 정해 주세요.",
   "buildingPermission": 0,
-  "startDate": "2026-03-14 11:40:00",
-  "endDate": "2026-03-14 11:50:00",
+  "startDate": "2026-03-19 16:08:00",
+  "endDate": "2026-03-19 16:15:30",
   "options": [
     { "title": "5일 수요일" },
-    { "title": "9일 토요일" },
-    { "title": "16일 토요일" },
-    { "title": "23일 토요일" }
+    { "title": "9일 토요일" }
   ]
 }
 
@@ -29,7 +28,7 @@ Content-Type: application/json
 GET {{baseUrl}}/polls
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
+GET {{baseUrl}}/polls/bf957b5e-5348-4e7e-886f-68f9fd12ca97
 
 ### 투표 글 수정
 PATCH {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
@@ -39,8 +38,8 @@ Content-Type: application/json
   "title": "플리마켓 개최일 선정",
   "content": "5월 플리마켓 날짜 투표입니다.",
   "buildingPermission": 0,
-  "startDate": "2026-03-14 11:40:00",
-  "endDate": "2026-03-14 11:55:00",
+  "startDate": "2026-03-16 21:37:00",
+  "endDate": "2026-03-16 21:38:00",
   "status": "IN_PROGRESS",
   "options": [
     { "title": "5일 수요일" },
@@ -50,15 +49,17 @@ Content-Type: application/json
 }
 
 ### 투표 글 삭제
-DELETE {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
+DELETE {{baseUrl}}/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
 
 
 
 
 ### 투표하기
-POST {{baseUrl}}/options/acfd20da-caa4-4672-bed7-e538fba1c7b4/vote
+POST {{baseUrl}}/options/5ffbaf26-3783-4eec-8f22-cdbe0507e9ff/vote
+###
+POST {{baseUrl}}/options/d02eb64c-4486-4244-ad68-63d5b790bc7f/vote
 
 ### 투표 취소
-DELETE {{baseUrl}}/options/acfd20da-caa4-4672-bed7-e538fba1c7b4/vote
+DELETE {{baseUrl}}/options/ded25869-6f69-4d4b-83ed-a6616eb74305/vote
 
 

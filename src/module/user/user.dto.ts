@@ -1,37 +1,30 @@
-import { BoardType, HouseholdRole, JoinStatus, UserType } from '@prisma/client';
+import { ApprovalStatus, BoardType, HouseholdRole, JoinStatus, UserType } from '@prisma/client';
 
-export interface UserSignupRequestDto {
-  //USER
-  username: string;
-  password: string;
+interface UserBaseDto {
   contact: string;
   name: string;
   email: string;
+}
+export interface UserRegistrationDto extends UserBaseDto {
+  //USER
+  username: string;
+  password: string;
   role: UserType;
+}
+
+export interface ResidentRegistrationDto extends UserBaseDto {
+  apartmentDong: string;
+  apartmentHo: string;
+}
+
+export interface UserSignupRequestDto extends UserRegistrationDto {
+  //USER
   apartmentName: string;
   apartmentDong: string;
   apartmentHo: string;
 }
 
-export interface UserSignupDto {
-  //USER
-  username: string;
-  password: string;
-  contact: string;
-  name: string;
-  email: string;
-  role: UserType;
-}
-
-export interface ResidentSignupDto {
-  contact: string;
-  name: string;
-  email: string;
-  apartmentDong: string;
-  apartmentHo: string;
-}
-
-export interface AdminSignupRequestDto extends UserSignupDto {
+export interface AdminSignupRequestDto extends UserRegistrationDto {
   description: string;
   startComplexNumber: number;
   endComplexNumber: number;
@@ -46,7 +39,7 @@ export interface AdminSignupRequestDto extends UserSignupDto {
   apartmentManagementNumber: string;
 }
 
-export interface SuperAdminSignupRequestDto extends UserSignupDto {
+export interface SuperAdminSignupRequestDto extends UserRegistrationDto {
   joinStatus: JoinStatus;
 }
 
@@ -65,16 +58,10 @@ export interface LoginDto {
   password: string;
 }
 
-export interface SuperAdminLoginResponseDto {
-  id: string;
-  name: string;
-  email: string;
-  role: UserType;
+export interface SuperAdminLoginResponseDto extends UserSignupResponseDto {
   username: string;
   contact: string;
   avatar: string | null;
-  joinStatus: JoinStatus;
-  isActive: boolean;
 }
 
 export interface UserLoginResponseDto extends SuperAdminLoginResponseDto {
@@ -89,15 +76,12 @@ export type LoginToControlDto = {
   refreshToken: string;
 };
 
-export type PatchAdminAptRequestDto = {
-  contact: string;
-  name: string;
-  email: string;
+export interface PatchAdminAptRequestDto extends UserBaseDto {
   description: string;
   apartmentName: string;
   apartmentAddress: string;
   apartmentManagementNumber: string;
-};
+}
 
 export interface ResidentPatchDto {
   apartmentDong: number;

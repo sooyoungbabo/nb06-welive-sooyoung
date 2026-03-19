@@ -1,18 +1,18 @@
-import { EventQueryDto, EventUpsertRequestDto } from './event.dto';
-import eventRepo from './event.repo';
 import prisma from '../../lib/prisma';
-import { BoardType, Event, EventType, NoticeType } from '@prisma/client';
-import { AuthUser } from '../../type/express';
+import dayjs from 'dayjs';
+import { Event, EventType, NoticeType } from '@prisma/client';
+import { EventQueryDto, EventUpsertRequestDto } from './event.dto';
+import { NODE_ENV } from '../../lib/constants';
+import { getAptInfoByUserId } from '../../lib/utils';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import pollRepo from '../poll/poll.repo';
 import noticeRepo from '../notice/notice.repo';
+import eventRepo from './event.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
-import { getAptIdByUserId, getBoardIdByUserId } from '../../lib/utils';
-import ForbiddenError from '../../middleware/errors/ForbiddenError';
-import dayjs from 'dayjs';
 
-async function getList(user: AuthUser, query: EventQueryDto) {
-  const apartmentId = await getAptIdByUserId(user.id);
-  if (apartmentId !== query.apartmentId) throw new ForbiddenError();
+async function getList(userId: string, query: EventQueryDto) {
+  const { apartmentId } = await getAptInfoByUserId(userId);
+  if (apartmentId !== query.apartmentId) throw new ForbiddenError(); // 권한: 같은 아파트
 
   const start = dayjs(`${query.year}-${query.month}-01`).startOf('month');
   const end = start.endOf('month');
@@ -31,7 +31,10 @@ async function getList(user: AuthUser, query: EventQueryDto) {
   return buildEventListRes(events);
 }
 
-async function put(user: AuthUser, body: EventUpsertRequestDto) {
+// 이벤트는 파생 테이블이라서, 여기서 수정/삭제하는 건 바람직하지 않음
+// 일단 API는 만들겠음.
+async function put(userId: string, body: EventUpsertRequestDto) {
+  const { pollBoardId, noticeBoardId } = await getAptInfoByUserId(userId);
   const { boardType: eventType, boardId: targetId, startDate, endDate } = body;
   // boardType: eventType
   // boardId: pollId or noticeId
@@ -45,11 +48,8 @@ async function put(user: AuthUser, body: EventUpsertRequestDto) {
           where: { id: targetId },
           select: { title: true, boardId: true }
         });
-  if (!item)
-    throw new NotFoundError('해당 이벤트의 원 공지/투표 정보가 없습니다.');
-  if (
-    item.boardId !== (await getBoardIdByUserId(user.id, eventType as BoardType))
-  )
+  if (!item) throw new NotFoundError('원 게시물이 존재하지 않거나 타입이 바르지 않습니다.');
+  if (item.boardId !== (eventType === EventType.NOTICE ? noticeBoardId : pollBoardId))
     throw new ForbiddenError(); // 권한 검증 (같은 아파트 소속인지)
 
   const updateData = {
@@ -65,10 +65,7 @@ async function put(user: AuthUser, body: EventUpsertRequestDto) {
   };
 
   const eventArgs = {
-    where:
-      eventType === EventType.POLL
-        ? { pollId: targetId }
-        : { noticeId: targetId },
+    where: eventType === EventType.POLL ? { pollId: targetId } : { noticeId: targetId },
     create: createData,
     update: updateData
   };
@@ -96,35 +93,49 @@ async function put(user: AuthUser, body: EventUpsertRequestDto) {
   return buildEventUpsertRes(event);
 }
 
-async function del(user: AuthUser, eventId: string) {
+// 이벤트 삭제
+// 개발환경에서는 공지/투표도 삭제, 배포환경에서는 soft delete
+async function del(userId: string, eventId: string) {
+  const { apartmentId, pollBoardId, noticeBoardId } = await getAptInfoByUserId(userId);
+
   // 권한 검증: 같은 아파트의 이벤트인지
-  let event = await eventRepo.find({
+  const event = await eventRepo.find({
     where: { id: eventId },
-    select: { eventType: true, pollId: true, noticeId: true }
+    select: {
+      eventType: true,
+      poll: { select: { boardId: true } },
+      notice: { select: { boardId: true } }
+    }
   });
   if (!event) throw new NotFoundError('존재하지 않는 이벤트입니다.');
-  const item =
-    event.eventType === EventType.POLL
-      ? await pollRepo.find({
-          where: { id: event.pollId! },
-          select: { boardId: true }
-        })
-      : await noticeRepo.find({
-          where: { id: event.noticeId! },
-          select: { boardId: true }
-        });
+  if (event.eventType === EventType.NOTICE)
+    if (!event.notice || event.notice.boardId !== noticeBoardId) throw new ForbiddenError();
+  if (event.eventType === EventType.POLL)
+    if (!event.poll || event.poll.boardId !== pollBoardId) throw new ForbiddenError();
 
-  if (!item)
-    throw new NotFoundError('이벤트와 연계된 공지나 투표 기록이 없습니다.');
-  if (
-    item.boardId !==
-    (await getBoardIdByUserId(user.id, event.eventType as BoardType))
-  )
-    throw new ForbiddenError();
-
-  // Event엔 soft delete 없음. 파생적 모델이라 언제든 원래 모델에서 가져올 수 있기 때문
-  event = await eventRepo.del({ where: { id: eventId } });
-  return buildEventDelRes(event);
+  // 트랜젝션: (1) 이벤트 삭제 (2) 공지/투표 삭제
+  const eventDeleted = await prisma.$transaction(async (tx) => {
+    // 이벤트 삭제
+    const event = await eventRepo.del(tx, { where: { id: eventId } });
+    // 공지/투표 삭제:  개발단계에서는 hard delete, 배포시엔 soft delete
+    if (NODE_ENV === 'development') {
+      event.eventType === EventType.POLL
+        ? await pollRepo.del(tx, { where: { id: event.pollId! } })
+        : await noticeRepo.del(tx, { where: { id: event.noticeId! } });
+    } else {
+      event.eventType === EventType.POLL
+        ? await pollRepo.patch(tx, {
+            where: { id: event.pollId! },
+            data: { deletedAt: new Date() }
+          })
+        : await noticeRepo.update(tx, {
+            where: { id: event.noticeId! },
+            data: { deletedAt: new Date() }
+          });
+    }
+    return event;
+  });
+  return buildEventDelRes(eventDeleted);
 }
 
 //----------------------------------------------------- 지역함수

@@ -14,7 +14,7 @@ function stream(req: Request, res: Response) {
   res.flushHeaders();
 
   addClient(user.id, res);
-  console.log('SSE connected:', req.user.userType);
+  console.log('SSE connected:', req.user.role);
   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
   setDevTokens(access);
   console.log('');
@@ -43,7 +43,7 @@ async function getUnreadList(req: Request, res: Response, next: NextFunction) {
 
 async function read(req: Request, res: Response, next: NextFunction) {
   const notiId = req.params.notificationId as string;
-  const notification = await notiService.read(req.user, notiId);
+  const notification = await notiService.read(req.user.id, notiId);
   res.status(200).json(notification);
 }
 
@@ -53,7 +53,7 @@ async function readAll(req: Request, res: Response, next: NextFunction) {
 }
 
 async function send(req: Request, res: Response, next: NextFunction) {
-  const noti = await notiService.send(req.user.id, req.body);
+  const noti = await notiService.send(req.body);
   res.status(200).json(noti);
 }
 

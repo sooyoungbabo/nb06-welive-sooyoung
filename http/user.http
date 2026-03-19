@@ -6,7 +6,7 @@ GET {{baseUrl}}/users/getList?sort=desc
 
 
 ### 사용자 상세 조회
-GET {{baseUrl}}/users/4ec2020f-e4e2-4086-bcba-fa70df8083aa
+GET {{baseUrl}}/users/dceb5142-0e46-4e8b-8776-db25b3360aa1
 ### 내 정보 조회
 GET {{baseUrl}}/users/me/myInfo
 
@@ -17,10 +17,10 @@ PATCH {{baseUrl}}/users/me/avatar
 Content-Type: multipart/form-data; boundary=MyBoundary
 
 --MyBoundary
-Content-Disposition: form-data; name="image"; filename="Hillie.png"
+Content-Disposition: form-data; name="image"; filename="Bailey.png"
 Content-Type: image/png
 
-< ./images/users/Hillie.png
+< ./images/users/Bailey.png
 --MyBoundary--
 
 ###

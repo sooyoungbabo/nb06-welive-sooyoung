@@ -63,7 +63,7 @@ async function softDel<T extends Prisma.UserUpdateArgs>(
   return db.user.update(args);
 }
 
-async function cleanup<T extends Prisma.UserDeleteManyArgs>(
+async function deleteMany<T extends Prisma.UserDeleteManyArgs>(
   db: DB,
   args: Prisma.SelectSubset<T, Prisma.UserDeleteManyArgs>
 ): Promise<Prisma.BatchPayload> {
@@ -80,5 +80,5 @@ export default {
   findMany,
   del,
   softDel,
-  cleanup
+  deleteMany
 };

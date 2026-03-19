@@ -2,7 +2,7 @@
 
 ### 이벤트 목록 조회
 ### apartmentId, year, month
-GET {{baseUrl}}/event?apartmentId=d6f8ca02-98a5-4d90-9938-7fdce4c4ca22&year=2025&month=3
+GET {{baseUrl}}/event?apartmentId=188fdedf-2659-4491-b740-8a35f969d7b4&year=2026&month=3
 
 
 ### 이벤트 생성 또는 업데이트
