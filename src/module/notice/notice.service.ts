@@ -1,11 +1,9 @@
 import prisma from '../../lib/prisma';
 import { NODE_ENV } from '../../lib/constants';
-import { getAptInfoByUserId } from '../../lib/utils';
+import { getAptInfoByUserId, getNotiReceivers } from '../../lib/utils';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
-import { sendToUser } from '../notification/sse.manager';
-import userRepo from '../user/user.repo';
+import { sendToUser } from '../notification/notification.sse';
 import notificationRepo from '../notification/notification.repo';
-import residentRepo from '../resident/resident.repo';
 import noticeRepo from './notice.repo';
 import commentRepo from '../comment/comment.repo';
 import eventRepo from '../event/event.repo';
@@ -27,14 +25,18 @@ import {
   Prisma,
   Resident
 } from '@prisma/client';
+import { EventPatchDto } from '../event/event.dto';
 
-// 공지 생성: 관리자
+//----------------------------------------------- 공지 생성: 관리자
 async function create(userId: string, body: NoticeCreateRequestDto) {
-  const { category, isPinned, startDate, endDate, title, content, boardId, pollId } = body;
+  const { apartmentId: adminAptId, noticeBoardId: userBoardId } =
+    await getAptInfoByUserId(userId);
+  const { category, isPinned, startDate, endDate, title, content, boardId, pollId } =
+    body;
 
   // req.body validity 검증
-  const { apartmentId: adminAptId, noticeBoardId: userBoardId } = await getAptInfoByUserId(userId);
-  if (userBoardId !== boardId) throw new BadRequestError('boardId가 틀립니다.');
+  const isSameBoard = boardId === userBoardId;
+  if (!isSameBoard) throw new BadRequestError('boardId가 틀립니다.');
   if (endDate !== null && endDate < startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
 
@@ -61,7 +63,9 @@ async function create(userId: string, body: NoticeCreateRequestDto) {
 
   // 알림 수신자 준비
   const receivers = await getNotiReceivers(adminAptId);
-  const userIds = receivers.map((r) => r.userId).filter((id): id is string => id !== null);
+  const userIds = receivers
+    .map((r) => r.userId)
+    .filter((id): id is string => id !== null);
 
   // 알림 데이터 준비
   const notiData = {
@@ -103,61 +107,86 @@ async function create(userId: string, body: NoticeCreateRequestDto) {
   return notice;
 }
 
-// 공지목록 조회: 관리자, 입주민
+//----------------------------------------------- 공지목록 조회: 관리자, 입주민
 async function getList(userId: string, query: NoticeQueryDto) {
+  const { noticeBoardId: boardId } = await getAptInfoByUserId(userId);
+
+  // where 쿼리 파라미터 구성
   const params = buildQueryParams(query);
+
+  let whereTerms = [{ boardId, deletedAt: null }]; // 같은 아파트 공지만
+
+  const queryWhere = buildWhere(params);
+  if (!queryWhere) whereTerms.push(queryWhere);
+  if (Object.keys(queryWhere).length > 0) whereTerms.push(queryWhere);
+
+  const where = { AND: whereTerms };
+
+  // 페이지네이션 파라미터
   const { skip, take } = buildPagination(params.pagination, {
     limitDefault: 11,
     limitMax: 100
   });
-  const { noticeBoardId: boardId } = await getAptInfoByUserId(userId);
-  const where = { ...buildWhere(params), boardId, deletedAt: null };
 
+  // DB 조회
   const notices = await noticeRepo.findMany({
     where,
-    include: { admin: { select: { name: true } } },
+    skip,
+    take,
+    include: { admin: { select: { name: true } } }, // 출력에 필요한 정보 포함
     orderBy: { createdAt: 'desc' }
   });
-  const totalCount = await noticeRepo.count({
-    where: { boardId, deletedAt: null }
-  });
+  const totalCount = await noticeRepo.count({ where });
   return { notices: await buildNoticeListRes(notices), totalCount };
 }
 
-// 공지 상세 조회: 관리자, 입주민
+//----------------------------------------------- 공지 상세 조회: 관리자, 입주민
 async function get(userId: string, noticeId: string) {
-  const { noticeBoardId: boardId } = await getAptInfoByUserId(userId);
+  const { noticeBoardId: userBoardId } = await getAptInfoByUserId(userId);
+
   const notice = await noticeRepo.update(prisma, {
     where: { id: noticeId, deletedAt: null },
-    data: { viewCount: { increment: 1 } }
+    data: { viewCount: { increment: 1 } },
+    include: { admin: { select: { id: true, name: true } } }
   });
   if (!notice) throw new NotFoundError('공지 게시판이 존재하지 않습니다.');
-  if (notice.boardId !== boardId) throw new ForbiddenError('보드 아이디가 틀립니다.'); // 권한 검증
+
+  const isSameBoard = userBoardId === notice.boardId;
+  if (!isSameBoard) throw new ForbiddenError(); // 권한: 같은 아파트
+
   return buildNoticeDetailRes(notice);
 }
 
-// 공지 수정: 같은 아파트의 관리자
+//----------------------------------------------- 공지 수정: 같은 아파트 관리자 권한
 // 날짜가 있는 공지 중 이미 시작되었거나 종료된 공지는 수정 불가
 // DB 트랜젝션: (1) 공지수정 (2) 이벤트 수정 (3) 알림
 // (4) SSE
 async function patch(userId: string, noticeId: string, body: NoticePatchRequestDto) {
+  const { apartmentId: userAptId, noticeBoardId: userBoardId } =
+    await getAptInfoByUserId(userId);
+
+  const notice = await noticeRepo.find({
+    where: { id: noticeId, deletedAt: null },
+    select: { boardId: true }
+  });
+  if (!notice) throw new NotFoundError('공지를 찾을 수 없습니다.');
+
+  // 권한 검증: 같은 공지보드(아파트)
+  const isSameBoard = userBoardId === notice.boardId;
+  if (!isSameBoard) {
+    throw new ForbiddenError();
+  }
+
   const { category, title, content, boardId, isPinned, startDate, endDate } = body;
-  const {
-    adminId,
-    apartmentId: adminAptId,
-    noticeBoardId: userBoardId
-  } = await getAptInfoByUserId(userId);
 
-  // 권한 검증
-  if (userId !== adminId) throw new ForbiddenError(); // 권한: 관리자
-
-  // req.body내 로직 검증
+  // 요청 검증
   if (userBoardId !== boardId) throw new BadRequestError('boardId가 틀립니다.');
   if (endDate !== null && endDate < startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
   if (startDate < new Date())
     throw new BadRequestError('이미 시작되었거나 종료된 일정 공지는 수정할 수 없습니다.');
 
+  // 데이터 준비
   const noticeData = {
     category,
     title,
@@ -168,10 +197,44 @@ async function patch(userId: string, noticeId: string, body: NoticePatchRequestD
     endDate
   };
 
-  const receivers = await getNotiReceivers(adminAptId);
+  const eventData = {
+    title,
+    startDate,
+    endDate
+  };
+
+  // 수신자 ID 목록 준비: 알림과 SSE용
+  const receivers = await getNotiReceivers(userAptId);
 
   // 트랜젝션 (1) 공지 (2) 이벤트 (3) 알림 (날짜있는 공지 경우, 과거이면 X)
-  const noticeUpdated = await prisma.$transaction(async (tx) => {
+  const noticeUpdated = await noticePatchTransaction(
+    noticeId,
+    noticeData,
+    eventData,
+    receivers
+  );
+
+  // (4) SSE: 트랜젝션 바깥
+  // 날짜가 없거나, 있는 경우 아직 종료되지 않은 경우만
+  if (!startDate || endDate > new Date()) {
+    for (const r of receivers) {
+      if (!r.userId) continue;
+      sendToUser(r.userId, `[알림] 공지수정 (${noticeUpdated.title})`);
+    }
+  }
+  const formattedNotice: NoticeListResponseDto[] = await buildNoticeListRes([
+    noticeUpdated
+  ]);
+  return formattedNotice[0];
+}
+
+async function noticePatchTransaction(
+  noticeId: string,
+  noticeData: NoticeCreateRequestDto,
+  eventData: EventPatchDto,
+  receivers: { userId: string }[]
+) {
+  return await prisma.$transaction(async (tx) => {
     // (1) 공지 수정
     const notice = await noticeRepo.update(tx, {
       where: { id: noticeId },
@@ -181,58 +244,54 @@ async function patch(userId: string, noticeId: string, body: NoticePatchRequestD
     // (2) 이벤트 수정
     await eventRepo.update(tx, {
       where: { noticeId },
-      data: { title, startDate, endDate }
+      data: eventData
     });
     // (3) 공지수정 알림
     // 날짜가 없거나, 있는 경우 아직 종료되지 않은 것만 알림
-    if (!startDate || endDate > new Date()) {
+    if (!noticeData.startDate || noticeData.endDate > new Date()) {
       const message = `[알림] 공지수정 (${notice.title})`;
       const notiData = buildNotiData(receivers, noticeId, message);
       await notificationRepo.createMany(tx, { data: notiData });
     }
     return notice;
   });
-
-  // (4) SSE: 트랜젝션 바깥에서
-  // 날짜가 없거나, 있는 경우 아직 종료되지 않은 경우만
-  if (!startDate || endDate > new Date()) {
-    for (const r of receivers) {
-      if (!r.userId) continue;
-      sendToUser(r.userId, `[알림] 공지수정 (${noticeUpdated.title})`);
-    }
-  }
-  const formattedNotice: NoticeListResponseDto[] = await buildNoticeListRes([noticeUpdated]);
-  return formattedNotice[0];
 }
 
-// 공지 삭제: 같은 아파트의 관리자
+//----------------------------------------------- 공지 삭제: 같은 아파트의 관리자
 // 시작되었거나 종료된 일정있는 공지는 삭제 불가
 // DB 트랜젝션: (1) 이벤트 삭제 (2) 공지 삭제
 // 개발환경에서는 삭제, 배포환경에서는 soft delete
+
 async function del(userId: string, noticeId: string) {
-  const { adminId, apartmentId: adminAptId } = await getAptInfoByUserId(userId);
-  // 권한 검증
-  if (userId !== adminId) throw new ForbiddenError(); // 권한: 관리자
+  const { noticeBoardId: userBoardId } = await getAptInfoByUserId(userId);
 
-  // 서비스 로직 검증
-  const notice = await noticeRepo.find({ where: { id: noticeId, deletedAt: null } });
+  const notice = await noticeRepo.find({
+    where: { id: noticeId, deletedAt: null },
+    select: { boardId: true }
+  });
   if (!notice) throw new NotFoundError('공지를 찾을 수 없습니다.');
-  if (notice.startDate && notice.startDate < new Date())
-    throw new BadRequestError('이미 시작되었거나 종료된 일정이 있는 공지는 삭제할 수 없습니다.');
 
-  const receivers = await getNotiReceivers(adminAptId);
+  // 권한 검증: 같은 공지 보드(아파트)
+  const isSameBoard = userBoardId === notice.boardId;
+  if (!isSameBoard) throw new ForbiddenError();
+
+  // 요청 검증
+  if (notice.startDate && notice.startDate < new Date())
+    throw new BadRequestError(
+      '이미 시작되었거나 종료된 일정이 있는 공지는 삭제할 수 없습니다.'
+    );
 
   // 트랜젝션 (1) 이벤트 (2) 공지
+  // 개발환경에서는 삭제, 배포환경에서는 soft delete
   if (NODE_ENV === 'development')
     await prisma.$transaction(async (tx) => {
       await eventRepo.del(tx, { where: { noticeId } }); // 이벤트 삭제
       await noticeRepo.del(tx, { where: { id: noticeId } }); // 공지 삭제
     });
   else {
-    const newNotice = await prisma.$transaction(async (tx) => {
-      await eventRepo.del(tx, { where: { noticeId } }); // 이벤트 삭제
-      // 공지 soft delete
-      const notice = await noticeRepo.update(tx, {
+    await prisma.$transaction(async (tx) => {
+      await eventRepo.del(tx, { where: { noticeId } }); // 이벤트는 soft delete 없음
+      await noticeRepo.update(tx, {
         where: { id: noticeId },
         data: { deletedAt: new Date() }
       });
@@ -240,18 +299,7 @@ async function del(userId: string, noticeId: string) {
   }
 }
 
-//--------------------------------------------------- 지역함수
-async function getNotiReceivers(adminAptId: string) {
-  return await residentRepo.findMany({
-    where: {
-      apartmentId: adminAptId,
-      deletedAt: null,
-      userId: { not: null }
-    },
-    select: { userId: true }
-  });
-}
-
+//----------------------------------------------- 지역함수
 function buildQueryParams(query: NoticeQueryDto) {
   const { page, limit, keyword } = query;
 
@@ -293,12 +341,12 @@ async function buildNoticeListRes(
   );
 }
 
-async function buildNoticeDetailRes(notice: Notice) {
-  const admin = await userRepo.find({
-    where: { id: notice.adminId },
-    select: { name: true }
-  });
-  if (!admin) throw new NotFoundError('관리자가 존재하지 않습니다.');
+type NoticeWithAdmin = Notice & {
+  admin: { id: string; name: string } | null;
+};
+
+async function buildNoticeDetailRes(notice: NoticeWithAdmin) {
+  if (!notice.admin) throw new NotFoundError('관리자를 찾을 수 없습니다.');
   const comments = await commentRepo.findMany({
     where: { targetId: notice.id, targetType: CommentType.NOTICE },
     include: { creator: { select: { name: true } } }
@@ -318,7 +366,7 @@ async function buildNoticeDetailRes(notice: Notice) {
     userId: notice.adminId,
     category: notice.category,
     title: notice.title,
-    writerName: admin.name,
+    writerName: notice.admin.name,
     createdAt: notice.createdAt,
     updatedAt: notice.updatedAt,
     viewsCount: notice.viewCount,

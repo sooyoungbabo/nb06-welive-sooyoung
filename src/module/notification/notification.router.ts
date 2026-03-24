@@ -8,7 +8,10 @@ import { notiParams, notiSendBody } from './notification.schema';
 const notiRouter = express.Router();
 
 // SSE
-notiRouter.get('/SSE', authenticate(), withTryCatch(notiControl.stream));
+notiRouter.get('/stream', authenticate(), withTryCatch(notiControl.stream));
+
+// 읽지 않은 알림 실시간 수신
+notiRouter.get('/SSE', authenticate(), withTryCatch(notiControl.startNotiScheduler));
 
 // 개별 알림 상태변경
 notiRouter.patch(
@@ -29,6 +32,11 @@ notiRouter.get('/', authenticate(), withTryCatch(notiControl.getList));
 notiRouter.get('/unread', authenticate(), withTryCatch(notiControl.getUnreadList));
 
 // 알림 보내기
-notiRouter.post('/send', authenticate(), validateBody(notiSendBody), withTryCatch(notiControl.send));
+notiRouter.post(
+  '/send',
+  authenticate(),
+  validateBody(notiSendBody),
+  withTryCatch(notiControl.send)
+);
 
 export default notiRouter;

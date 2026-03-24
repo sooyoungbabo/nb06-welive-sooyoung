@@ -1,5 +1,18 @@
-import { boolean, date, enums, object, optional, partial, size, string } from 'superstruct';
-import { dateFromStrStruct, str4numStruct, uuidStruct } from '../../middleware/commonStructs';
+import {
+  boolean,
+  date,
+  enums,
+  object,
+  optional,
+  partial,
+  size,
+  string
+} from 'superstruct';
+import {
+  dateFromStrStruct,
+  str4numStruct,
+  uuidStruct
+} from '../../middleware/commonStructs';
 
 //-------------------------------------------- Params schema
 export const noticeParams = object({
@@ -66,7 +79,14 @@ export const NoticeQueryShape = {
   page: optional(str4numStruct),
   limit: optional(str4numStruct),
   category: optional(
-    enums(['MAINTENANCE', 'EMERGENCY', 'COMMUNITY', 'RESIDENCE_VOTE', 'RESICENCE_COUNCIL', 'ETC'])
+    enums([
+      'MAINTENANCE',
+      'EMERGENCY',
+      'COMMUNITY',
+      'RESIDENT_VOTE',
+      'RESICENT_COUNCIL',
+      'ETC'
+    ])
   ),
   keyword: optional(size(string(), 1, 100)) // title, content
 };

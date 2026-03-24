@@ -8,8 +8,12 @@ import {
 } from '../../middleware/commonStructs';
 
 //-------------------------------------------- params schema
-export const authParams = object({
+export const authAdminParams = object({
   adminId: string()
+});
+
+export const authResidentParams = object({
+  residentId: string()
 });
 //-------------------------------------------- body schema
 

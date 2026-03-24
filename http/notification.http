@@ -1,10 +1,14 @@
 @baseUrl = http://localhost:3000
 
-### SSE
+### stream: SSE connection
+GET {{baseUrl}}/notifications/stream
+
+### 읽지 않은 알림 실시간 수신
 GET {{baseUrl}}/notifications/SSE
 
+
 ### 알림 읽음 처리
-PATCH {{baseUrl}}/notifications/6d53703d-4689-4bea-b031-35f0f7a246a7/read
+PATCH {{baseUrl}}/notifications/c444abc7-22ab-4345-a117-af207a53b3f7/read
 
 
 #################################### 부가 기능

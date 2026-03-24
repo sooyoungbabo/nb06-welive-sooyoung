@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import userService from './user.service';
 import { NODE_ENV } from '../../lib/constants';
+import authServiceSession from '../auth/auth.service.session';
 import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import { assert } from 'node:console';
 import { PatchUser } from './user.struct';
 import { Prisma } from '@prisma/client';
-import authService from '../auth/auth.service';
 
 async function getList(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (NODE_ENV === 'development') {
@@ -32,15 +32,27 @@ async function me(req: Request, res: Response, next: NextFunction): Promise<void
   res.status(200).json(user);
 }
 
-async function patchPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function patchPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   const { currentPassword, newPassword } = req.body;
   assert({ password: newPassword }, PatchUser);
-  const message = await userService.patchPassword(req.user.id, currentPassword, newPassword);
-  authService.logout(res);
+  const message = await userService.patchPassword(
+    req.user.id,
+    currentPassword,
+    newPassword
+  );
+  authServiceSession.logout(req.user.id, res);
   res.status(200).send({ message });
 }
 
-async function postAvatar(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function postAvatar(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   if (!req.file) throw new BadRequestError('이미지 화일이 존재하지 않습니다');
   const item = await userService.postAvatar(req.file, req.user.id);
   if (!item) throw new NotFoundError();

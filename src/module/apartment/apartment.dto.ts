@@ -1,18 +1,18 @@
 import { ApprovalStatus } from '@prisma/client';
 
-export interface AptSignupRequestDto {
+export interface AptRegistrationDto {
   name: string;
   address: string;
   description: string;
   apartmentManagementNumber: string;
   startComplexNumber: number;
   endComplexNumber: number;
-  startDongNumber: number;
-  endDongNumber: number;
+  startBuildingNumber: number;
+  endBuildingNumber: number;
   startFloorNumber: number;
   endFloorNumber: number;
-  startHoNumber: number;
-  endHoNumber: number;
+  startUnitNumber: number;
+  endUnitNumber: number;
 }
 
 export interface AptListPublicResponseDto {

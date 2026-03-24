@@ -9,14 +9,15 @@ Content-Type: application/json
 {
   "boardId": "1cdf6760-dbbc-4293-8c7d-518f72a012db",
   "status": "IN_PROGRESS",
-  "title": "봄맞이 산행 날짜 선정",
-  "content": "매년 열리는 뒷산에서의 봄맞이 산행 날짜를 정해 주세요.",
-  "buildingPermission": 0,
-  "startDate": "2026-03-19 16:08:00",
-  "endDate": "2026-03-19 16:15:30",
+  "title": "101동 앞 화단 꽃 종류 선정",
+  "content": "화단에 심을 꽃 종류를 선택해 주세요.",
+  "buildingPermission": 101,
+  "startDate": "2026-03-23 18:45:00",
+  "endDate": "2026-03-23 18:55:00",
   "options": [
-    { "title": "5일 수요일" },
-    { "title": "9일 토요일" }
+    { "title": "혼합 야생화" },
+    { "title": "혼합 펜지" },
+    { "title": "혼합 마가렛" }
   ]
 }
 
@@ -28,25 +29,30 @@ Content-Type: application/json
 GET {{baseUrl}}/polls
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/bf957b5e-5348-4e7e-886f-68f9fd12ca97
+GET {{baseUrl}}/polls/848a7f41-173d-47c0-947f-f895c6e8212c
 
 ### 투표 글 수정
-PATCH {{baseUrl}}/polls/9fdad9c0-8fdd-4f8f-baa9-60ab4d96c471
+PATCH {{baseUrl}}/polls/848a7f41-173d-47c0-947f-f895c6e8212c
 Content-Type: application/json
 
 {
-  "title": "플리마켓 개최일 선정",
-  "content": "5월 플리마켓 날짜 투표입니다.",
-  "buildingPermission": 0,
-  "startDate": "2026-03-16 21:37:00",
-  "endDate": "2026-03-16 21:38:00",
-  "status": "IN_PROGRESS",
-  "options": [
-    { "title": "5일 수요일" },
-    { "title": "9일 토요일" },
-    { "title": "16일 토요일" }
-  ]
+  "startDate": "2026-03-23 18:41:00",
+  "endDate": "2026-03-23 18:45:00"
 }
+
+# {
+#   "title": "플리마켓 개최일 선정",
+#   "content": "5월 플리마켓 날짜 투표입니다.",
+#   "buildingPermission": 0,
+#   "startDate": "2026-03-23 17:47:00",
+#   "endDate": "2026-03-23 18:00:00",
+#   "status": "IN_PROGRESS",
+#   "options": [
+#     { "title": "5일 수요일" },
+#     { "title": "9일 토요일" },
+#     { "title": "16일 토요일" }
+#   ]
+# }
 
 ### 투표 글 삭제
 DELETE {{baseUrl}}/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
@@ -55,9 +61,11 @@ DELETE {{baseUrl}}/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
 
 
 ### 투표하기
-POST {{baseUrl}}/options/5ffbaf26-3783-4eec-8f22-cdbe0507e9ff/vote
+POST {{baseUrl}}/options/22e48e6a-17a6-4915-b3e9-95a908c6b70d/vote
 ###
-POST {{baseUrl}}/options/d02eb64c-4486-4244-ad68-63d5b790bc7f/vote
+POST {{baseUrl}}/options/f3303d9c-9935-42c1-8509-a3974848b08a/vote
+###
+POST {{baseUrl}}/options/6575ab66-316d-4642-8588-92c3ddc4376e/vote
 
 ### 투표 취소
 DELETE {{baseUrl}}/options/ded25869-6f69-4d4b-83ed-a6616eb74305/vote

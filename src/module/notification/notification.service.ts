@@ -1,4 +1,4 @@
-import { sendToUser } from './sse.manager';
+import { sendToUser } from './notification.sse';
 import { Notification, NotificationType } from '@prisma/client';
 import notiRepo from './notification.repo';
 import prisma from '../../lib/prisma';
@@ -7,6 +7,7 @@ import NotFoundError from '../../middleware/errors/NotFoundError';
 import userRepo from '../user/user.repo';
 import notificationRepo from './notification.repo';
 import { UUID } from 'node:crypto';
+import { NotiAlarmDto } from './notification.dto';
 
 type NotifyArgs = {
   notiType: NotificationType;
@@ -68,7 +69,32 @@ async function getList(userId: string) {
 }
 
 async function getUnreadList(userId: string) {
-  return await notiRepo.findMany({ where: { receiverId: userId, isChecked: false } });
+  const unReadNotis = await notiRepo.findMany({
+    where: { receiverId: userId, isChecked: false }
+  });
+  return {
+    type: 'alarm',
+    data: buildNotiList(unReadNotis)
+  };
+}
+
+function buildNotiList(notis: Notification[]): NotiAlarmDto[] {
+  return notis.map((n) => {
+    return {
+      notificationId: n.id,
+      content: n.content,
+      notificationType: n.notiType,
+      notifiedAt: n.notifiedAt,
+      isChecked: n.isChecked,
+      noticeId: n.notiType === NotificationType.NOTICE ? n.targetId : undefined,
+      pollId: n.notiType === NotificationType.POLL_CLOSED ? n.targetId : undefined,
+      complaintId:
+        n.notiType === NotificationType.COMPLAINT_RAISED ||
+        n.notiType === NotificationType.COMPLAINT_RESOLVED
+          ? n.targetId
+          : undefined
+    };
+  });
 }
 
 interface NotificationSendDto extends NotifyArgs {

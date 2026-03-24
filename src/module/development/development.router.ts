@@ -1,10 +1,10 @@
 import express from 'express';
 import path from 'path';
 import authenticate from '../../middleware/authenticate';
-import { sendToUser } from '../notification/sse.manager';
+import { sendToUser } from '../notification/notification.sse';
 import { setDevTokens } from '../../lib/tokenDev';
 import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../../lib/constants';
-import authService from '../auth/auth.service';
+import authServiceSession from '../auth/auth.service.session';
 import { setTokenCookies } from '../auth/auth.control';
 
 const devRouter = express.Router();
@@ -38,7 +38,7 @@ devRouter.get('/token', authenticate(), (req, res, next) => {
 
 devRouter.get('/token/refresh', async (req, res, next) => {
   const refresh = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
-  const { accessToken, refreshToken } = await authService.issueTokens(refresh);
+  const { accessToken, refreshToken } = await authServiceSession.issueTokens(refresh);
   setTokenCookies(res, accessToken, refreshToken);
 
   console.log('');

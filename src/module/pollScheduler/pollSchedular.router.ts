@@ -1,5 +1,5 @@
 import express from 'express';
-import { getSchedulerStatus } from './pollSchedular';
+import { getSchedulerStatus } from '../../scheduler/systemScheduler';
 
 const pollSchedulerRouter = express.Router();
 

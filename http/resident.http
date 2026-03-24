@@ -12,7 +12,7 @@
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents
+GET {{baseUrl}}/residents?isRegistered=true&building=101
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json
@@ -55,24 +55,22 @@ Content-Type: text/csv
 ### building, unitNumber
 ### residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents/file?limit=20
-###
-GET {{baseUrl}}/residents/file?isRegistered=false
+GET {{baseUrl}}/residents/file?isRegistered=true&building=201
 
 ### 입주민 상세 조회
-GET {{baseUrl}}/residents/35056791-9d2b-4fd6-a2e8-1d4c6779065b
-###
+GET {{baseUrl}}/residents/5c0fa861-57e6-4c6c-b8d2-3db631c83a3e
 
-PATCH {{baseUrl}}/residents/f88ba9f1-1c5c-47a3-ae2b-8471119c185f
+###
+PATCH {{baseUrl}}/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941
 Content-Type: application/json
 
 {
   "building": "101",
   "unitNumber": "101",
-  "contact": "010-9498-9518",
-  "name": "마킹쟁이베니",
-  "isHouseholder": "MEMBER"
+  "contact": "010-1234-5672",
+  "name": "언니없는홍련이",
+  "isHouseholder": "HOUSEHOLDER"
 }
 
 ###
-DELETE {{baseUrl}}/residents/6237f04b-51e7-4804-8cff-2e58f96294fd
+DELETE {{baseUrl}}/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941

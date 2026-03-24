@@ -1,9 +1,9 @@
 import { getDevAccessToken } from '../lib/tokenDev';
 import { verifyAccessToken } from '../lib/token';
-import authService from '../module/auth/auth.service';
-import { Request, Response, NextFunction } from 'express';
-import UnauthorizedError from './errors/UnauthorizedError';
 import { ACCESS_TOKEN_COOKIE_NAME, NODE_ENV } from '../lib/constants';
+import { Request, Response, NextFunction } from 'express';
+import authServiceSession from '../module/auth/auth.service.session';
+import UnauthorizedError from './errors/UnauthorizedError';
 
 function authenticate(options?: { optional?: boolean }) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -15,10 +15,11 @@ function authenticate(options?: { optional?: boolean }) {
       }
 
       const { userId } = verifyAccessToken(accessToken);
-      const user = await authService.verifyUserExist(userId);
+      const user = await authServiceSession.verifyUserExist(userId);
       req.user = user;
 
-      if (NODE_ENV === 'development') console.log(`${user.role} ${user.name} authenticated.`);
+      if (NODE_ENV === 'development')
+        console.log(`${user.role} ${user.name} authenticated.`);
       next();
     } catch (err) {
       next(err);

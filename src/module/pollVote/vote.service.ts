@@ -8,7 +8,8 @@ import { VoteOptionDto, VoteResDto } from '../poll/poll.dto';
 import { ApprovalStatus } from '@prisma/client';
 
 async function vote(voterId: string, optionId: string) {
-  if (!validateVoter(voterId, optionId)) throw new BadRequestError('투표권자가 아닙니다.');
+  if (!(await validateVoter(voterId, optionId)))
+    throw new BadRequestError('투표권자가 아닙니다.');
 
   const poll = await pollRepo.findFirst({
     where: { pollOptions: { some: { id: optionId } } }
@@ -23,11 +24,12 @@ async function vote(voterId: string, optionId: string) {
     voter: { connect: { id: voterId } }
   };
   const vote = await voteRepo.create({ data: voteData });
-  return buildVoteRes(poll.id, vote.optionId);
+  return await buildVoteRes(poll.id, vote.optionId);
 }
 
 async function cancelVote(voterId: string, optionId: string) {
-  if (!validateVoter(voterId, optionId)) throw new BadRequestError('투표권자가 아닙니다.');
+  if (!(await validateVoter(voterId, optionId)))
+    throw new BadRequestError('투표권자가 아닙니다.');
   const option = await prisma.pollOption.findFirst({
     where: { id: optionId },
     select: { pollId: true }
@@ -143,7 +145,9 @@ async function validateVoter(voterId: string, optionId: string): Promise<boolean
   const option = await prisma.pollOption.findUnique({
     where: { id: optionId },
     include: {
-      poll: { select: { buildingPermission: true, board: { select: { apartmentId: true } } } }
+      poll: {
+        select: { buildingPermission: true, board: { select: { apartmentId: true } } }
+      }
     }
   });
   if (!option) throw new NotFoundError('투표 옵션이 존재하지 않습니다.');

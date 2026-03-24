@@ -16,7 +16,7 @@ import voteRouter from './module/pollVote/vote.router';
 import commentRouter from './module/comment/comment.router';
 import eventRouter from './module/event/event.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
-import { startPollScheduler } from './module/pollScheduler/pollSchedular';
+import { startSystemScheduler } from './scheduler/systemScheduler';
 
 const app = express();
 app.use(express.json());
@@ -52,5 +52,5 @@ app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  startPollScheduler();
+  startSystemScheduler();
 });

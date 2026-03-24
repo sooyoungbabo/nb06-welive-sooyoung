@@ -3,19 +3,18 @@
 ### 공개: 아파트 목록 조회
 ### query keyword: name, address, description
 ### query filters: name, address
-GET {{baseUrl}}/apartments/public
+GET {{baseUrl}}/apartments/public?name=아파트
 ###
-GET {{baseUrl}}/apartments/public?address=길목
+GET {{baseUrl}}/apartments/public?address=서울
 
 ### 공개: 아파트 상세 조회
-GET {{baseUrl}}/apartments/public/924b3e3d-6ce1-42b8-ba8b-97d0c04ae286
+GET {{baseUrl}}/apartments/public/188fdedf-2659-4491-b740-8a35f969d7b4
 
 ### 슈퍼관리자/관리자: 아파트 목록 조회
-### pagination: page, limit
 ### query filters: name, address
 ### query exactFilters: apartmentStatus
-### query keyword: name, address, (관계형) admin name, admin email
-GET {{baseUrl}}/apartments?name=아파트
+### query keyword: name, address, (관계형) admin name/email
+GET {{baseUrl}}/apartments?apartmentStatus=APPROVED
 
 ### 슈퍼관리자/관리자: 아파트 상세 조회
-GET {{baseUrl}}/apartments/200be2a8-a0f9-4f89-91b9-beed0571da38
+GET {{baseUrl}}/apartments/378daf10-c7a9-405a-a5b8-2692b45bfece

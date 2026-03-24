@@ -20,10 +20,10 @@ Content-Type: application/json
 ### keyword: title, content
 GET {{baseUrl}}/notices
 ###
-GET {{baseUrl}}/notices?keyword=정기
+GET {{baseUrl}}/notices?category=RESIDENT_VOTE
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8
+GET {{baseUrl}}/notices/d90dd273-01ac-4535-bb10-7c96f342211f
 
 ### 공지사항 수정
 PATCH {{baseUrl}}/notices/f3d9771c-8272-4515-983b-d6e7c2b37c64

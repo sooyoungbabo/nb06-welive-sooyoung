@@ -1,18 +1,22 @@
 import prisma from '../../lib/prisma';
 import dayjs from 'dayjs';
+import NotFoundError from '../../middleware/errors/NotFoundError';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
+import BadRequestError from '../../middleware/errors/BadRequestError';
+import pollRepo from '../poll/poll.repo';
+import noticeRepo from '../notice/notice.repo';
+import eventRepo from './event.repo';
 import { Event, EventType, NoticeType } from '@prisma/client';
 import { EventQueryDto, EventUpsertRequestDto } from './event.dto';
 import { NODE_ENV } from '../../lib/constants';
 import { getAptInfoByUserId } from '../../lib/utils';
-import ForbiddenError from '../../middleware/errors/ForbiddenError';
-import pollRepo from '../poll/poll.repo';
-import noticeRepo from '../notice/notice.repo';
-import eventRepo from './event.repo';
-import NotFoundError from '../../middleware/errors/NotFoundError';
 
+//----------------------------------------------- 이벤트 목록 조회
 async function getList(userId: string, query: EventQueryDto) {
-  const { apartmentId } = await getAptInfoByUserId(userId);
-  if (apartmentId !== query.apartmentId) throw new ForbiddenError(); // 권한: 같은 아파트
+  const { apartmentId: userAptId } = await getAptInfoByUserId(userId);
+
+  const isSameApt = userAptId === query.apartmentId;
+  if (!isSameApt) throw new ForbiddenError(); // 권한: 같은 아파트
 
   const start = dayjs(`${query.year}-${query.month}-01`).startOf('month');
   const end = start.endOf('month');
@@ -27,30 +31,52 @@ async function getList(userId: string, query: EventQueryDto) {
   };
   const include = { notice: { select: { category: true } } };
 
-  const events = await eventRepo.findMany(prisma, { where, include });
+  const events = await eventRepo.findMany(prisma, {
+    where,
+    include,
+    orderBy: { createdAt: 'desc' }
+  });
   return buildEventListRes(events);
 }
 
+//----------------------------------------------- 이벤트 생성 또는 업데이트
 // 이벤트는 파생 테이블이라서, 여기서 수정/삭제하는 건 바람직하지 않음
 // 일단 API는 만들겠음.
+
+// boardType과 boardId의 의미가 이벤트에서는 다름 <-- 이것은 실수? 의도?
+// 그렇지 않다면, 원래 게시글의 ID가 없기 때문에 참조가 불가능함 (댓글에서도 마찬가지)
+// boardType: eventType
+// boardId: pollId or noticeId
+
 async function put(userId: string, body: EventUpsertRequestDto) {
-  const { pollBoardId, noticeBoardId } = await getAptInfoByUserId(userId);
+  const {
+    pollBoardId,
+    noticeBoardId,
+    adminId: userAdminId
+  } = await getAptInfoByUserId(userId);
   const { boardType: eventType, boardId: targetId, startDate, endDate } = body;
-  // boardType: eventType
-  // boardId: pollId or noticeId
+
+  // 원 게시물 가져오기
   const item =
     eventType === EventType.POLL
       ? await pollRepo.find({
           where: { id: targetId },
-          select: { boardId: true, title: true }
+          select: { boardId: true, title: true, adminId: true }
         })
       : await noticeRepo.find({
           where: { id: targetId },
-          select: { title: true, boardId: true }
+          select: { title: true, boardId: true, adminId: true }
         });
-  if (!item) throw new NotFoundError('원 게시물이 존재하지 않거나 타입이 바르지 않습니다.');
-  if (item.boardId !== (eventType === EventType.NOTICE ? noticeBoardId : pollBoardId))
-    throw new ForbiddenError(); // 권한 검증 (같은 아파트 소속인지)
+  if (!item)
+    throw new NotFoundError('원 게시물이 존재하지 않거나 타입이 바르지 않습니다.');
+
+  const amIAdmin = userId === userAdminId;
+  const isSameAdmin = userAdminId === item.adminId;
+  if (amIAdmin && !isSameAdmin) throw new ForbiddenError(); // 권한: 같은 관리자
+
+  const userBoardId = eventType === EventType.NOTICE ? noticeBoardId : pollBoardId;
+  const isSameBoard = item.boardId === userBoardId;
+  if (!isSameBoard) throw new BadRequestError('보드 ID가 틀립니다.');
 
   const updateData = {
     title: item.title,
@@ -60,7 +86,7 @@ async function put(userId: string, body: EventUpsertRequestDto) {
   const createData = {
     pollId: eventType === EventType.POLL ? targetId : null,
     noticeId: eventType === EventType.NOTICE ? targetId : null,
-    eventType: eventType,
+    eventType,
     ...updateData
   };
 
@@ -93,12 +119,11 @@ async function put(userId: string, body: EventUpsertRequestDto) {
   return buildEventUpsertRes(event);
 }
 
-// 이벤트 삭제
+//----------------------------------------------- 이벤트 삭제
 // 개발환경에서는 공지/투표도 삭제, 배포환경에서는 soft delete
 async function del(userId: string, eventId: string) {
-  const { apartmentId, pollBoardId, noticeBoardId } = await getAptInfoByUserId(userId);
+  const { pollBoardId, noticeBoardId } = await getAptInfoByUserId(userId);
 
-  // 권한 검증: 같은 아파트의 이벤트인지
   const event = await eventRepo.find({
     where: { id: eventId },
     select: {
@@ -108,10 +133,18 @@ async function del(userId: string, eventId: string) {
     }
   });
   if (!event) throw new NotFoundError('존재하지 않는 이벤트입니다.');
-  if (event.eventType === EventType.NOTICE)
-    if (!event.notice || event.notice.boardId !== noticeBoardId) throw new ForbiddenError();
-  if (event.eventType === EventType.POLL)
-    if (!event.poll || event.poll.boardId !== pollBoardId) throw new ForbiddenError();
+
+  // 권한 검증: 같은 아파트의 이벤트인지
+  if (event.eventType === EventType.NOTICE) {
+    if (!event.notice) throw new NotFoundError('원 공지가 존지하지 않습니다.');
+    const isSameBoard = noticeBoardId === event.notice.boardId;
+    if (!isSameBoard) throw new ForbiddenError();
+  }
+  if (event.eventType === EventType.POLL) {
+    if (!event.poll) throw new NotFoundError('원 투표가 존지하지 않습니다.');
+    const isSameBoard = pollBoardId === event.poll.boardId;
+    if (!isSameBoard) throw new ForbiddenError();
+  }
 
   // 트랜젝션: (1) 이벤트 삭제 (2) 공지/투표 삭제
   const eventDeleted = await prisma.$transaction(async (tx) => {

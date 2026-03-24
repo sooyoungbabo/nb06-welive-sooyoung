@@ -7,11 +7,16 @@ import complaintRepo from '../complaint/complaint.repo';
 import noticeRepo from '../notice/notice.repo';
 import { getAptInfoByUserId } from '../../lib/utils';
 
+//------------------------------------------------------ 댓글 생성
+// boardType과 boardId의 의미가 댓글에서는 다름 <-- 이것은 실수? 의도?
+// 그렇지 않다면, 원래 게시글의 ID가 없기 때문에 참조가 불가능함
+// 이벤트에서도 마찬가지
+
 async function create(userId: string, body: CommentCreateRequestDto) {
   const { content, boardType: targetType, boardId: targetId } = body;
-  const { adminId } = await getAptInfoByUserId(userId);
+  const { adminId: userAdminId } = await getAptInfoByUserId(userId);
 
-  // req.body 데이터 유효성 검사
+  // 요청 validation
   const item =
     targetType === CommentType.COMPLAINT
       ? await complaintRepo.find({
@@ -23,7 +28,9 @@ async function create(userId: string, body: CommentCreateRequestDto) {
           select: { adminId: true }
         });
   if (!item) throw new NotFoundError('원 게시물이 존재하지 않거나 해당 타입이 아닙니다.');
-  if (item.adminId !== adminId) throw new ForbiddenError(); // 권한: 다른 아파트 게시물임
+
+  const isSameAdmin = item.adminId === userAdminId;
+  if (!isSameAdmin) throw new ForbiddenError(); // 권한: 다른 아파트 게시물인지 검사
 
   // 데이터 가공
   const commentData = {
@@ -42,38 +49,15 @@ async function create(userId: string, body: CommentCreateRequestDto) {
   return buildCommentCreateRes(comment);
 }
 
+//------------------------------------------------------ 댓글 수정
 async function patch(userId: string, commentId: string, body: CommentPatchRequestDto) {
-  const { content, boardType: targetType, boardId: targetId } = body;
-  const { adminId } = await getAptInfoByUserId(userId);
-
-  // req.body 데이터 유효성 검사
-  const item =
-    targetType === CommentType.COMPLAINT
-      ? await complaintRepo.find({
-          where: { id: targetId, deletedAt: null },
-          select: { adminId: true }
-        })
-      : await noticeRepo.find({
-          where: { id: targetId, deletedAt: null },
-          select: { adminId: true }
-        });
-  if (!item) throw new NotFoundError('원 게시물이 존재하지 않거나 해당 타입이 아닙니다.');
-  if (item.adminId !== adminId) throw new ForbiddenError(); // 권한: 다른 아파트 게시물임 (필요없는 검사일 듯...)
-
-  // 권한: 작성자
-  const comment = await commentRepo.find({
-    where: { id: commentId },
-    select: { creatorId: true }
-  });
-  if (!comment) throw new NotFoundError('댓글이 존재하지 않습니다.');
-  if (userId !== comment.creatorId)
-    throw new ForbiddenError('본인이 작성한 댓글만 수정할 수 있습니다.');
+  await authorizeAdminAuthorOrThrow(userId, commentId);
 
   // 데이터 가공
   const commentData = {
-    targetType,
-    targetId,
-    content
+    targetType: body.boardType,
+    targetId: body.boardId,
+    content: body.content
   };
 
   // DB update
@@ -88,21 +72,13 @@ async function patch(userId: string, commentId: string, body: CommentPatchReques
   return buildCommentCreateRes(commentUpdated);
 }
 
+//------------------------------------------------------ 댓글 삭제
 async function del(userId: string, commentId: string) {
-  const comment = await commentRepo.find({ where: { id: commentId }, select: { creatorId: true } });
-  if (!comment) throw new NotFoundError('댓글이 존재하지 않습니다.');
-  if (userId !== comment.creatorId) throw new ForbiddenError(); // 권한: 작성자
-
-  await commentRepo.del({ where: { id: commentId } });
+  await authorizeAdminAuthorOrThrow(userId, commentId);
+  await commentRepo.del({ where: { id: commentId } }); // soft delete 없음
 }
 
-export default {
-  create,
-  patch,
-  del
-};
-
-//------------------------------------------------- 지역함수
+//------------------------------------------------------ 지역 함수
 type CommentWithAdminName = Comment & { creator: { name: string } };
 
 function buildCommentCreateRes(comment: CommentWithAdminName) {
@@ -121,3 +97,34 @@ function buildCommentCreateRes(comment: CommentWithAdminName) {
     }
   };
 }
+
+async function authorizeAdminAuthorOrThrow(userId: string, commentId: string) {
+  const { adminId: userAdminId, apartmentId: userAptId } =
+    await getAptInfoByUserId(userId);
+
+  const comment = await commentRepo.find({
+    where: { id: commentId },
+    select: {
+      creator: {
+        select: {
+          id: true,
+          apartmentId: true
+        }
+      }
+    }
+  });
+  if (!comment) throw new NotFoundError('댓글이 존재하지 않습니다.');
+
+  const isSameApt = userAptId === comment.creator.apartmentId;
+  const amIAdmin = userId === userAdminId;
+  const amIAuthor = userId === comment.creator.id;
+
+  if (amIAdmin && !isSameApt) throw new ForbiddenError();
+  if (!amIAdmin && !amIAuthor) throw new ForbiddenError();
+}
+
+export default {
+  create,
+  patch,
+  del
+};

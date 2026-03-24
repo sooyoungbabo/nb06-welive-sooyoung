@@ -6,13 +6,12 @@ import notificationRepo from '../notification/notification.repo';
 import userRepo from '../user/user.repo';
 import complaintRepo from './complaint.repo';
 import commentRepo from '../comment/comment.repo';
-import residentRepo from '../resident/resident.repo';
 import notiService from '../notification/notification.service';
 import { assert } from 'node:console';
 import { CreateNotification } from '../notification/notification.struct';
-import { sendToUser } from '../notification/sse.manager';
+import { sendToUser } from '../notification/notification.sse';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
-import { getAptInfoByUserId } from '../../lib/utils';
+import { getAptInfoByUserId, isSuperAdmin } from '../../lib/utils';
 import { NODE_ENV } from '../../lib/constants';
 import {
   CommentResDto,
@@ -33,19 +32,20 @@ import {
   NotificationType
 } from '@prisma/client';
 
-// 민원 등록
-async function create(userId: string, data: ComplaintCreateRequestDto) {
-  console.log(userId);
-  const { adminId, complaintBoardId: boardId } = await getAptInfoByUserId(userId);
-  if (boardId !== data.boardId) throw new BadRequestError('boardId가 틀립니다.');
+//----------------------------------------------------- 민원 등록
+async function create(userId: string, body: ComplaintCreateRequestDto) {
+  const { adminId, complaintBoardId } = await getAptInfoByUserId(userId);
+
+  const isBoardIdCorrect = body.boardId === complaintBoardId;
+  if (!isBoardIdCorrect) throw new BadRequestError('boardId가 틀립니다.');
 
   const complaintData = {
-    title: data.title,
-    content: data.content,
-    isPublic: data.isPublic,
-    status: data.status,
+    title: body.title,
+    content: body.content,
+    isPublic: body.isPublic,
+    status: body.status,
     creator: { connect: { id: userId } },
-    board: { connect: { id: data.boardId } },
+    board: { connect: { id: complaintBoardId } },
     admin: { connect: { id: adminId } }
   };
 
@@ -70,67 +70,107 @@ async function create(userId: string, data: ComplaintCreateRequestDto) {
   });
 
   // SSE to admin
-  sendToUser(adminId, `[알림] 민원접수 (${complaint.creator.name}님, ${complaint.title})`);
+  sendToUser(
+    adminId,
+    `[알림] 민원접수 (${complaint.creator.name}님, ${complaint.title})`
+  );
 
   return complaint;
 }
 
-// 전체 민원 조회
+//----------------------------------------------------- 전체 민원 조회
 async function getList(
   userId: string,
   query: ComplaintQueryDto
 ): Promise<{ complaints: ComplaintListResDto[]; totalCount: number }> {
+  const { complaintBoardId } = await getAptInfoByUserId(userId);
+
+  // 쿼리 파라미터 구성
+  let whereTerms: Prisma.ComplaintWhereInput[] = [
+    {
+      boardId: complaintBoardId, // 같은 아파트의 민원 보드로 한정
+      deletedAt: null
+    }
+  ];
   const queryParams = buildQueryParams(query);
   const { skip, take } = buildPagination(queryParams.pagination, {
     limitDefault: 20,
     limitMax: 100
   });
 
-  const { adminId, complaintBoardId: boardId } = await getAptInfoByUserId(userId);
-
-  let where: Prisma.ComplaintWhereInput = buildWhere({
+  // query where
+  const queryWhere = buildWhere({
     searchKey: queryParams.searchKey,
-    exactFilters: { ...queryParams.exactFilters, boardId }
+    exactFilters: queryParams.exactFilters
   });
+  if (Object.keys(queryWhere).length > 0) whereTerms.push(queryWhere);
 
-  //filters: dong, ho  // 관계형 필드 추가
+  //관계형 필터 조회 추가: filters - dong, ho
+  let residentFilters: Prisma.ResidentWhereInput = {};
   const { apartmentDong, apartmentHo } = queryParams.filters ?? {};
-  if (apartmentDong || apartmentHo) {
-    where = {
-      ...where,
-      creator: {
-        resident: {
-          apartmentDong: apartmentDong ?? undefined,
-          apartmentHo: apartmentHo ?? undefined
-        }
-      }
-    };
+  if (apartmentDong) residentFilters.apartmentDong = apartmentDong;
+  if (apartmentHo) residentFilters.apartmentHo = apartmentHo;
+  if (Object.keys(residentFilters).length > 0) {
+    whereTerms.push({
+      creator: { resident: residentFilters }
+    });
   }
 
+  // 최종 where
+  const where = { AND: whereTerms };
+
+  // 출력에 필요한 민원인 정보 include
+  const include = {
+    creator: {
+      select: {
+        resident: {
+          select: { name: true, apartmentDong: true, apartmentHo: true }
+        }
+      }
+    }
+  };
+
+  // DB 민원 조회
   const totalCount = await complaintRepo.count({ where });
   const rawComplaints = await complaintRepo.findMany({
     where,
+    include,
     skip,
     take,
     orderBy: { createdAt: 'desc' }
   });
 
-  return { complaints: await buildComplaintListRes(rawComplaints), totalCount };
+  // DB 댓글 조회: 댓글수 민원 필드에 추가
+  const comlaints = await addCommentsCountField(rawComplaints);
+
+  return {
+    complaints: await buildComplaintListRes(comlaints),
+    totalCount
+  };
 }
 
-// 민원 상세 조회
+//----------------------------------------------------- 민원 상세 조회
 async function get(userId: string, complaintId: string): Promise<ComplaintDetailResDto> {
-  const { adminId, complaintBoardId: userBoardId } = await getAptInfoByUserId(userId);
+  const { adminId: userAdminId, complaintBoardId: userBoardId } =
+    await getAptInfoByUserId(userId);
+
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
     select: { creatorId: true, boardId: true, isPublic: true }
   });
   if (!complaint) throw new NotFoundError('존재하지 않는 민원입니다.');
-  if (complaint.boardId !== userBoardId) throw new ForbiddenError(); // 권한
-  if (userId !== adminId && complaint.isPublic === false)
-    if (userId != complaint.creatorId) throw new ForbiddenError('비공개 민원입니다.');
 
-  // viewCount 1 증가하고 상세 조회 내려줌
+  const isSameBoard = userBoardId === complaint.boardId;
+  const amIAdmin = userId === userAdminId;
+  const amIAuthor = userId === complaint.creatorId;
+
+  if (!isSameBoard) throw new ForbiddenError(); // 권한: 같은 아파트 민원인가
+  if (!amIAdmin && complaint.isPublic === false)
+    if (!amIAuthor)
+      // 사용자는, 비밀민원인 경우 저자만 조회 가능
+      throw new ForbiddenError('비공개 민원입니다.');
+
+  // DB: viewCount 1 증가하고 상세 조회 내려줌
   const complaintUpdated = await complaintRepo.patch(prisma, {
     where: { id: complaintId },
     data: { viewCount: { increment: 1 } },
@@ -151,23 +191,31 @@ async function get(userId: string, complaintId: string): Promise<ComplaintDetail
   return buildComplaintRes(complaintUpdated, comments);
 }
 
-// 일반 유저 민원 수정: 유저, 관리자
+//----------------------------------------------------- 일반 유저 민원 수정: 유저, 관리자
 async function patch(
   userId: string,
   complaintId: string,
   body: ComplaintPatchRequestDto
 ): Promise<ComplaintPatchResDto> {
-  const { adminId, complaintBoardId: userBoardId } = await getAptInfoByUserId(userId);
+  const { adminId: userAdminId, complaintBoardId: userBoardId } =
+    await getAptInfoByUserId(userId);
+
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
     select: { boardId: true, status: true, creatorId: true }
   });
   if (!complaint) throw new NotFoundError('존재하지 않는 민원입니다.');
-  if (complaint.boardId !== userBoardId) throw new ForbiddenError(); // 권한
-  if (userId !== adminId && userId !== complaint.creatorId)
+
+  const isSameBoard = userBoardId === complaint.boardId;
+  const amIAdmin = userId === userAdminId;
+  const amIAuthor = userId === complaint.creatorId;
+
+  if (!isSameBoard) throw new ForbiddenError(); // 권한
+  if (!amIAdmin && !amIAuthor)
     throw new ForbiddenError('본인이 작성한 민원만 수정할 수 있습니다.');
+
   if (complaint.status !== ComplaintStatus.PENDING)
-    throw new BadRequestError('처리 중이거나 처리 완료된 민원은 수정할 수 없습니다.');
+    throw new BadRequestError('처리 중이거나 종결된 민원은 수정할 수 없습니다.');
 
   const complaintUpdated = await complaintRepo.patch(prisma, {
     where: { id: complaintId },
@@ -191,43 +239,89 @@ async function patch(
   return rest;
 }
 
-// 민원 삭제: 개발환경에서는 삭제, 배포환경에서는 soft delete
+//----------------------------------------------------- 민원 삭제: 개발환경에서는 삭제, 배포환경에서는 soft delete
 async function del(userId: string, complaintId: string): Promise<void> {
-  const { adminId, complaintBoardId: userBoardId } = await getAptInfoByUserId(userId);
+  const { adminId: userAdminId, complaintBoardId: userBoardId } =
+    await getAptInfoByUserId(userId);
+
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
     select: { boardId: true, status: true, creatorId: true }
   });
   if (!complaint) throw new NotFoundError('존재하지 않는 민원입니다.');
-  if (complaint.boardId !== userBoardId) throw new ForbiddenError(); // 권한
-  if (userId !== adminId && userId !== complaint.creatorId)
+
+  if (complaint.status !== ComplaintStatus.PENDING)
+    throw new BadRequestError('처리 중이거나 종결된 민원은 삭제할 수 없습니다.');
+
+  const isSameBoard = userBoardId === complaint.boardId;
+  const amIAdmin = (userId = userAdminId);
+  const amIAuthor = (userId = complaint.creatorId);
+
+  if (!isSameBoard) throw new ForbiddenError(); // 권한
+  if (!amIAdmin && !amIAuthor)
     throw new ForbiddenError('본인이 작성한 민원만 삭제할 수 있습니다.');
 
-  if (NODE_ENV === 'development') await complaintRepo.del({ where: { id: complaintId } });
-  else
+  if (NODE_ENV === 'development') {
+    await complaintRepo.del({ where: { id: complaintId } });
+    // comment는 삭제하지 않겠음
+  } else
     await complaintRepo.patch(prisma, {
       where: { id: complaintId },
       data: { deletedAt: new Date() }
     });
+  // comment는 soft delete 없음
 }
 
-// 관리자 이상 민원 수정 : 상태 변경
+//----------------------------------------------------- 관리자 이상 민원 수정 : 상태 변경
 async function changeStatus(
   userId: string,
   complaintId: string,
   status: ComplaintStatus
 ): Promise<ComplaintDetailResDto> {
-  const { adminId, complaintBoardId: userBoardId } = await getAptInfoByUserId(userId);
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
     select: { boardId: true, status: true, creatorId: true }
   });
   if (!complaint) throw new NotFoundError('존재하지 않는 민원입니다.');
-  if (complaint.boardId !== userBoardId) throw new ForbiddenError(); // admin 권한
-  if (userId !== adminId && userId !== complaint.creatorId)
-    throw new ForbiddenError('본인이 작성한 민원만 수정할 수 있습니다.'); // user 권한
+  if (complaint.status !== ComplaintStatus.PENDING)
+    throw new BadRequestError('처리 중이거나 종결된 민원은 삭제할 수 없습니다.');
 
+  if (!isSuperAdmin(userId)) {
+    const { adminId: userAdminId, complaintBoardId: userBoardId } =
+      await getAptInfoByUserId(userId);
+
+    const isSameBoard = userBoardId === complaint.boardId;
+    const amIAdmin = (userId = userAdminId);
+
+    if (amIAdmin && !isSameBoard) throw new ForbiddenError(); // admin은 자기 아파트이어야
+  }
   // DB 트랜젝션: (1) Complaint 상태 변경 (2) 알림
+  const complaintPatched: ComplaintWithCreator = await complaintStatusTransaction(
+    complaintId,
+    status
+  );
+
+  if (!complaintPatched.creator.resident)
+    throw new NotFoundError('민원 작성자가 입주민 명부에 없습니다.');
+
+  // SSE to 민원 작성자
+  sendToUser(
+    complaint.creatorId,
+    `[알림] ${complaintPatched.creator.resident.name}님 민원종결`
+  );
+
+  // 댓글 가져오고, 데이터 가공 후 리턴
+  const comments = await commentRepo.findMany({
+    where: { targetId: complaintId, targetType: CommentType.COMPLAINT }
+  });
+  return buildComplaintRes(complaintPatched, comments);
+}
+
+//----------------------------------------------------- 지역 함수
+async function complaintStatusTransaction(
+  complaintId: string,
+  status: ComplaintStatus
+): Promise<ComplaintWithCreator> {
   const complaintPatched = await prisma.$transaction(async (tx) => {
     // complaint 상태 변경
     const complaint = await complaintRepo.patch(tx, {
@@ -255,20 +349,9 @@ async function changeStatus(
     const noti = await notiService.notify(complaint.creatorId, notiData);
     return complaint;
   });
-
-  // SSE to 민원 작성자
-  if (!complaintPatched.creator.resident)
-    throw new NotFoundError('민원 작성자가 입주민 명부에 없습니다.');
-  sendToUser(complaint.creatorId, `[알림] ${complaintPatched.creator.resident.name}님 민원종결`);
-
-  // 데이터 가공 후 리턴
-  const comments = await commentRepo.findMany({
-    where: { targetId: complaintId, targetType: CommentType.COMPLAINT }
-  });
-  return buildComplaintRes(complaintPatched, comments);
+  return complaintPatched;
 }
 
-//------------------------------------------
 function buildQueryParams(query: ComplaintQueryDto) {
   const { page, limit } = query;
   const { dong, ho } = query;
@@ -289,7 +372,7 @@ function buildQueryParams(query: ComplaintQueryDto) {
   };
 }
 
-type ComplaintWithResidentInfo = Complaint & {
+interface ComplaintWithCreator extends Complaint {
   creator: {
     resident: {
       name: string;
@@ -297,10 +380,10 @@ type ComplaintWithResidentInfo = Complaint & {
       apartmentHo: string;
     } | null;
   };
-};
+}
 
 async function buildComplaintRes(
-  complaint: ComplaintWithResidentInfo,
+  complaint: ComplaintWithCreator,
   comments: Prisma.CommentGetPayload<Prisma.CommentFindManyArgs>[]
 ): Promise<ComplaintDetailResDto> {
   if (!complaint.creator.resident) throw new NotFoundError();
@@ -341,34 +424,50 @@ async function buildCommentRes(comments: Comment[]): Promise<CommentResDto[]> {
   );
 }
 
-async function buildComplaintListRes(complaints: Complaint[]): Promise<ComplaintListResDto[]> {
-  return Promise.all(
-    complaints.map(async (c) => {
-      const writer = await residentRepo.find(prisma, {
-        where: { userId: c.creatorId }
-      });
-      if (!writer) throw new NotFoundError('댓글 작성 입주민이 존재하지 않습니다.');
+async function addCommentsCountField(
+  complaints: ComplaintWithCreator[]
+): Promise<ComplaintWithMeta[]> {
+  const counts = await prisma.comment.groupBy({
+    by: ['targetId'],
+    where: {
+      targetType: CommentType.COMPLAINT,
+      targetId: { in: complaints.map((c) => c.id) }
+    },
+    _count: true
+  });
+  const countMap = new Map(counts.map((c) => [c.targetId, c._count]));
+  const result = complaints.map((c) => ({
+    ...c,
+    commentsCount: countMap.get(c.id) ?? 0
+  }));
+  return result;
+}
 
-      const commentsCount = await commentRepo.count({
-        where: { targetId: c.id }
-      });
+interface ComplaintWithMeta extends ComplaintWithCreator {
+  commentsCount: number;
+}
 
-      return {
-        complaintId: c.id,
-        userId: c.creatorId,
-        title: c.title,
-        writerName: writer.name,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt,
-        isPublic: c.isPublic,
-        viewsCount: c.viewCount,
-        commentsCount,
-        status: c.status,
-        dong: writer.apartmentDong,
-        ho: writer.apartmentHo
-      };
-    })
-  );
+async function buildComplaintListRes(
+  complaints: ComplaintWithMeta[]
+): Promise<ComplaintListResDto[]> {
+  return complaints.map((c) => {
+    const writer = c.creator.resident;
+    if (!writer) throw new NotFoundError('민원인 정보를 찾을 수 없습니다.');
+    return {
+      complaintId: c.id,
+      userId: c.creatorId,
+      title: c.title,
+      writerName: writer.name,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      isPublic: c.isPublic,
+      viewsCount: c.viewCount,
+      commentsCount: c.commentsCount,
+      status: c.status,
+      dong: writer.apartmentDong,
+      ho: writer.apartmentHo
+    };
+  });
 }
 
 export default {

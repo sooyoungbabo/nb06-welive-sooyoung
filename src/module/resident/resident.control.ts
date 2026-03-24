@@ -9,7 +9,10 @@ async function getList(req: Request, res: Response, next: NextFunction) {
   const query = req.query as ResidentQueryDto;
   const { residents, totalCount } = await residentService.getList(req.user.id, query);
   const count = residents.length;
-  const message = count === 0 ? `조회된 입주민 결과가 없습니다.` : `조회된 입주민 결과가 ${count}건입니다.`;
+  const message =
+    count === 0
+      ? `조회된 입주민 결과가 없습니다.`
+      : `조회된 입주민 결과가 ${count}건입니다.`;
 
   res.status(200).json({ residents, message, count, totalCount });
 }
@@ -38,7 +41,10 @@ async function downloadTemplate(req: Request, res: Response, next: NextFunction)
   const encoded = encodeURIComponent(filename);
 
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="residents.csv"; filename*=UTF-8''${encoded}`);
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="residents.csv"; filename*=UTF-8''${encoded}`
+  );
   res.send(csv);
 }
 
@@ -85,12 +91,19 @@ async function patch(req: Request, res: Response, next: NextFunction) {
     contact
   };
 
-  const resident = await residentService.patch(req.user.id, residentId, residentData, userData);
+  const resident = await residentService.patch(
+    req.user.id,
+    residentId,
+    residentData,
+    userData
+  );
   res.status(200).json(resident);
 }
 
 async function del(req: Request, res: Response, next: NextFunction) {
   const residentId = req.params.id as string;
+
+  // 개발환경일 때는 정말 삭제, 배포환경에선 soft delete
   if (NODE_ENV === 'development') await residentService.del(req.user.id, residentId);
   else await residentService.softDel(req.user.id, residentId);
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다.' });

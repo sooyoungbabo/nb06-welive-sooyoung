@@ -5,9 +5,9 @@ POST {{baseUrl}}/comments
 Content-Type: application/json
 
 {
-  "content": "와~ 너무 기대됩니다.",
-  "boardType": "NOTICE",
-  "boardId": "5ca5fce9-deed-4e00-b35d-f8a3c7c679e8"
+  "content": "[관리자] 문제가 계속되면 다시 말씀 주세요.",
+  "boardType": "COMPLAINT",
+  "boardId": "b35b948b-9525-4fbc-9a4b-de188843967e"
 }
 
 ### 댓글 수정

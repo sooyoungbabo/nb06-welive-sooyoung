@@ -1,29 +1,13 @@
 import { BoardType, NoticeType, Poll, PollStatus } from '@prisma/client';
 import prisma from '../../lib/prisma';
-import { CronJob } from 'cron';
 import pollRepo from '../poll/poll.repo';
 import noticeService from '../notice/notice.service';
 import { noticeCreateBody } from '../notice/notice.schema';
 import { assert } from 'superstruct';
 import boardRepo from '../board/board.repo';
-import { NotFound } from '@aws-sdk/client-s3';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 
-let lastRun: Date | null = null;
-
-export function startPollScheduler() {
-  const job = new CronJob('* * * * * *', async () => {
-    await runPollScheduler();
-    lastRun = new Date();
-  });
-  job.start();
-}
-
-export function getSchedulerStatus() {
-  return lastRun;
-}
-
-async function runPollScheduler() {
+export async function checkPollClosure() {
   // 투표 종료되면 poll.status 변경하고, notice 생성
   const closedPolls = await getClosedPolls();
   if (closedPolls.length > 0) await sendClosedPollNoti(closedPolls);

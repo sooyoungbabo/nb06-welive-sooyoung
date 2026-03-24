@@ -1,4 +1,7 @@
-import { ApprovalStatus, Prisma, Apartment, User, UserType } from '@prisma/client';
+import NotFoundError from '../../middleware/errors/NotFoundError';
+import ForbiddenError from '../../middleware/errors/ForbiddenError';
+import { getAptInfoByUserId, isSuperAdmin } from '../../lib/utils';
+import { ApprovalStatus, Apartment, UserType, Prisma } from '@prisma/client';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import aptRepo from './apartment.repo';
 import {
@@ -8,10 +11,9 @@ import {
   AptPublicResponseDto,
   AptResponseDto
 } from './apartment.dto';
-import ForbiddenError from '../../middleware/errors/ForbiddenError';
-import NotFoundError from '../../middleware/errors/NotFoundError';
-import { getAptInfoByUserId } from '../../lib/utils';
+import { adminSignupBody } from '../auth/auth.schema';
 
+//--------------------------------------- 아파트 목록 조회: public
 async function publicGetList(query: ApartmentQuery): Promise<AptListPublicResponseDto[]> {
   const queryParams = buildPublicListQueryParams(query);
   const where = buildWhere(queryParams);
@@ -19,61 +21,77 @@ async function publicGetList(query: ApartmentQuery): Promise<AptListPublicRespon
   return buildPublicAptListRes(apts);
 }
 
+//--------------------------------------- 아파트 상세 조회: public
 async function publicGet(aptId: string): Promise<AptPublicResponseDto> {
   const apt = await aptRepo.find({ where: { id: aptId } });
   if (!apt) throw new NotFoundError('아파트가 존재하지 않습니다.');
   return buildPublicAptRes(apt);
 }
 
+//--------------------------------------- 아파트 목록 조회: 최고관리자/관리자
 async function getList(
   userId: string,
   query: ApartmentQuery
 ): Promise<{ apartments: AptListResponseDto[]; totalCount: number }> {
+  // 쿼리 파라미터 구성
   const params = buildListQueryParams(query);
-
   const { skip, take } = buildPagination(params.pagination, {
     limitDefault: 20,
     limitMax: 100
   });
-  let where = buildWhere(params);
 
-  // 관리자인 경우, 담당 아파트만 보여줌
-  const { adminId } = await getAptInfoByUserId(userId);
-  if (adminId && adminId === userId)
-    where = {
-      AND: [where, { users: { some: { id: adminId, deletedAt: null } } }]
-    };
+  let whereTerms: Prisma.ApartmentWhereInput[] = [{ deletedAt: null }];
 
-  // 관계형 searchKey fields 추가: admin name/email
-  if (params.searchKey?.keyword)
-    addAdminRelationSearch(where, params.searchKey.keyword, params.relationSearch.admin);
+  if (!(await isSuperAdmin(userId))) {
+    const { apartmentId } = await getAptInfoByUserId(userId);
+    whereTerms.push({ id: apartmentId }); // 관리자인 경우 관리 아파트만 조회 가능
+  }
 
-  //console.dir(where, { depth: null });
+  const queryWhere = buildWhere(params);
+  if (Object.keys(queryWhere).length > 0) whereTerms.push(queryWhere);
+
+  let relationWhere;
+  if (params.searchKey.keyword) {
+    relationWhere = buildAdminRelationSearch(
+      params.searchKey.keyword,
+      params.relationSearch.admin
+    );
+    whereTerms.push(relationWhere);
+  }
+
+  const where = { AND: whereTerms };
+
   const args = {
     where,
     skip,
     take,
     include: {
       users: {
-        where: { id: adminId, deletedAt: null }, // 필요한 관리자 정보 가져옴
+        where: { role: UserType.ADMIN, deletedAt: null }, // 출력에 필요한 관리자 정보 가져옴
         select: { id: true, name: true, contact: true, email: true }
       }
     }
   };
+
+  // DB 조회
   const totalCount = await aptRepo.count({ where });
   const apts = await aptRepo.findMany(args);
+
   return { apartments: buildMemberAptListRes(apts), totalCount };
 }
 
+//--------------------------------------- 아파트 상세 조회: 최고관리자/관리자
 async function get(userId: string, aptId: string) {
-  const { adminId, apartmentId } = await getAptInfoByUserId(userId);
-  if (apartmentId && apartmentId !== aptId) throw new ForbiddenError(); // 권한 검증
-
+  if (!(await isSuperAdmin(userId))) {
+    const { apartmentId: adminAptId } = await getAptInfoByUserId(userId);
+    const isMyApt = adminAptId === aptId;
+    if (!isMyApt) throw new ForbiddenError(); // 권한: 내가 관리자인가
+  }
   const apt = await aptRepo.find({
     where: { id: aptId },
     include: {
       users: {
-        where: { id: adminId, deletedAt: null }, // 필요한 관리자 정보 가져옴
+        where: { role: UserType.ADMIN, deletedAt: null }, // 출력 시 필요한 관리자 정보 가져옴
         select: { id: true, name: true, contact: true, email: true }
       }
     }
@@ -92,7 +110,7 @@ function buildPublicListQueryParams(query: ApartmentQuery) {
 }
 
 function buildListQueryParams(query: ApartmentQuery) {
-  const { keyword, name, address, page, limit } = query;
+  const { name, address, keyword, page, limit } = query;
 
   const apartmentStatus =
     query.apartmentStatus === undefined || query.apartmentStatus === ''
@@ -109,19 +127,23 @@ function buildListQueryParams(query: ApartmentQuery) {
   };
 }
 
-function addAdminRelationSearch(where: any, keyword: string, adminFields: string[]) {
-  where.OR ??= [];
-
+function buildAdminRelationSearch(keyword: string, adminFields: string[]) {
   const adminBase = {
     role: UserType.ADMIN,
     deletedAt: null
   };
 
+  let searchTerms = [];
   for (const field of adminFields) {
-    where.OR.push({
-      users: { some: { ...adminBase, [field]: { contains: keyword, mode: 'insensitive' } } }
+    searchTerms.push({
+      users: {
+        some: { ...adminBase, [field]: { contains: keyword, mode: 'insensitive' } }
+      }
     });
   }
+
+  const where = { OR: searchTerms };
+  return where;
 }
 
 function buildPublicAptListRes(apts: Apartment[]): AptListPublicResponseDto[] {
