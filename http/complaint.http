@@ -5,9 +5,10 @@ POST {{baseUrl}}/complaints
 Content-Type: application/json
 
 {
-  "title": "101동 화단 근처 끽연",
-  "content": "근처에 놀이터가 있어 아이들 2차 흡연이 염려됩니다. 담배꽁초도 제대로 치우세요.",
-  "isPublic": true,
+  "title": "한밤중의 악기 연주",
+  "content": "201호에서 거의 매일 밤 11시 무렵 피아노를 쳐요. 말씀 좀 해주세요.",
+  "isPublic": false,
+  "boardId": "12e0f6d7-cee7-4afb-b4a0-eba30d365d6c",
   "status": "PENDING"
 }
 
@@ -16,26 +17,25 @@ GET {{baseUrl}}/complaints
 ### 전체 민원 조회: 검색
 ### status, isPublic, dong, ho, 
 ### keyword(title, content)
-GET {{baseUrl}}/complaints?keyword=의심
+GET {{baseUrl}}/complaints?isPublic=false
 
 ### 민원 상세 조회
-GET {{baseUrl}}/complaints/b02d3c2a-deac-49bc-8adb-4c9bce336a9f
-
+GET {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
 ### 사용자: 민원 수정
-PATCH {{baseUrl}}/complaints/b02d3c2a-deac-49bc-8adb-4c9bce336a9f
+PATCH {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
 Content-Type: application/json
 
 {
-  "title": "101동 화단 근처 끽연",
-  "content": "근처에 놀이터가 있어 아이들 2차 흡연이 염려됩니다.",
-  "isPublic": true
+  "title": "101동 화단 근처 흡연",
+  "content": "근처에 놀이터가 있어 아이들 간접 흡연이 염려됩니다.",
+  "isPublic": false
 }
 
 ### 민원 삭제
-DELETE {{baseUrl}}/complaints/5d335528-769b-45cd-891e-b7d69b891f98
+DELETE {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
 
-### 슈퍼관리자, 관리자: 민원 수정
-PATCH {{baseUrl}}/complaints/ee9cc55a-970d-472e-9763-e518250910b9/status
+### 슈퍼관리자, 관리자: 민원상태 변경
+PATCH {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7/status
 Content-Type: application/json
 
 {

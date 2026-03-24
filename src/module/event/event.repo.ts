@@ -6,7 +6,9 @@ async function create(db: DB, args: Prisma.EventCreateArgs) {
   return db.event.create(args);
 }
 
-async function find(args: Prisma.EventFindUniqueArgs) {
+async function find<T extends Prisma.EventFindUniqueArgs>(
+  args: Prisma.SelectSubset<T, Prisma.EventFindUniqueArgs>
+): Promise<Prisma.EventGetPayload<T> | null> {
   return prisma.event.findUnique(args);
 }
 
@@ -21,13 +23,18 @@ async function upsert(db: DB, args: Prisma.EventUpsertArgs) {
   return db.event.upsert(args);
 }
 
-async function del(args: Prisma.EventDeleteArgs) {
-  return prisma.event.delete(args);
+async function update(db: DB, args: Prisma.EventUpdateArgs) {
+  return db.event.update(args);
+}
+
+async function del(db: DB, args: Prisma.EventDeleteArgs) {
+  return db.event.delete(args);
 }
 
 export default {
   create,
   upsert,
+  update,
   find,
   findMany,
   del

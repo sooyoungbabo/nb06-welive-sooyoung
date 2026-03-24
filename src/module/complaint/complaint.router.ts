@@ -35,6 +35,7 @@ complaintRouter.get(
 );
 
 // 민원 상세 조회
+// 비공개는 작성자와 관리자만 조회 가능
 complaintRouter.get(
   '/:complaintId',
   authenticate(),
@@ -43,7 +44,7 @@ complaintRouter.get(
   withTryCatch(complaintControl.get)
 );
 
-// 일반 유저 민원 수정: 유저, 관리자
+// 일반 유저 민원 수정: 유저
 complaintRouter.patch(
   '/:complaintId',
   authenticate(),

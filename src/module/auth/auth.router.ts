@@ -7,7 +7,8 @@ import { UserType } from '@prisma/client';
 import { validateParams, validateBody } from '../../middleware/validateReq';
 import {
   adminSignupBody,
-  authParams,
+  authAdminParams,
+  authResidentParams,
   authStatusBody,
   loginBody,
   patchAdminBody,
@@ -18,7 +19,11 @@ import {
 const authRouter = express.Router();
 
 // 가입신청
-authRouter.post('/signup', validateBody(userSignupBody), withTryCatch(authControl.signup));
+authRouter.post(
+  '/signup',
+  validateBody(userSignupBody),
+  withTryCatch(authControl.signup)
+);
 authRouter.post(
   '/signup/admin',
   validateBody(adminSignupBody),
@@ -32,7 +37,7 @@ authRouter.post(
 
 // 로그인 / 로그아웃
 authRouter.post('/login', validateBody(loginBody), withTryCatch(authControl.login));
-authRouter.post('/logout', withTryCatch(authControl.logout));
+authRouter.post('/logout', authenticate(), withTryCatch(authControl.logout));
 
 // 토큰 재발행
 authRouter.post('/refresh', withTryCatch(authControl.issueTokens));
@@ -59,7 +64,7 @@ authRouter.patch(
   '/admins/:adminId/status',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
-  validateParams(authParams),
+  validateParams(authAdminParams),
   validateBody(authStatusBody),
   withTryCatch(authControl.changeAdminStatus)
 );
@@ -78,7 +83,7 @@ authRouter.patch(
   '/admins/:adminId',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
-  validateParams(authParams),
+  validateParams(authAdminParams),
   validateBody(patchAdminBody),
   withTryCatch(authControl.patchAdminApt)
 );
@@ -88,7 +93,7 @@ authRouter.delete(
   '/admins/:adminId',
   authenticate(),
   authorize(UserType.SUPER_ADMIN),
-  validateParams(authParams),
+  validateParams(authAdminParams),
   withTryCatch(authControl.deleteAdmin)
 );
 
@@ -97,7 +102,7 @@ authRouter.patch(
   '/residents/:residentId/status',
   authenticate(),
   authorize(UserType.ADMIN),
-  validateParams(authParams),
+  validateParams(authResidentParams),
   validateBody(authStatusBody),
   withTryCatch(authControl.changeResidentStatus)
 );

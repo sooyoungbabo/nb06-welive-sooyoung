@@ -1,21 +1,28 @@
 @baseUrl = http://localhost:3000
 
+# 명부 회원은 가입신청과 삭제만 있음
+# 가입신청 승인은 user 가입신청을 하면서 동시에 이루어지게 되어 있음
+# welive 활동의 주체는 user이라서? 아마도.
+# 가입승인은 user, resident가 함께 가지만, auth/cleanup 즉 거절 후 삭제는?
+# 명부 only 회원은 auth/cleanup 대상이 아닌 것으로 구현.
+# 사용자 계정이 없는 명부 only 회원은 welive에서는 명목상의 존재.
+
 # 모두 관리자 권한
 ### 입주민 목록 조회
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents
+GET {{baseUrl}}/residents?isRegistered=true&building=101
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json
 
 {
-  "building": "102",
-  "unitNumber": "301",
-  "contact": "010-2320-6192",
-  "name": "홍길동",
-  "isHouseholder": "HOUSEHOLDER"
+  "building": "101",
+  "unitNumber": "101",
+  "contact": "010-9498-9518",
+  "name": "잘지내니탱이",
+  "isHouseholder": "MEMBER"
 }
 
 ### 계정 생성 시에는 언제나 resident도 생기고 있기 때문에...
@@ -48,24 +55,22 @@ Content-Type: text/csv
 ### building, unitNumber
 ### residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents/file?limit=10
-###
-GET {{baseUrl}}/residents/file?isRegistered=false
+GET {{baseUrl}}/residents/file?isRegistered=true&building=201
 
 ### 입주민 상세 조회
-GET {{baseUrl}}/residents/cf78be30-e187-4f03-931e-26e58d1c6842
-###
+GET {{baseUrl}}/residents/5c0fa861-57e6-4c6c-b8d2-3db631c83a3e
 
-PATCH {{baseUrl}}/residents/cf78be30-e187-4f03-931e-26e58d1c6842
+###
+PATCH {{baseUrl}}/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941
 Content-Type: application/json
 
 {
-  "building": "202",
+  "building": "101",
   "unitNumber": "101",
-  "contact": "010-9498-9526",
-  "name": "정수영",
+  "contact": "010-1234-5672",
+  "name": "언니없는홍련이",
   "isHouseholder": "HOUSEHOLDER"
 }
 
 ###
-DELETE {{baseUrl}}/residents/cf78be30-e187-4f03-931e-26e58d1c6842
+DELETE {{baseUrl}}/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941

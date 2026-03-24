@@ -1,4 +1,5 @@
 import multer from 'multer';
+import path from 'path';
 import BadRequestError from './errors/BadRequestError';
 
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
@@ -10,12 +11,24 @@ export const uploadImage = multer({
   limits: { fileSize: FILE_SIZE_LIMIT }, // 파일 크기 설정
 
   fileFilter: function (req, file, cb) {
-    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-      const err = new BadRequestError('png, jpeg, jpg 확장자만 가능합니다.');
-      return cb(err); //파일 확장자 확인
+    const allowedExt = ['.png', '.jpg', '.jpeg'];
+
+    const ext = path.extname(file.originalname).toLowerCase();
+
+    if (!ALLOWED_MIME_TYPES.includes(file.mimetype) || !allowedExt.includes(ext)) {
+      return cb(new BadRequestError('png, jpeg, jpg만 가능합니다.'));
     }
+
     cb(null, true);
   }
+
+  //   fileFilter: function (req, file, cb) {
+  //     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+  //       const err = new BadRequestError('png, jpeg, jpg 확장자만 가능합니다.');
+  //       return cb(err); //파일 확장자 확인
+  //     }
+  //     cb(null, true);
+  //   }
 });
 
 export const uploadFile = multer({

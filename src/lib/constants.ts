@@ -19,8 +19,8 @@ export const REFRESH_TOKEN_EXPIRESIN = '1d';
 export const ACCESS_TOKEN_MAXAGE = 10 * 60 * 60 * 1000; // 1 hour
 export const REFRESH_TOKEN_MAXAGE = 1 * 24 * 60 * 60 * 1000; // 1 day
 
-// image paths
-export const STATIC_IMG_PATH = path.resolve(process.cwd(), 'uploads'); //pc경로 루트디렉토리의 images
+// image paths: pc경로 루트디렉토리의 images
+export const STATIC_IMG_PATH = path.resolve(process.cwd(), 'uploads/welive');
 
 // validate req.body
 export const allowedProductKeys = ['name', 'description', 'price', 'tags'];

@@ -130,7 +130,7 @@ async function main() {
   const notiData = admins.map((a, i) => ({
     notiType: NotificationType.AUTH_ADMIN_APPLIED,
     targetId: admins[i].id,
-    content: `[알림]: 가입신청 (${admins[i].name}님)`,
+    content: `[알림] 가입신청 (${admins[i].name}님)`,
     isChecked: true,
     receiverId: superAdminCreated.id
   }));
@@ -277,7 +277,7 @@ async function main() {
         data: {
           notiType: NotificationType.COMPLAINT_RAISED,
           targetId: complaintCreated.id,
-          content: `[알림] 민원등록 (${complainant.name}님)`,
+          content: `[알림] 민원등록 (${complainant.name}님, ${complaintCreated.title})`,
           isChecked: true,
           receiver: { connect: { id: adminId } }
         }
@@ -287,7 +287,7 @@ async function main() {
         data: {
           notiType: NotificationType.COMPLAINT_RESOLVED,
           targetId: complaintCreated.id,
-          content: `[알림] 민원종결 (${complainant.name}님)`,
+          content: `[알림] 민원종결 (${complainant.name}님, ${complaintCreated.title})`,
           isChecked: true,
           receiver: { connect: { id: complainantId } }
         }
@@ -306,9 +306,9 @@ async function main() {
         category: randomType,
         startDate: item.startDate ? new Date(item.startDate) : null,
         endDate: item.endDate ? new Date(item.endDate) : null,
-        title: item.title,
+        title: `[공지] ${randomType} (${item.title})`,
         content: item.content,
-        viewCount: getRandomNo(users.length - 3, users.length * 2),
+        viewCount: getRandomNo(users.length - 3, users.length * 1.5),
         board: { connect: { id: boardId_notice } },
         admin: { connect: { id: adminId } }
       };

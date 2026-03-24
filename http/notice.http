@@ -5,23 +5,25 @@ POST {{baseUrl}}/notices
 Content-Type: application/json
 
 {
-  "category": "MAINTENANCE",
-  "title": "승강기 정기점검에 따른 일시 운행 중단 안내",
-  "content": "매월 실시하는 승강기 정기점검으로 아래와 같이 각 승강기 별로 일시 운행 중단",
-  "boardId": "058b0ec2-c0c7-47b0-b915-2d407bc7b1b7",
+  "category": "RESIDENT_VOTE",
+  "title": "[공지] 봄맞이 아파트 야유회 날짜 투표",
+  "content": "매년 개최하는 봄맞이 야유회 날짜을 정하는 투표가 곧 시작됩니다. 참여해 주세요. ",
+  "boardId": "7bd7e606-8b5e-4c03-bd0f-50af4e4fca32",
   "isPinned": false,
-  "startDate": "2026-03-14 13:00:00",
-  "endDate": "2026-03-14 13:10:00"
+  "startDate": "2026-03-19 13:43:00",
+  "endDate": "2026-03-19 13:44:00"
 }
 
 ### 공지사항 전체 조회
 ### page, limit(11)
 ### category
 ### keyword: title, content
-GET {{baseUrl}}/notices?keyword=정기
+GET {{baseUrl}}/notices
+###
+GET {{baseUrl}}/notices?category=RESIDENT_VOTE
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/f3d9771c-8272-4515-983b-d6e7c2b37c64
+GET {{baseUrl}}/notices/d90dd273-01ac-4535-bb10-7c96f342211f
 
 ### 공지사항 수정
 PATCH {{baseUrl}}/notices/f3d9771c-8272-4515-983b-d6e7c2b37c64

@@ -36,11 +36,19 @@ async function del<T extends Prisma.CommentDeleteArgs>(
   return prisma.comment.delete(args);
 }
 
+async function deleteMany<T extends Prisma.CommentDeleteManyArgs>(
+  db: DB,
+  args: Prisma.SelectSubset<T, Prisma.CommentDeleteManyArgs>
+): Promise<Prisma.BatchPayload> {
+  return prisma.comment.deleteMany(args);
+}
+
 export default {
   create,
   find,
   findMany,
   count,
   patch,
-  del
+  del,
+  deleteMany
 };

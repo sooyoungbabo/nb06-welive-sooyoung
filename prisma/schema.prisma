@@ -198,7 +198,7 @@ model PollOption {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  poll  Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  poll  Poll   @relation(fields: [pollId], references: [id])
   votes Vote[]
 
   @@map("poll_options")
@@ -212,8 +212,8 @@ model Vote {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  poll    Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
-  options PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  poll    Poll       @relation(fields: [pollId], references: [id])
+  options PollOption @relation(fields: [optionId], references: [id])
   voter   User       @relation(fields: [voterId], references: [id])
 
   @@unique([pollId, voterId])
@@ -345,8 +345,6 @@ enum NotificationType {
   NOTICE
   COMPLAINT_RAISED
   COMPLAINT_RESOLVED
-  POLL_START
-  POLL_CLOSED
 }
 
 enum EventType {

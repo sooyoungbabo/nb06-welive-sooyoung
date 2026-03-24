@@ -27,8 +27,8 @@ async function update<T extends Prisma.NoticeUpdateArgs>(
   return db.notice.update(args);
 }
 
-async function del(args: Prisma.NoticeDeleteArgs) {
-  return prisma.notice.delete(args);
+async function del(db: DB, args: Prisma.NoticeDeleteArgs) {
+  return db.notice.delete(args);
 }
 
 export default {

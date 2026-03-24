@@ -1,5 +1,5 @@
 import { array, enums, integer, min, object, optional, partial, size, string } from 'superstruct';
-import { dateFromStrStruct, str4numStruct } from '../../middleware/commonStructs';
+import { dateFromStrStruct, str4numStruct, uuidStruct } from '../../middleware/commonStructs';
 
 //-------------------------------------------- Params schema
 export const pollParams = object({
@@ -12,6 +12,7 @@ const pollOption = object({
 });
 
 export const pollCreateBody = object({
+  boardId: uuidStruct,
   status: enums(['PENDING', 'IN_PROGRESS', 'CLOSED']),
   title: size(string(), 1, 200),
   content: string(),

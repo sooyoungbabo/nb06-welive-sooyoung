@@ -20,6 +20,10 @@ async function findMany<T extends Prisma.BoardFindManyArgs>(
   return prisma.board.findMany(args);
 }
 
+async function count(db: DB, args: Prisma.BoardCountArgs) {
+  return db.board.count(args);
+}
+
 async function createMany(
   db: DB,
   data: Prisma.BoardCreateManyInput[]
@@ -27,7 +31,10 @@ async function createMany(
   return db.board.createMany({ data });
 }
 
-async function updateMany(db: DB, args: Prisma.BoardUpdateManyArgs): Promise<Prisma.BatchPayload> {
+async function updateMany(
+  db: DB,
+  args: Prisma.BoardUpdateManyArgs
+): Promise<Prisma.BatchPayload> {
   return db.board.updateMany(args);
 }
 
@@ -39,6 +46,7 @@ export default {
   find,
   findFirst,
   findMany,
+  count,
   createMany,
   updateMany,
   deleteMany

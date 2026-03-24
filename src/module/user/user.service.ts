@@ -9,7 +9,7 @@ import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import { PatchUser } from './user.struct';
 import imgStorage from '../../storage/image.storage';
 import userRepo from './user.repo';
-import { BASE_URL } from '../../lib/constants';
+import { BASE_URL, STATIC_IMG_PATH } from '../../lib/constants';
 
 async function getList(sortParam: Prisma.SortOrder) {
   const users = await userRepo.getList({ orderBy: { createdAt: sortParam } });
@@ -56,11 +56,10 @@ async function postAvatar(file: Express.Multer.File, id: string) {
 
   const user = await userRepo.find({ where: { id }, select: { username: true, name: true } });
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
-  const key = `images/${user.username}${normalizedExt}`;
-  //const key = `welive/images/${id}${normalizedExt}`;
+  const key = `${user.username}${normalizedExt}`;
 
-  await imgStorage.saveImg(key, file);
-  const newImageUrl = `${BASE_URL}/${key}`;
+  await imgStorage.saveImg(key, file); // 서버가 업로드
+  const newImageUrl = `${BASE_URL}/images/${key}`; // app.use 에서 선언한 가짜 url을 여기서 만듬
 
   // DB에 새 imageUrl 저장
   await userRepo.patch(prisma, { where: { id }, data: { avatar: newImageUrl } });

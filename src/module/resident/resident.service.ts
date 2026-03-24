@@ -1,77 +1,106 @@
-import { Resident, Prisma, HouseholdRole, ResidenceStatus, ApprovalStatus } from '@prisma/client';
 import path from 'path';
 import fs from 'fs/promises';
-import { assert } from 'superstruct';
-import { CreateResident } from './resident.struct';
-import { AuthUser } from '../../type/express';
-import { requireApartmentUser } from '../../lib/require';
-import BadRequestError from '../../middleware/errors/BadRequestError';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import prisma from '../../lib/prisma';
 import residentRepo from './resident.repo';
 import userRepo from '../user/user.repo';
-import apartmentRepo from '../apartment/apartment.repo';
+import {
+  getAptInfoByResidentId,
+  getAptInfoByUserId,
+  validateAptDongHo
+} from '../../lib/utils';
 import { buildPagination, buildWhere } from '../../lib/buildQuery';
 import { getTimestamp } from '../../lib/myFuns';
+import { CreateResident } from './resident.struct';
+import { assert } from 'superstruct';
+import {
+  Resident,
+  Prisma,
+  HouseholdRole,
+  ResidenceStatus,
+  ApprovalStatus
+} from '@prisma/client';
 import {
   ResidentCreateRequestDto,
   ResidentCsvItem,
   ResidentListDto,
   ResidentQueryDto
 } from './resident.dto';
-import { validateDongHo } from '../../lib/utils';
 
-// 입주민 목록 조회
+//---------------------------------------- 입주민 목록 조회
+// page, limit (default 20, max 100)
+// filters: building, unitNumber
+// exactFilters: residenceStatus, isRegistered
+// keyword 검색: 검색필드는 name, ontact
 async function getList(
-  adminApartmentId: string,
+  userId: string,
   query: ResidentQueryDto
 ): Promise<{
   residents: ResidentListDto[];
   totalCount: number;
 }> {
+  const { apartmentId } = await getAptInfoByUserId(userId);
+
+  const baseWhere = {
+    apartmentId,
+    deletedAt: null
+  };
+
+  // 검색 파라미터 구성
   const queryParams = buildQueryParams(query);
   const { skip, take } = buildPagination(queryParams.pagination, {
     limitDefault: 20,
     limitMax: 100
   });
-  const where: Prisma.ResidentWhereInput = buildWhere({
-    searchKey: queryParams.searchKey,
-    filters: queryParams.filters,
-    exactFilters: { ...queryParams.exactFilters, apartmentId: adminApartmentId }
-  });
 
-  const totalCount = await residentRepo.count(where);
-  const rawResidents = await residentRepo.getList(where, skip, take);
-  const residents = buildResidentListRes(rawResidents);
+  const queryWhere: Prisma.ResidentWhereInput =
+    buildWhere({
+      searchKey: queryParams.searchKey,
+      filters: queryParams.filters,
+      exactFilters: queryParams.exactFilters
+    }) ?? {};
 
-  return { residents, totalCount };
-}
-
-// 입주민 리소스 생성 (개별 등록)
-async function post(admin: AuthUser, data: ResidentCreateRequestDto): Promise<ResidentListDto> {
-  // validation: 아파트, 동, 호
-  requireApartmentUser(admin);
-  const apt = await apartmentRepo.find({ where: { id: admin.apartmentId } });
-  if (!apt) throw new BadRequestError('아파트가 존재하지 않습니다.');
-  validateDongHo(data.apartmentDong, data.apartmentHo, apt);
-
-  let resident;
-  const residentData = {
-    ...data,
-    apartment: { connect: { id: admin.apartmentId } }
+  // 최종 where
+  const where: Prisma.ResidentWhereInput = {
+    AND: [baseWhere, queryWhere]
   };
 
-  const user = await userRepo.find({ where: { contact: data.contact } });
+  const totalCount = await residentRepo.count({ where });
+  const rawResidents = await residentRepo.findMany({
+    where,
+    skip,
+    take,
+    orderBy: { createdAt: 'desc' }
+  });
 
-  if (!user) resident = await residentRepo.create(prisma, residentData);
-  else
-    // 현재는 이런 경우가 있을 수 없음. 입주민 user 계정이 만들어질 때 resident도 생성되므로
-    resident = await residentRepo.create(prisma, {
-      ...residentData,
-      user: { connect: { id: user.id } }
-    });
+  return {
+    residents: buildResidentListRes(rawResidents),
+    totalCount
+  };
+}
 
+//---------------------------------------- 명부only 입주민 리소스 생성 (개별 등록)
+// userId, email은 null, isRegistered = false
+// 승인 절차가 따로 없고 user계정 등록할 때 트랜젝션으로 함께 승인
+//                     그러면 userId, email = nn, isRegistered = true
+async function post(
+  userId: string,
+  data: ResidentCreateRequestDto
+): Promise<ResidentListDto> {
+  // validation: 아파트, 동, 호
+  const { apartmentId, apartmentName } = await getAptInfoByUserId(userId);
+  validateAptDongHo(apartmentName, data.apartmentDong, data.apartmentHo);
+
+  // DB Resident 생성
+  const resident = await residentRepo.create(prisma, {
+    data: {
+      ...data,
+      isRegistered: false, // 명부only
+      apartment: { connect: { id: apartmentId } }
+    }
+  });
+  // 출력 양식에 맞춰 포맷하고 리턴
   return buildResidentRes(resident);
 }
 
@@ -79,11 +108,11 @@ async function post(admin: AuthUser, data: ResidentCreateRequestDto): Promise<Re
 // async function user2resident(userId: string): Promise<Resident> {
 //   const user = await userRepo.findById(userId);
 //   let message: string;
-//   if (!user) throw new BadRequestError('존재하지 않는 사용자입니다.');
-//   if (!user.apartmentId) throw new BadRequestError('아파트ID가 없는 사용자입니다.');
+//   if (!user) throw new NotFoundError('존재하지 않는 사용자입니다.');
+//   if (!user.apartmentId) throw new NotFoundError('아파트ID가 없는 사용자입니다.');
 
 //   const resident = await residentRepo.find(prisma, { where: { userId } });
-//   if (resident) throw new BadRequestError('이미 입주민 명부에 추가된 사용자입니다.');
+//   if (resident) throw new NotFoundError('이미 입주민 명부에 추가된 사용자입니다.');
 
 //   const data = {
 //     apartmentDong: '999', // user에도 중복으로 넣어야 할 듯
@@ -99,7 +128,7 @@ async function post(admin: AuthUser, data: ResidentCreateRequestDto): Promise<Re
 //   });
 // }
 
-// 입주민 업로드용 템플릿 다운로드
+//---------------------------------------- 입주민 업로드용 템플릿 다운로드
 function downloadTemplateCsv(): string {
   return (
     '\ufeff' +
@@ -111,17 +140,20 @@ function downloadTemplateCsv(): string {
   );
 }
 
-// 파일로부터 입주민 리소스 생성
-async function createManyFromFile(adminApartmentId: string, buffer: Buffer): Promise<number> {
+//---------------------------------------- 파일로부터 입주민 리소스 생성
+async function createManyFromFile(userId: string, buffer: Buffer): Promise<number> {
   const text = buffer.toString('utf-8').replace(/^\uFEFF/, '');
+
+  const { apartmentId, apartmentName } = await getAptInfoByUserId(userId);
 
   let residentData = [];
   const rows = text.split('\n').slice(1);
+
   for (const row of rows) {
     const [dong, ho, name, contact, role] = row.replace(/"/g, '').split(',');
 
     const tempData = {
-      apartmentId: adminApartmentId,
+      apartmentId,
       apartmentDong: dong,
       apartmentHo: ho,
       name,
@@ -131,34 +163,52 @@ async function createManyFromFile(adminApartmentId: string, buffer: Buffer): Pro
       residenceStatus: ResidenceStatus.RESIDENCE,
       approvalStatus: ApprovalStatus.PENDING
     };
-
     // validation: 아파트, 동, 호
-    const apt = await apartmentRepo.find({ where: { id: adminApartmentId } });
-    if (!apt) throw new NotFoundError('관리자 아파트가 존재하지 않습니다.');
-    validateDongHo(dong, ho, apt);
+    validateAptDongHo(apartmentName, dong, ho);
 
-    // assert(tempData, CreateResident);
+    assert(tempData, CreateResident);
     residentData.push(tempData);
   }
   const residents = await residentRepo.createMany(prisma, residentData);
   return residents.count;
 }
 
-// 입주민 목록 파일 다운로드
-async function downloadListCsv(adminApartmentId: string, query: ResidentQueryDto): Promise<string> {
+//---------------------------------------- 입주민 목록 파일 다운로드
+async function downloadListCsv(userId: string, query: ResidentQueryDto): Promise<string> {
+  const { apartmentId } = await getAptInfoByUserId(userId);
+
+  // 쿼리 파라미터 구성
   const queryParams = buildQueryParams(query);
   const { skip, take } = buildPagination(queryParams.pagination, {
     limitDefault: 20,
     limitMax: 100
   });
-  const where: Prisma.ResidentWhereInput = buildWhere({
-    searchKey: queryParams.searchKey,
-    filters: queryParams.filters,
-    exactFilters: { ...queryParams.exactFilters, apartmentId: adminApartmentId }
+
+  const baseWhere = {
+    apartmentId, // 관리 중인 아파트로 한정
+    deletedAt: null
+  };
+
+  const queryWhere =
+    buildWhere({
+      searchKey: queryParams.searchKey,
+      filters: queryParams.filters,
+      exactFilters: queryParams.exactFilters
+    }) ?? {};
+
+  const where: Prisma.ResidentWhereInput = {
+    AND: [baseWhere, queryWhere]
+  };
+
+  // DB 조회
+  const residents = await residentRepo.findMany({
+    where,
+    skip,
+    take,
+    orderBy: { createdAt: 'desc' }
   });
 
-  const residents = await residentRepo.getList(where, skip, take);
-
+  // 출력용 데이터로 재가공
   const items: ResidentCsvItem[] = residents.map((r) => ({
     apartmentDong: r.apartmentDong,
     apartmentHo: r.apartmentHo,
@@ -185,98 +235,97 @@ async function downloadListCsv(adminApartmentId: string, query: ResidentQueryDto
   return csv;
 }
 
-// 입주민 상세 조회
-async function get(AdminApartmentId: string, residentId: string): Promise<ResidentListDto> {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
+//---------------------------------------- 입주민 상세 조회
+async function get(userId: string, residentId: string): Promise<ResidentListDto> {
+  const { adminId: residentAdminId } = await getAptInfoByResidentId(residentId);
+
+  const isAdmin = userId === residentAdminId;
+  if (!isAdmin) throw new ForbiddenError(); // 권한: 나 = 입주민 아파트 관리자
+
+  const resident = await residentRepo.find(prisma, {
+    where: { id: residentId, deletedAt: null }
+  });
   if (!resident) throw new NotFoundError('입주민이 존재하지 않습니다.');
-  if (resident.apartmentId != AdminApartmentId) throw new ForbiddenError(); // 권한
   return buildResidentRes(resident);
 }
 
-// 입주민 정보 수정
+//---------------------------------------- 입주민 정보 수정
 async function patch(
-  adminApartmentId: string,
+  userId: string,
   residentId: string,
   residentData: Prisma.ResidentUpdateInput,
   userData: Prisma.UserUpdateInput
 ) {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
-  if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
-  if (adminApartmentId !== resident.apartmentId) throw new ForbiddenError();
+  // 권한 체크: 나 = 입주민 아파트 관리자이어야 함
+  const {
+    adminId: residentAdminId,
+    userId: residentUserId,
+    apartmentId
+  } = await getAptInfoByResidentId(residentId);
 
-  if (!resident.userId) {
-    // 계정이 없는 입주민인 경우
-    return residentRepo.patch(prisma, {
-      where: { id: residentId, apartmentId: adminApartmentId },
+  const isAdmin = userId === residentAdminId;
+  if (!isAdmin) throw new ForbiddenError();
+
+  // DB 트랜젝션: Resident/User 수정
+  return prisma.$transaction(async (tx) => {
+    const resident = await residentRepo.patch(tx, {
+      where: { id: residentId, apartmentId },
       data: residentData
     });
-  } else {
-    // 계정이 있는 입주민인 경우
-    return prisma.$transaction(async (tx) => {
-      const resident = await residentRepo.patch(tx, {
-        where: { id: residentId, apartmentId: adminApartmentId },
-        data: residentData
-      });
+
+    // User 계정이 있는 명부 입주민인 경우
+    if (residentUserId)
       await userRepo.patch(tx, {
-        where: { id: resident.userId!, apartmentId: adminApartmentId },
+        where: { id: residentUserId, apartmentId },
         data: userData
       });
-      return resident;
-    });
-  }
+    return resident;
+  });
 }
 
-// 입주민 정보 삭제
-async function del(adminApartmentId: string, residentId: string) {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
-  if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
-  if (resident.apartmentId != adminApartmentId) throw new ForbiddenError(); //
+//---------------------------------------- 입주민 정보 삭제
+// 개발환경에서는 진짜 삭제
+async function del(userId: string, residentId: string) {
+  const { adminId: residentAdminId, userId: residentUserId } =
+    await getAptInfoByResidentId(residentId);
 
-  if (!resident.userId)
-    return await residentRepo.del(prisma, {
-      where: { id: residentId, apartmentId: adminApartmentId }
+  const isAdmin = userId === residentAdminId;
+  if (!isAdmin) throw new ForbiddenError();
+
+  await prisma.$transaction(async (tx) => {
+    const resident = await residentRepo.del(tx, {
+      where: { id: residentId }
     });
-  else {
-    const deleted = await prisma.$transaction(async (tx) => {
-      const resident = await residentRepo.del(tx, {
-        where: { id: residentId, apartmentId: adminApartmentId }
-      });
+    // 사용자 계정이 있는 입주민인 경우
+    if (residentUserId)
       await userRepo.del(tx, {
-        where: { id: resident.userId!, apartmentId: adminApartmentId }
+        where: { id: residentUserId }
       });
-      return resident;
-    });
-    return deleted;
-  }
+  });
 }
 
-async function softDel(adminApartmentId: string, residentId: string) {
-  const resident = await residentRepo.find(prisma, { where: { id: residentId } });
-  if (!resident) throw new NotFoundError('입주자가 존재하지 않습니다.');
-  if (resident.apartmentId != adminApartmentId) throw new ForbiddenError(); //
+// 배포 환경에서는 soft-delete
+async function softDel(userId: string, residentId: string) {
+  const { adminId: residentAdminId, userId: residentUserId } =
+    await getAptInfoByResidentId(residentId);
 
-  if (!resident.userId)
-    return await residentRepo.patch(prisma, {
-      where: { id: residentId, apartmentId: adminApartmentId },
+  const isAdmin = userId === residentAdminId;
+  if (!isAdmin) throw new ForbiddenError();
+
+  await prisma.$transaction(async (tx) => {
+    const resident = await residentRepo.patch(prisma, {
+      where: { id: residentId },
       data: { deletedAt: new Date() }
     });
-  else {
-    const deleted = await prisma.$transaction(async (tx) => {
-      const resident = await residentRepo.patch(tx, {
-        where: { id: residentId, apartmentId: adminApartmentId },
-        data: { deletedAt: new Date() }
-      });
+    if (residentUserId)
       await userRepo.patch(tx, {
-        where: { id: resident.userId!, apartmentId: adminApartmentId },
+        where: { id: residentUserId },
         data: { deletedAt: new Date() }
       });
-      return resident;
-    });
-    return deleted;
-  }
+  });
 }
-//----------------------------------------------------------- 지역 함수
 
+//----------------------------------------------------------- 지역 함수
 function buildQueryParams(query: ResidentQueryDto) {
   const { page, limit } = query;
   const { keyword } = query;
@@ -287,7 +336,8 @@ function buildQueryParams(query: ResidentQueryDto) {
       ? undefined
       : (query.residenceStatus as ResidenceStatus);
 
-  const isRegistered = query.isRegistered === undefined ? undefined : query.isRegistered === 'true';
+  const isRegistered =
+    query.isRegistered === undefined ? undefined : query.isRegistered === 'true';
 
   return {
     pagination: { page, limit },

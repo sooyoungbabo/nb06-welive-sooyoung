@@ -1,5 +1,18 @@
-import { boolean, enums, object, optional, partial, size, string } from 'superstruct';
-import { dateFromStrStruct, str4numStruct, uuidStruct } from '../../middleware/commonStructs';
+import {
+  boolean,
+  date,
+  enums,
+  object,
+  optional,
+  partial,
+  size,
+  string
+} from 'superstruct';
+import {
+  dateFromStrStruct,
+  str4numStruct,
+  uuidStruct
+} from '../../middleware/commonStructs';
 
 //-------------------------------------------- Params schema
 export const noticeParams = object({
@@ -12,8 +25,8 @@ export const noticeCreateBody = object({
     'MAINTENANCE',
     'EMERGENCY',
     'COMMUNITY',
-    'RESIDENCE_VOTE',
-    'RESIDENCE_COUNCIL',
+    'RESIDENT_VOTE',
+    'RESIDENT_COUNCIL',
     'ETC'
   ]),
   title: size(string(), 1, 200),
@@ -21,7 +34,26 @@ export const noticeCreateBody = object({
   boardId: uuidStruct,
   isPinned: boolean(),
   startDate: dateFromStrStruct,
-  endDate: dateFromStrStruct
+  endDate: dateFromStrStruct,
+  pollId: optional(uuidStruct)
+});
+
+export const pollNoticeCreateBody = object({
+  category: enums([
+    'MAINTENANCE',
+    'EMERGENCY',
+    'COMMUNITY',
+    'RESIDENT_VOTE',
+    'RESIDENT_COUNCIL',
+    'ETC'
+  ]),
+  title: size(string(), 1, 200),
+  content: string(),
+  boardId: uuidStruct,
+  isPinned: boolean(),
+  startDate: date(),
+  endDate: date(),
+  pollId: uuidStruct
 });
 
 export const noticePatchBody = partial({
@@ -42,16 +74,19 @@ export const noticePatchBody = partial({
   userId: uuidStruct
 });
 
-// export const NoticeTypeBody = object({
-//   status: enums(['PENDING', 'IN_PROGRESS', 'CLOSED'])
-// });
-
 //-------------------------------------------- Query schema
 export const NoticeQueryShape = {
   page: optional(str4numStruct),
   limit: optional(str4numStruct),
   category: optional(
-    enums(['MAINTENANCE', 'EMERGENCY', 'COMMUNITY', 'RESIDENCE_VOTE', 'RESICENCE_COUNCIL', 'ETC'])
+    enums([
+      'MAINTENANCE',
+      'EMERGENCY',
+      'COMMUNITY',
+      'RESIDENT_VOTE',
+      'RESICENT_COUNCIL',
+      'ETC'
+    ])
   ),
   keyword: optional(size(string(), 1, 100)) // title, content
 };

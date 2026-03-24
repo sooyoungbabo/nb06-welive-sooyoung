@@ -1,10 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import {
-  defaultNotFoundHandler,
-  globalErrorHandler
-} from './middleware/errorHandler';
+import { defaultNotFoundHandler, globalErrorHandler } from './middleware/errorHandler';
 import authRouter from './module/auth/auth.router';
 import userRouter from './module/user/user.router';
 import aptRouter from './module/apartment/apartment.router';
@@ -19,7 +16,7 @@ import voteRouter from './module/pollVote/vote.router';
 import commentRouter from './module/comment/comment.router';
 import eventRouter from './module/event/event.router';
 import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
-import { startPollScheduler } from './module/pollScheduler/pollSchedular';
+import { startSystemScheduler } from './scheduler/systemScheduler';
 
 const app = express();
 app.use(express.json());
@@ -33,8 +30,7 @@ app.use(
   })
 );
 
-if (NODE_ENV === 'development')
-  app.use('/images', express.static(STATIC_IMG_PATH));
+if (NODE_ENV === 'development') app.use('/images', express.static(STATIC_IMG_PATH));
 
 if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 
@@ -56,5 +52,5 @@ app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
-  startPollScheduler();
+  startSystemScheduler();
 });

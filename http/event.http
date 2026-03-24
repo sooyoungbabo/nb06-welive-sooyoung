@@ -2,7 +2,7 @@
 
 ### 이벤트 목록 조회
 ### apartmentId, year, month
-GET {{baseUrl}}/event?apartmentId=d6f8ca02-98a5-4d90-9938-7fdce4c4ca22&year=2025&month=3
+GET {{baseUrl}}/event?apartmentId=188fdedf-2659-4491-b740-8a35f969d7b4&year=2026&month=3
 
 
 ### 이벤트 생성 또는 업데이트
@@ -11,10 +11,10 @@ Content-Type: application/json
 
 {
   "boardType": "NOTICE",
-  "boardId": "f3d9771c-8272-4515-983b-d6e7c2b37c64",
-  "startDate": "2026-11-25 10:10:59",
-  "endDate": "2026-11-25 17:00:00" 
+  "boardId": "8d8f29d1-60aa-45dd-a2b3-a5a7637d1729",
+  "startDate": "2026-03-23 18:45:00",
+  "endDate": "2026-03-23 18:55:00"
 }
 
 ### 이벤트 삭제
-DELETE {{baseUrl}}/event/3b8decf4-c038-44c6-b0b0-27bf054ae6cf
+DELETE {{baseUrl}}/event/1dba8d7e-f78b-4b00-b44f-291e8344bbdc

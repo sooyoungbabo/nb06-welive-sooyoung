@@ -15,12 +15,12 @@ async function publicGet(req: Request, res: Response, next: NextFunction) {
 
 async function getList(req: Request, res: Response, next: NextFunction) {
   const query = req.query as ApartmentQuery;
-  const { apartments, totalCount } = await aptService.getList(req.user, query);
+  const { apartments, totalCount } = await aptService.getList(req.user.id, query);
   res.status(200).json({ apartments, totalCount });
 }
 
 async function get(req: Request, res: Response, next: NextFunction) {
-  const apt = await aptService.get(req.user, req.params.id as string);
+  const apt = await aptService.get(req.user.id, req.params.id as string);
   res.status(200).json(apt);
 }
 

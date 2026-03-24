@@ -13,3 +13,9 @@ export interface EventUpsertRequestDto {
   startDate: Date;
   endDate: Date;
 }
+
+export interface EventPatchDto {
+  title: string;
+  startDate: Date;
+  endDate: Date;
+}

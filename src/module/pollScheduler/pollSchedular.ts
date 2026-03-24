@@ -1,42 +1,14 @@
-import { CronJob } from 'cron';
+import { BoardType, NoticeType, Poll, PollStatus } from '@prisma/client';
 import prisma from '../../lib/prisma';
-import { NoticeType, NotificationType, Poll, PollStatus } from '@prisma/client';
-import residentRepo from '../resident/resident.repo';
-import notiRepo from '../notification/notification.repo';
 import pollRepo from '../poll/poll.repo';
-import { sendToUser } from '../notification/sse.manager';
-import noticeRepo from '../notice/notice.repo';
-import { access } from 'node:fs';
-import { cursorTo } from 'node:readline';
+import noticeService from '../notice/notice.service';
+import { noticeCreateBody } from '../notice/notice.schema';
+import { assert } from 'superstruct';
+import boardRepo from '../board/board.repo';
+import NotFoundError from '../../middleware/errors/NotFoundError';
 
-let lastRun: Date | null = null;
-
-export function startPollScheduler() {
-  //console.log('poll scheduler started', process.pid);
-  const job = new CronJob('*/37 * * * * *', async () => {
-    // const start = new Date();
-    // console.log('tick start', start.toLocaleTimeString());
-    await runPollScheduler();
-    const end = new Date();
-    // console.log('tick end', end.toLocaleTimeString(), 'duration', end.getTime() - start.getTime());
-    lastRun = end;
-  });
-
-  job.start();
-}
-
-export function getSchedulerStatus() {
-  return lastRun;
-}
-
-async function runPollScheduler() {
-  const now = new Date();
-
-  // 투표 시작되면 해당 투표 관련 공지가 없는 경우 voters에게 시작 알림 날림
-  // const startingPolls = await getStartingPolls();
-  // if (startingPolls.length > 0) await sendStartPollNoti(startingPolls);
-
-  // 투표 종료되면 poll.status 변경하고, notice에 올리고, 전체 공지하고, SSE
+export async function checkPollClosure() {
+  // 투표 종료되면 poll.status 변경하고, notice 생성
   const closedPolls = await getClosedPolls();
   if (closedPolls.length > 0) await sendClosedPollNoti(closedPolls);
 }
@@ -45,7 +17,7 @@ async function runPollScheduler() {
 async function getClosedPolls() {
   return prisma.poll.findMany({
     where: {
-      status: 'IN_PROGRESS',
+      status: PollStatus.IN_PROGRESS,
       endDate: { lte: new Date() }
     }
   });
@@ -53,61 +25,44 @@ async function getClosedPolls() {
 
 async function sendClosedPollNoti(polls: Poll[]) {
   for (const poll of polls) {
-    const receivers = await residentRepo.findMany(prisma, {
-      where: { userId: { not: null }, deletedAt: null },
-      select: { userId: true }
-    }); // Resident: receivers.userId
-
-    /* 투표 종료 공지인 경우: (1)~(3)은 트랜젝션
-          (1) DB Poll
-          (2) DB Notice
-          (3) DB Notification
-          (4) SSE: Notice용 공기 (전체)
-    */
-
-    const target = poll.buildingPermission ? `${poll.buildingPermission}동` : '전체';
-    const content = `[알림] 투표종료 (${poll.title}, ${target})`;
-
-    await prisma.$transaction(async (tx) => {
-      await pollRepo.patch(tx, {
-        where: { id: poll.id },
-        data: { status: PollStatus.CLOSED }
-      });
-
-      const pollResult = await getPollResult(poll.id);
-
-      await noticeRepo.create(tx, {
-        category: NoticeType.RESIDENT_VOTE,
-        isPinned: true,
-        startDate: poll.startDate,
-        endDate: poll.endDate,
-        title: `[공지] 투표종결 (${poll.title}, ${target})`,
-        content: `걸과: ${pollResult.maxStr} (${pollResult.max} / ${pollResult.sum})`, // 투표 결과를 넣을 것
-        board: { connect: { id: poll.boardId } },
-        admin: { connect: { id: poll.adminId } }
-      });
-
-      await notiRepo.createMany(tx, {
-        data: receivers
-          .filter((r) => r.userId != null)
-          .map((r) => ({
-            receiverId: r.userId!,
-            targetId: poll.id,
-            notiType: NotificationType.POLL_CLOSED,
-            content
-          }))
-      });
+    // 투표 상태 변경: 종료
+    await pollRepo.patch(prisma, {
+      where: { id: poll.id },
+      data: { status: PollStatus.CLOSED }
     });
 
-    for (const r of receivers) {
-      if (!r.userId) continue;
-      sendToUser(r.userId, content);
-    }
+    console.log('');
+    console.log(new Date());
+    console.log(`poll closed: ${poll.title}`);
+    console.log('');
+
+    // 투료종료 공지 생성
+    // 공지용 게시판 아이디 가져오기
+    const pollBoard = await boardRepo.find({
+      where: { id: poll.boardId },
+      select: { apartmentId: true }
+    });
+    if (!pollBoard) throw new NotFoundError('투표 게시판을 찾을 수 없습니다.');
+    const noticeBoard = await boardRepo.findFirst({
+      where: { apartmentId: pollBoard.apartmentId, boardType: BoardType.NOTICE }
+    });
+    if (!noticeBoard) throw new NotFoundError('공지 게시판을 찾을 수 없습니다.');
+
+    // 공지 서비스로 보낼 데이터 가공
+    const result = await getPollResult(poll.id);
+    const noticeBody = {
+      category: NoticeType.RESIDENT_VOTE,
+      title: `투표종료 (${poll.title})`,
+      content: `[결과] ${result.maxStr} (${result.max}/${result.sum})`,
+      boardId: noticeBoard.id,
+      isPinned: true,
+      startDate: poll.startDate,
+      endDate: poll.endDate,
+      pollId: poll.id
+    };
+    assert(noticeBody, noticeCreateBody);
+    await noticeService.create(poll.adminId, noticeBody);
   }
-  console.log('');
-  console.log(new Date());
-  console.log('Notification sent for poll closure');
-  console.log('');
 }
 
 async function getPollResult(pollId: string) {
