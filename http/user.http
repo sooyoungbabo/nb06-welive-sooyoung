@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 # 추가 기능
 ### 개발자용 무인증 기능: 사용자 목록 조회

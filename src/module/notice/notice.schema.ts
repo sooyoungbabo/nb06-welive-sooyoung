@@ -61,8 +61,8 @@ export const noticePatchBody = partial({
     'MAINTENANCE',
     'EMERGENCY',
     'COMMUNITY',
-    'RESIDENCE_VOTE',
-    'RESIDENCE_COUNCIL',
+    'RESIDENT_VOTE',
+    'RESIDENT_COUNCIL',
     'ETC'
   ]),
   title: size(string(), 1, 200),

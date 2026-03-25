@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 ### 회원가입: 사용자
 POST {{baseUrl}}/auth/signup
@@ -65,7 +65,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "superadmin",
+  "username": "hillie",
   "password": "password0!"
 }
 

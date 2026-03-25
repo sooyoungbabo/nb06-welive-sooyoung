@@ -196,3 +196,17 @@ export async function validateAptDongHo(
     throw new BadRequestError('아파트 호수가 범위를 벗어났습니다.');
   return { aptId, adminId };
 }
+
+export function formatKST(date: Date) {
+  const kst = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+
+  const yyyy = kst.getFullYear();
+  const MM = String(kst.getMonth() + 1).padStart(2, '0');
+  const dd = String(kst.getDate()).padStart(2, '0');
+
+  const hh = String(kst.getHours()).padStart(2, '0');
+  const mm = String(kst.getMinutes()).padStart(2, '0');
+  const ss = String(kst.getSeconds()).padStart(2, '0');
+
+  return `${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}`;
+}

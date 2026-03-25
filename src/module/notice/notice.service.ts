@@ -158,7 +158,6 @@ async function get(userId: string, noticeId: string) {
 }
 
 //----------------------------------------------- 공지 수정: 같은 아파트 관리자 권한
-// 날짜가 있는 공지 중 이미 시작되었거나 종료된 공지는 수정 불가
 // DB 트랜젝션: (1) 공지수정 (2) 이벤트 수정 (3) 알림
 // (4) SSE
 async function patch(userId: string, noticeId: string, body: NoticePatchRequestDto) {
@@ -183,8 +182,8 @@ async function patch(userId: string, noticeId: string, body: NoticePatchRequestD
   if (userBoardId !== boardId) throw new BadRequestError('boardId가 틀립니다.');
   if (endDate !== null && endDate < startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
-  if (startDate < new Date())
-    throw new BadRequestError('이미 시작되었거나 종료된 일정 공지는 수정할 수 없습니다.');
+  // if (startDate < new Date())
+  //   throw new BadRequestError('이미 시작되었거나 종료된 일정 공지는 수정할 수 없습니다.');
 
   // 데이터 준비
   const noticeData = {
@@ -241,24 +240,29 @@ async function noticePatchTransaction(
       data: noticeData,
       include: { admin: { select: { name: true } } }
     });
-    // (2) 이벤트 수정
-    await eventRepo.update(tx, {
-      where: { noticeId },
-      data: eventData
-    });
-    // (3) 공지수정 알림
-    // 날짜가 없거나, 있는 경우 아직 종료되지 않은 것만 알림
-    if (!noticeData.startDate || noticeData.endDate > new Date()) {
-      const message = `[알림] 공지수정 (${notice.title})`;
-      const notiData = buildNotiData(receivers, noticeId, message);
-      await notificationRepo.createMany(tx, { data: notiData });
+
+    // 공지 중 RESIDENT_VOTE는 투표종료에 대한 공지로 이벤트에 올라가지 않음
+    // 투표는 IN_PROGRESS로 생성될 때 이벤트에 올라감
+
+    if (notice.category !== NoticeType.RESIDENT_VOTE) {
+      // (2) 이벤트 수정
+      await eventRepo.update(tx, {
+        where: { noticeId },
+        data: eventData
+      });
+      // (3) 공지수정 알림
+      // 날짜가 없거나, 있는 경우 아직 종료되지 않은 것만 알림
+      if (!noticeData.startDate || noticeData.endDate > new Date()) {
+        const message = `[알림] 공지수정 (${notice.title})`;
+        const notiData = buildNotiData(receivers, noticeId, message);
+        await notificationRepo.createMany(tx, { data: notiData });
+      }
     }
     return notice;
   });
 }
 
 //----------------------------------------------- 공지 삭제: 같은 아파트의 관리자
-// 시작되었거나 종료된 일정있는 공지는 삭제 불가
 // DB 트랜젝션: (1) 이벤트 삭제 (2) 공지 삭제
 // 개발환경에서는 삭제, 배포환경에서는 soft delete
 
@@ -267,7 +271,7 @@ async function del(userId: string, noticeId: string) {
 
   const notice = await noticeRepo.find({
     where: { id: noticeId, deletedAt: null },
-    select: { boardId: true }
+    select: { boardId: true, category: true }
   });
   if (!notice) throw new NotFoundError('공지를 찾을 수 없습니다.');
 
@@ -276,21 +280,23 @@ async function del(userId: string, noticeId: string) {
   if (!isSameBoard) throw new ForbiddenError();
 
   // 요청 검증
-  if (notice.startDate && notice.startDate < new Date())
-    throw new BadRequestError(
-      '이미 시작되었거나 종료된 일정이 있는 공지는 삭제할 수 없습니다.'
-    );
+  // if (notice.startDate && notice.startDate < new Date())
+  //   throw new BadRequestError(
+  //     '이미 시작되었거나 종료된 일정이 있는 공지는 삭제할 수 없습니다.'
+  //   );
 
   // 트랜젝션 (1) 이벤트 (2) 공지
   // 개발환경에서는 삭제, 배포환경에서는 soft delete
   if (NODE_ENV === 'development')
     await prisma.$transaction(async (tx) => {
-      await eventRepo.del(tx, { where: { noticeId } }); // 이벤트 삭제
+      if (notice.category !== NoticeType.RESIDENT_VOTE)
+        await eventRepo.del(tx, { where: { noticeId } }); // 이벤트 삭제
       await noticeRepo.del(tx, { where: { id: noticeId } }); // 공지 삭제
     });
   else {
     await prisma.$transaction(async (tx) => {
-      await eventRepo.del(tx, { where: { noticeId } }); // 이벤트는 soft delete 없음
+      if (notice.category !== NoticeType.RESIDENT_VOTE)
+        await eventRepo.del(tx, { where: { noticeId } }); // 이벤트는 soft delete 없음
       await noticeRepo.update(tx, {
         where: { id: noticeId },
         data: { deletedAt: new Date() }

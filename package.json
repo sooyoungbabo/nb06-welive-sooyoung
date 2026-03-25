@@ -58,11 +58,16 @@
     "swagger-ui-express": "^5.0.1"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/main.js",
-    "dev1": "clear; nodemon --watch 'src/**/*.ts' --exec ts-node -r tsconfig-paths/register src/app.ts",
-    "dev": "clear; nodemon --watch src --exec \"npx ts-node -r tsconfig-paths/register src/app.ts\"",
-    "test": "jest",
-    "seed": "ts-node prisma/seed.ts"
+    "dev": "clear; nodemon --watch 'src/**/*.ts' --exec ts-node src/app.ts",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma deploy",
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "test:unit": "jest",
+    "test:api": "dotenv -e .env.test -- npm run prisma:migrate && dotenv -e .env.test -- npx prisma generate && dotenv -e .env.test -- jest -c ./jest.config.api.js --detectOpenHandles",
+    "coverage": "dotenv -e .env.test -- jest --coverage"
   }
 }

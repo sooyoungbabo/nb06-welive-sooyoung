@@ -14,7 +14,7 @@ async function getList(req: Request, res: Response, next: NextFunction) {
       ? `조회된 입주민 결과가 없습니다.`
       : `조회된 입주민 결과가 ${count}건입니다.`;
 
-  res.status(200).json({ residents, message, count, totalCount });
+  res.status(200).json({ totalCount, count, message, residents });
 }
 
 async function post(req: Request, res: Response, next: NextFunction) {

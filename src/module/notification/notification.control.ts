@@ -8,6 +8,7 @@ import { cleanupUser, removeJob } from './notification.scheduler';
 
 const jobs = new Map<string, CronJob>();
 
+//------------------------------------------ 클라이언트 요청에 의한 SSE 연결
 function stream(req: Request, res: Response) {
   const user = req.user;
 
@@ -34,6 +35,8 @@ function stream(req: Request, res: Response) {
   });
 }
 
+//------------------------------------------ 클라이언트 요청에 의한 cron job
+//                                           매 30초마다 안 읽은 알림목록 SSE 전송
 async function startNotiScheduler(req: Request, res: Response) {
   const userId = req.user.id;
   const role = req.user.role;
@@ -49,7 +52,7 @@ async function startNotiScheduler(req: Request, res: Response) {
 
       try {
         if (!getClient(userId)) {
-          removeJob(userId);
+          removeJob(userId); // SSE 연결이 없으면 cron job 삭제
           return;
         }
 
@@ -69,27 +72,28 @@ async function startNotiScheduler(req: Request, res: Response) {
   res.status(200).json({ message: 'Notification Scheduler Started' });
 }
 
+//------------------------------------------ 추가 기능: 알림 목록 조회
 async function getList(req: Request, res: Response, next: NextFunction) {
   const notis = await notiService.getList(req.user.id);
   res.status(200).json({ notifications: notis, count: notis?.length });
 }
-
+//------------------------------------------ 추가 기능: 안 읽은 알림 목록 조회
 async function getUnreadList(req: Request, res: Response, next: NextFunction) {
   const notis = await notiService.getUnreadList(req.user.id);
   res.status(200).json(notis);
 }
-
+//------------------------------------------ 개별 알림 읽음 처리
 async function read(req: Request, res: Response, next: NextFunction) {
   const notiId = req.params.notificationId as string;
   const notification = await notiService.read(req.user.id, notiId);
   res.status(200).json(notification);
 }
-
+//------------------------------------------ 일괄 알림 읽음 처리
 async function readAll(req: Request, res: Response, next: NextFunction) {
   const message = await notiService.readAll(req.user.id);
   res.status(200).send({ message });
 }
-
+//------------------------------------------ 추가기능: 알림 보내기
 async function send(req: Request, res: Response, next: NextFunction) {
   const noti = await notiService.send(req.body);
   res.status(200).json(noti);

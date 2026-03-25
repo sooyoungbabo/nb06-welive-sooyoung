@@ -22,14 +22,14 @@ import {
 import { removeJob } from '../notification/notification.scheduler';
 
 async function login(data: LoginDto): Promise<LoginToControlDto> {
-  const requiredUserInfo = {
+  const args = {
     where: { username: data.username },
     include: {
       notifications: true,
       apartment: { include: { boards: true } }
     }
   };
-  const user = await userRepo.find(requiredUserInfo);
+  const user = await userRepo.find(args);
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다');
 
   if (user.joinStatus === JoinStatus.PENDING)

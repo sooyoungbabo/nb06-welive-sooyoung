@@ -283,8 +283,10 @@ async function changeStatus(
     select: { boardId: true, status: true, creatorId: true }
   });
   if (!complaint) throw new NotFoundError('존재하지 않는 민원입니다.');
-  if (complaint.status !== ComplaintStatus.PENDING)
-    throw new BadRequestError('처리 중이거나 종결된 민원은 삭제할 수 없습니다.');
+
+  // 아래는 잠시 유보: 관리자는 필요할 수 있음
+  // if (complaint.status !== ComplaintStatus.PENDING)
+  //   throw new BadRequestError('처리 중이거나 종결된 민원은 수정할 수 없습니다.');
 
   if (!isSuperAdmin(userId)) {
     const { adminId: userAdminId, complaintBoardId: userBoardId } =

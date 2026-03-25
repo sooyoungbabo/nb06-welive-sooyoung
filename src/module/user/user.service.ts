@@ -9,14 +9,16 @@ import ForbiddenError from '../../middleware/errors/ForbiddenError';
 import { PatchUser } from './user.struct';
 import imgStorage from '../../storage/image.storage';
 import userRepo from './user.repo';
-import { BASE_URL, STATIC_IMG_PATH } from '../../lib/constants';
+import { BASE_URL } from '../../lib/constants';
 
+//----------------------------------------------------- 추가 기능: 유저 목록 조회
 async function getList(sortParam: Prisma.SortOrder) {
   const users = await userRepo.getList({ orderBy: { createdAt: sortParam } });
   if (users.length === 0) throw new NotFoundError();
   return filterPassword(users);
 }
 
+//----------------------------------------------------- 추가 기능: 유저 상세 조회
 async function get(id: string) {
   const user = await userRepo.find({
     where: { id },
@@ -27,6 +29,7 @@ async function get(id: string) {
   return rest;
 }
 
+//----------------------------------------------------- 유저 비밀번호 변경
 async function patchPassword(id: string, oldPassword: string, newPassword: string) {
   if (oldPassword === newPassword) throw new BadRequestError('비밀번호가 같습니다.');
 
@@ -47,6 +50,7 @@ async function patchPassword(id: string, oldPassword: string, newPassword: strin
   return message;
 }
 
+//----------------------------------------------------- 유저 프로필 이미지 업로드
 async function postAvatar(file: Express.Multer.File, id: string) {
   // AWS S3에 이미지 저장
   const ext = path.extname(file.originalname);
@@ -54,7 +58,10 @@ async function postAvatar(file: Express.Multer.File, id: string) {
     ? ext.toLowerCase()
     : `.${ext.toLowerCase()}`;
 
-  const user = await userRepo.find({ where: { id }, select: { username: true, name: true } });
+  const user = await userRepo.find({
+    where: { id },
+    select: { username: true, name: true }
+  });
   if (!user) throw new NotFoundError('사용자가 존재하지 않습니다.');
   const key = `${user.username}${normalizedExt}`;
 
@@ -69,7 +76,7 @@ async function postAvatar(file: Express.Multer.File, id: string) {
   return message;
 }
 
-//----------------------------------------------------------------
+//----------------------------------------------------- 지역 함수
 function filterPassword(users: User[]) {
   return users.map(({ password, ...rest }) => rest);
 }

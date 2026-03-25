@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 GET {{baseUrl}}/poll-scheduler/ping
 
@@ -9,15 +9,14 @@ Content-Type: application/json
 {
   "boardId": "1cdf6760-dbbc-4293-8c7d-518f72a012db",
   "status": "IN_PROGRESS",
-  "title": "101동 앞 화단 꽃 종류 선정",
-  "content": "화단에 심을 꽃 종류를 선택해 주세요.",
-  "buildingPermission": 101,
-  "startDate": "2026-03-23 18:45:00",
-  "endDate": "2026-03-23 18:55:00",
+  "title": "청소 용역업체 계약 연장 어부",
+  "content": "2026년도에도 같은 청소 용역업체를 이용할지 찬반 투표 실시합니다.",
+  "buildingPermission": 0,
+  "startDate": "2026-03-24 18:45:00",
+  "endDate": "2026-03-24 18:55:00",
   "options": [
-    { "title": "혼합 야생화" },
-    { "title": "혼합 펜지" },
-    { "title": "혼합 마가렛" }
+    { "title": "찬성" },
+    { "title": "반대" }
   ]
 }
 
@@ -29,15 +28,16 @@ Content-Type: application/json
 GET {{baseUrl}}/polls
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/848a7f41-173d-47c0-947f-f895c6e8212c
+GET {{baseUrl}}/polls/f36fbd24-e6e4-4da8-8600-ec841b2c691f
 
 ### 투표 글 수정
-PATCH {{baseUrl}}/polls/848a7f41-173d-47c0-947f-f895c6e8212c
+PATCH {{baseUrl}}/polls/f36fbd24-e6e4-4da8-8600-ec841b2c691f
 Content-Type: application/json
 
 {
-  "startDate": "2026-03-23 18:41:00",
-  "endDate": "2026-03-23 18:45:00"
+  "buildingPermission": 0,
+  "startDate": "2026-03-24 18:45:00",
+  "endDate": "2026-03-24 18:55:00"
 }
 
 # {
@@ -61,11 +61,10 @@ DELETE {{baseUrl}}/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
 
 
 ### 투표하기
-POST {{baseUrl}}/options/22e48e6a-17a6-4915-b3e9-95a908c6b70d/vote
+POST {{baseUrl}}/options/f7234375-ea1a-40b4-a5c7-5e85698c95b4/vote
 ###
-POST {{baseUrl}}/options/f3303d9c-9935-42c1-8509-a3974848b08a/vote
-###
-POST {{baseUrl}}/options/6575ab66-316d-4642-8588-92c3ddc4376e/vote
+POST {{baseUrl}}/options/9917ad94-fb0e-464c-ab9e-f8704fe546bc/vote
+
 
 ### 투표 취소
 DELETE {{baseUrl}}/options/ded25869-6f69-4d4b-83ed-a6616eb74305/vote
