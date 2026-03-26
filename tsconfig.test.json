@@ -1,0 +1,10 @@
+{
+  "target": "es2016",
+  /* Modules */
+  "module": "commonjs",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": ["src", "test"]
+}

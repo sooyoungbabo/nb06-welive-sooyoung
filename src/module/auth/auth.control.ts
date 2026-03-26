@@ -12,7 +12,6 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_MAXAGE
 } from '../../lib/constants';
-import { usernameStruct } from '../../middleware/commonStructs';
 
 async function signup(req: Request, res: Response, next: NextFunction): Promise<void> {
   const newUser = await authServiceSignup.signup(req.body);

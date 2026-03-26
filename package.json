@@ -40,7 +40,8 @@
     "cors": "^2.8.5",
     "cron": "^4.4.0",
     "dayjs": "^1.11.20",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
+    "dotenv-cli": "^11.0.0",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "inversify": "^7.10.6",
@@ -63,11 +64,12 @@
     "start": "node dist/main.js",
     "dev": "clear; nodemon --watch 'src/**/*.ts' --exec ts-node src/app.ts",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma deploy",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "test:unit": "jest",
-    "test:api": "dotenv -e .env.test -- npm run prisma:migrate && dotenv -e .env.test -- npx prisma generate && dotenv -e .env.test -- jest -c ./jest.config.api.js --detectOpenHandles",
-    "coverage": "dotenv -e .env.test -- jest --coverage"
+    "test:unit": "jest test/unit/*.ts -c ./jest.config.unit.js",
+    "test:setupDB": "prisma migrate deploy && prisma generate",
+    "test:integration": "dotenv -e .env.test -- sh -c 'npm run test:setupDB && jest test/integration/*.test.ts -c ./jest.config.integration.js --runInBand'",
+    "test:api": "dotenv -e .env.test -- sh -c 'npm run test:setupDB && jest -c ./jest.config.api.js --detectOpenHandles --runInBand'"
   }
 }

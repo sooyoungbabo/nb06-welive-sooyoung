@@ -345,6 +345,7 @@ enum NotificationType {
   NOTICE
   COMPLAINT_RAISED
   COMPLAINT_RESOLVED
+  POLL_CLOSED
 }
 
 enum EventType {

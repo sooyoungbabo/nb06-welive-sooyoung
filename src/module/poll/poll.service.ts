@@ -24,7 +24,6 @@ async function create(userId: string, body: PollCreateRequestDto) {
   // req.body 데이터 로직 validation
   const isSameBoardId = boardId === body.boardId;
   if (!isSameBoardId) throw new BadRequestError('boardId가 틀립니다.');
-
   if (body.endDate < body.startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
   if (body.endDate < new Date())

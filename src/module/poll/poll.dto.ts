@@ -1,6 +1,5 @@
 import { PollStatus } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { UUID } from 'node:crypto';
 
 export interface PollOptionDto {
   title: string;

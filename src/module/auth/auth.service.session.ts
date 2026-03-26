@@ -73,7 +73,9 @@ async function issueTokens(refreshToken: string): Promise<TokenType> {
 //-------------------------------------------------------- 지역 힘수
 
 async function verifyUserExist(userId: string): Promise<User> {
-  const user = await userRepo.find({ where: { id: userId } });
+  const user = await userRepo.find({
+    where: { id: userId }
+  });
   if (!user) throw new UnauthorizedError();
   return user;
 }

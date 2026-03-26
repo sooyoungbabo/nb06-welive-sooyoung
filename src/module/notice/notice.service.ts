@@ -69,7 +69,10 @@ async function create(userId: string, body: NoticeCreateRequestDto) {
 
   // 알림 데이터 준비
   const notiData = {
-    notiType: NotificationType.NOTICE,
+    notiType:
+      category === NoticeType.RESIDENT_VOTE
+        ? NotificationType.POLL_CLOSED
+        : NotificationType.NOTICE,
     content: `[알림] ${category}: ${title}`
   };
 

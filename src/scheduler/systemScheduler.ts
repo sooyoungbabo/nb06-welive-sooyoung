@@ -1,5 +1,5 @@
 import { CronJob } from 'cron';
-import { checkPollClosure } from '../module/pollScheduler/pollSchedular';
+import { getClosedPolls, handlePollClosure } from '../module/pollScheduler/pollSchedular';
 
 let job: CronJob | null = null;
 let lastRun: Date | null = null;
@@ -23,6 +23,12 @@ export function startSystemScheduler() {
     }
   });
   job.start();
+}
+
+export async function checkPollClosure() {
+  // 투표 종료되면 poll.status 변경하고, notice 생성
+  const closedPolls = await getClosedPolls();
+  if (closedPolls.length > 0) await handlePollClosure(closedPolls);
 }
 
 export function getSchedulerStatus() {

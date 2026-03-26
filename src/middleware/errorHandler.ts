@@ -2,6 +2,7 @@ import { StructError } from 'superstruct';
 import { Prisma } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
 import { NODE_ENV } from '../lib/constants';
+import jwt from 'jsonwebtoken';
 
 export function defaultNotFoundHandler(req: Request, res: Response, next: NextFunction) {
   return res.status(404).send({ message: '요청하신 페이지를 찾을 수 없습니다' });
@@ -17,11 +18,21 @@ const defaultMessageByStatus: Record<number, string> = {
   503: '일시적 서버 문제가 발생했습니다. 잠시 후 다시 시도해 주세요'
 };
 
-export function globalErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+export function globalErrorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (NODE_ENV === 'development') console.error(err);
 
   let statusCode: number | undefined = err.statusCode;
   let message: string | undefined = err.message;
+
+  // 0) token expired
+  if (err instanceof jwt.TokenExpiredError) {
+    return res.status(401).json({ message: '토큰이 만료되었습니다' });
+  }
 
   // 1) Superstruct
   if (!statusCode && err instanceof StructError) {

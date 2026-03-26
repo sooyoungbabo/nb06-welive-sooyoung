@@ -7,13 +7,17 @@ import NotFoundError from './errors/NotFoundError';
 function authorize(...allowedRoles: UserType[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // 인증을 거치지만, 한번 더 DB에서 체크함
-      const user = await userRepo.find({ where: { id: req.user.id }, select: { role: true } });
+      const user = await userRepo.find({ where: { id: req.user.id } });
       if (!user) throw new NotFoundError('사용자를 찾을 수 없습니다.');
 
-      if (!allowedRoles.includes(req.user.role)) {
+      if (allowedRoles.length === 0) {
+        return next();
+      }
+
+      if (!allowedRoles.includes(user.role)) {
         throw new ForbiddenError('권한이 없습니다');
       }
+
       next();
     } catch (err) {
       next(err);
