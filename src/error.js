@@ -1,4 +1,0 @@
-const error =
-  {"type":"alarm","data":[{"notificationId":"5dc261ed-9cb3-4aee-89be-0c9ca60ba66e","content":"[알림] 가입신청 (잘지내니탱이님)","notificationType":"AUTH_USER_APPLIED","notifiedAt":"2026-03-20T04:08:06.019Z","isChecked":false},{"notificationId":"7f10c33d-b934-4ce5-a8da-b07cc08544d0","content":"[알림] 가입신청 (잘지내니탱이님)","notificationType":"AUTH_USER_APPLIED","notifiedAt":"2026-03-20T04:19:40.860Z","isChecked":false}]}
-{"type":"alarm","data":[{"notificationId":"5dc261ed-9cb3-4aee-89be-0c9ca60ba66e","content":"[알림] 가입신청 (잘지내니탱이님)","notificationType":"AUTH_USER_APPLIED","notifiedAt":"2026-03-20T04:08:06.019Z","isChecked":false},{"notificationId":"7f10c33d-b934-4ce5-a8da-b07cc08544d0","content":"[알림] 가입신청 (잘지내니탱이님)","notificationType":"AUTH_USER_APPLIED","notifiedAt":"2026-03-20T04:19:40.860Z","isChecked":false}]};
-  console.log(error);

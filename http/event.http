@@ -1,8 +1,11 @@
 @baseUrl = http://localhost:4000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0NDkxNSwiZXhwIjoxNzc0ODQ4NTE1fQ.X0oa7oz58jvcp-YQIB9Hu_9NRi6oG7MjYsRyBXuFu-Y
+
 
 ### 이벤트 목록 조회
 ### apartmentId, year, month
-GET {{baseUrl}}/event?apartmentId=188fdedf-2659-4491-b740-8a35f969d7b4&year=2026&month=3
+GET {{baseUrl}}/event?apartmentId=ff632b77-6efa-4bad-b8cf-41c6853b91ed&year=2026&month=3
+Cookie: access-token={{accessToken}}
 
 
 ### 이벤트 생성 또는 업데이트

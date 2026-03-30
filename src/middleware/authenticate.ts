@@ -4,6 +4,7 @@ import { ACCESS_TOKEN_COOKIE_NAME, NODE_ENV } from '../lib/constants';
 import { Request, Response, NextFunction } from 'express';
 import authServiceSession from '../module/auth/auth.service.session';
 import UnauthorizedError from './errors/UnauthorizedError';
+import { access } from 'node:fs';
 
 function authenticate(options?: { optional?: boolean }) {
   return async (req: Request, res: Response, next: NextFunction) => {

@@ -1,4 +1,6 @@
 @baseUrl = http://localhost:4000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgwZjJkN2Q4LWQyZDMtNGI0MS05NjQ2LWQxODU1OTM4NjE5NiIsImlhdCI6MTc3NDg0NTgyMSwiZXhwIjoxNzc0ODQ5NDIxfQ.xFHRYEIgZPJRT20T7A5LRIQCuzOdLf1VPXF8ptIa4Sw
+
 
 ### stream: SSE connection by clients
 GET {{baseUrl}}/notifications/stream
@@ -16,12 +18,15 @@ PATCH {{baseUrl}}/notifications/c444abc7-22ab-4345-a117-af207a53b3f7/read
 
 ### 알림 목록 조회: all
 GET {{baseUrl}}/notifications
+Cookie: access-token={{accessToken}}
 
 ### 알림 목록 조회: unread
 GET {{baseUrl}}/notifications/unread
+Cookie: access-token={{accessToken}}
 
 ### 알림 읽음 일괄 처리
 PATCH {{baseUrl}}/notifications/read
+Cookie: access-token={{accessToken}}
 
 ### 알림 보내기
 POST {{baseUrl}}/notifications/send

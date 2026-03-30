@@ -33,8 +33,8 @@ export const noticeCreateBody = object({
   content: string(),
   boardId: uuidStruct,
   isPinned: boolean(),
-  startDate: dateFromStrStruct,
-  endDate: dateFromStrStruct,
+  startDate: optional(dateFromStrStruct),
+  endDate: optional(dateFromStrStruct),
   pollId: optional(uuidStruct)
 });
 

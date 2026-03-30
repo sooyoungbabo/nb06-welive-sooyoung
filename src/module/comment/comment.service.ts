@@ -8,12 +8,12 @@ import noticeRepo from '../notice/notice.repo';
 import { getAptInfoByUserId } from '../../lib/utils';
 
 //------------------------------------------------------ 댓글 생성
-// boardType과 boardId의 의미가 댓글에서는 다름 <-- 이것은 실수? 의도?
-// 그렇지 않다면, 원래 게시글의 ID가 없기 때문에 참조가 불가능함
-// 이벤트에서도 마찬가지
+// boardType과 boardId만으로는 원래의 민원 글을 찾을 수 없어서
+// boardType --> commentType (targetType)
+// boardId --> targetId로 바꾸었음.
 
 async function create(userId: string, body: CommentCreateRequestDto) {
-  const { content, boardType: targetType, boardId: targetId } = body;
+  const { content, commentType: targetType, targetId } = body;
   const { adminId: userAdminId } = await getAptInfoByUserId(userId);
 
   // 요청 validation
@@ -55,8 +55,8 @@ async function patch(userId: string, commentId: string, body: CommentPatchReques
 
   // 데이터 가공
   const commentData = {
-    targetType: body.boardType,
-    targetId: body.boardId,
+    targetType: body.commentType,
+    targetId: body.targetId,
     content: body.content
   };
 
@@ -93,7 +93,7 @@ function buildCommentCreateRes(comment: CommentWithAdminName) {
     },
     board: {
       id: comment.targetId,
-      boardType: comment.targetType
+      CommentType: comment.targetType
     }
   };
 }

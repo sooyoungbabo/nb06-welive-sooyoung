@@ -1,5 +1,7 @@
 @baseUrl = http://localhost:4000
 
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0MzQxNCwiZXhwIjoxNzc0ODQ3MDE0fQ.FLe65wSGEVRfrOYxh6OBf8LKPrFvvnQQ2a27G1RpLAo
+
 # 명부 회원은 가입신청과 삭제만 있음
 # 가입신청 승인은 user 가입신청을 하면서 동시에 이루어지게 되어 있음
 # welive 활동의 주체는 user이라서? 아마도.
@@ -12,16 +14,19 @@
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents?isRegistered=true&building=101&limit=10
+GET {{baseUrl}}/residents?isRegistered=true&building=201&limit=10
+Cookie: access-token={{accessToken}}
+
 ###
 POST {{baseUrl}}/residents
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
   "building": "101",
   "unitNumber": "101",
-  "contact": "010-9498-9518",
-  "name": "잘지내니탱이",
+  "contact": "010-9498-9519",
+  "name": "기쁨순이",
   "isHouseholder": "MEMBER"
 }
 

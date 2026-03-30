@@ -41,8 +41,10 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
   const isPasswordOk = await check_passwordValidity(data.password, user.password);
   if (!isPasswordOk) throw new ForbiddenError('비밀번호가 틀렸습니다');
 
-  console.log('');
-  console.log(`${user.role} ${user.name}님이 로그인하셨습니다.`);
+  if (NODE_ENV === 'development') {
+    console.log('');
+    console.log(`${user.role} ${user.name}님이 로그인하셨습니다.`);
+  }
 
   if (user.notifications.length > 0) {
     const unreadCount = user.notifications.filter((n) => n.isChecked === false).length;
