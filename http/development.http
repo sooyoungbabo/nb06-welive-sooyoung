@@ -1,16 +1,16 @@
 @baseUrl = http://localhost:3000
 
-### 
+### 최고관리자 로그인 요청
 GET {{baseUrl}}/development/superAdmin
-###
+### 관리자 로그인 요청
 GET {{baseUrl}}/development/admin
-###
+### 사용자 로그인 요청
 GET {{baseUrl}}/development/user
-### 
+### 간단한 SSE 테스트
 GET {{baseUrl}}/development/test-noti
-### 
-GET {{baseUrl}}/development/token
-###
+### 서버에 토큰 전달
+# GET {{baseUrl}}/development/token
+### 토큰 갱신 요청
 GET {{baseUrl}}/development/token/refresh
 
 

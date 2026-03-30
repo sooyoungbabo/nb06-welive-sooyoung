@@ -7,6 +7,7 @@ import voteRepo from './vote.repo';
 import { VoteOptionDto, VoteResDto } from '../poll/poll.dto';
 import { ApprovalStatus } from '@prisma/client';
 
+//---------------------------------------------- 투표하기
 async function vote(voterId: string, optionId: string) {
   if (!(await validateVoter(voterId, optionId)))
     throw new BadRequestError('투표권자가 아닙니다.');
@@ -27,6 +28,7 @@ async function vote(voterId: string, optionId: string) {
   return await buildVoteRes(poll.id, vote.optionId);
 }
 
+//---------------------------------------------- 투표 취소
 async function cancelVote(voterId: string, optionId: string) {
   if (!(await validateVoter(voterId, optionId)))
     throw new BadRequestError('투표권자가 아닙니다.');
@@ -46,7 +48,7 @@ async function cancelVote(voterId: string, optionId: string) {
   return await buildCancelVoteRes(optionId);
 }
 
-//------------------------------------------
+//---------------------------------------------- 지역 함수
 // 공동 1위를 가정한 집계
 // { sum: 37, max: 12, winnerOption: PollOption[]}
 async function buildVoteRes(pollId: string, voteOptionId: string): Promise<VoteResDto> {

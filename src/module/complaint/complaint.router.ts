@@ -4,7 +4,11 @@ import withTryCatch from '../../lib/withTryCatch';
 import authenticate from '../../middleware/authenticate';
 import authorize from '../../middleware/authorize';
 import complaintControl from './complaint.control';
-import { validateParams, validateQuery, validateBody } from '../../middleware/validateReq';
+import {
+  validateParams,
+  validateQuery,
+  validateBody
+} from '../../middleware/validateReq';
 import {
   complaintCreateBody,
   complaintListQuery,
@@ -58,7 +62,7 @@ complaintRouter.patch(
 complaintRouter.delete(
   '/:complaintId',
   authenticate(),
-  authorize(UserType.USER, UserType.ADMIN),
+  authorize(UserType.USER),
   validateParams(complaintParams),
   withTryCatch(complaintControl.del)
 );

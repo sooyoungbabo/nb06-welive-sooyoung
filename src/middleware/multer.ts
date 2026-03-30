@@ -35,9 +35,12 @@ export const uploadFile = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: FILE_SIZE_LIMIT },
   fileFilter(req, file, cb) {
-    if (!['text/csv', 'application/vnd.ms-excel'].includes(file.mimetype)) {
+    if (!file.originalname.endsWith('.csv')) {
       return cb(new BadRequestError('CSV 파일만 가능합니다.'));
     }
+    // if (!['text/csv', 'application/vnd.ms-excel'].includes(file.mimetype)) {
+    //   return cb(new BadRequestError('CSV 파일만 가능합니다.'));
+    // }
     cb(null, true);
   }
 });

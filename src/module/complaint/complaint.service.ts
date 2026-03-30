@@ -280,11 +280,13 @@ async function changeStatus(
 ): Promise<ComplaintDetailResDto> {
   const complaint = await complaintRepo.find({
     where: { id: complaintId },
-    select: { boardId: true, status: true, creatorId: true }
+    select: { boardId: true, creatorId: true }
   });
   if (!complaint) throw new NotFoundError('존재하지 않는 민원입니다.');
-  if (complaint.status !== ComplaintStatus.PENDING)
-    throw new BadRequestError('처리 중이거나 종결된 민원은 삭제할 수 없습니다.');
+
+  // 아래는 잠시 유보: 관리자는 필요할 수 있음
+  // if (complaint.status !== ComplaintStatus.PENDING)
+  //   throw new BadRequestError('처리 중이거나 종결된 민원은 수정할 수 없습니다.');
 
   if (!isSuperAdmin(userId)) {
     const { adminId: userAdminId, complaintBoardId: userBoardId } =
@@ -307,7 +309,7 @@ async function changeStatus(
   // SSE to 민원 작성자
   sendToUser(
     complaint.creatorId,
-    `[알림] ${complaintPatched.creator.resident.name}님 민원종결`
+    `[알림] 민원종결 (${complaintPatched.creator.resident.name}님)`
   );
 
   // 댓글 가져오고, 데이터 가공 후 리턴
@@ -339,14 +341,18 @@ async function complaintStatusTransaction(
     });
     if (!complaint.creator.resident)
       throw new NotFoundError('민원 작성자가 입주민 명부에 없습니다.');
+
     // (2) DB 알림 생성
     const notiData = {
-      notiType: NotificationType.AUTH_USER_APPLIED,
+      notiType: NotificationType.COMPLAINT_RESOLVED,
       targetId: complaintId,
       content: `[알림] ${complaint.creator.resident.name}님 민원종결`
     };
     assert(notiData, CreateNotification);
-    const noti = await notiService.notify(complaint.creatorId, notiData);
+    const noti = await notificationRepo.create(tx, {
+      data: { ...notiData, receiver: { connect: { id: complaint.creatorId } } }
+    });
+
     return complaint;
   });
   return complaintPatched;

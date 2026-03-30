@@ -1,15 +1,15 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 ### 회원가입: 사용자
 POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "yeowool",
+  "username": "tangee",
   "password": "password0!",
-  "contact": "010-9498-9517",
-  "name": "가련한여울이",
-  "email": "yeowool@test.com",
+  "contact": "010-9498-9518",
+  "name": "잘지내니탱이",
+  "email": "tangee@test.com",
   "role": "USER",
   "apartmentName": "힐리아파트",
   "apartmentDong": "101",
@@ -21,11 +21,11 @@ POST {{baseUrl}}/auth/signup/admin
 Content-Type: application/json
 
 {
-  "username": "hillie2",
+  "username": "hillie",
   "password": "password0!",
-  "contact": "010-0000-1111",
-  "name": "보고싶은힐리2",
-  "email": "hillie2@test.com",
+  "contact": "010-1111-1111",
+  "name": "보고싶은힐리",
+  "email": "hillie@test.com",
   "description": "질서, 정리정돈, 청결 등 관리상태가 완벽한 아파트",
   "startComplexNumber": 1,
   "endComplexNumber": 5,
@@ -36,9 +36,9 @@ Content-Type: application/json
   "startHoNumber": 1,
   "endHoNumber": 10,
   "role": "ADMIN",
-  "apartmentName": "힐리아파트2",
+  "apartmentName": "힐리아파트",
   "apartmentAddress": "서울시 성북구 화랑로 2277",
-  "apartmentManagementNumber": "02-000-2222"
+  "apartmentManagementNumber": "02-111-1111"
 }
 
 ### 회원가입: 최고관리자
@@ -65,7 +65,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "superadmin",
+  "username": "hillie",
   "password": "password0!"
 }
 

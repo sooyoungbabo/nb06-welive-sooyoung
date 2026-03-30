@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 ### 공지사항 등록
 POST {{baseUrl}}/notices
@@ -23,21 +23,22 @@ GET {{baseUrl}}/notices
 GET {{baseUrl}}/notices?category=RESIDENT_VOTE
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/d90dd273-01ac-4535-bb10-7c96f342211f
+GET {{baseUrl}}/notices/1da8e723-51fd-4178-be3d-5b115201d9ca
 
 ### 공지사항 수정
-PATCH {{baseUrl}}/notices/f3d9771c-8272-4515-983b-d6e7c2b37c64
+PATCH {{baseUrl}}/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8
 Content-Type: application/json
 
 {
-  "category": "MAINTENANCE",
-  "title": "승강기 정기점검에 따른 일시 운행 중단 안내",
-  "content": "매월 실시하는 승강기 정기점검으로 아래와 같이 각 승강기 별로 일시 운행 중단",
-  "boardId": "058b0ec2-c0c7-47b0-b915-2d407bc7b1b7",
-  "isPinned": true,
-  "startDate": "2026-03-14 21:30:00",
-  "endDate": "2026-03-14 22:00:00"
+  "boardId": "7bd7e606-8b5e-4c03-bd0f-50af4e4fca32",
+  "isPinned": false
 }
 
+  # "category": "RESIDENT_VOTE",
+  # "title": "[공지] 투표종료 (101동 앞 화단 꽃 종류 선정)",
+  # "content": "화단에 심을 꽃을 선택해 주세요 (공지보드 사진 참조).",
+  # "startDate": "2026-03-14 21:30:00",
+  # "endDate": "2026-03-14 22:00:00"
+
 ### 공지사항 삭제
-DELETE {{baseUrl}}/notices/f5601be8-3b72-4685-ae1a-cdd7f3529a9c
+DELETE {{baseUrl}}/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8

@@ -24,7 +24,6 @@ async function create(userId: string, body: PollCreateRequestDto) {
   // req.body 데이터 로직 validation
   const isSameBoardId = boardId === body.boardId;
   if (!isSameBoardId) throw new BadRequestError('boardId가 틀립니다.');
-
   if (body.endDate < body.startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
   if (body.endDate < new Date())
@@ -38,10 +37,18 @@ async function create(userId: string, body: PollCreateRequestDto) {
     startDate: pollDataWithOption.startDate,
     endDate: pollDataWithOption.endDate
   };
+
   // DB 생성: poll/pollOptions/event
-  return await pollRepo.create(prisma, {
-    data: { ...pollDataWithOption, event: { create: eventData } },
-    include: { pollOptions: true }
+  return await prisma.$transaction(async (tx) => {
+    const poll = await pollRepo.create(tx, {
+      data: pollDataWithOption,
+      include: { pollOptions: true }
+    });
+    // 진행될 투표는 생성 시 이벤트에 추가
+    if (poll.status === PollStatus.IN_PROGRESS)
+      await eventRepo.create(tx, {
+        data: { ...eventData, poll: { connect: { id: poll.id } } }
+      });
   });
 }
 

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import residentService from './resident.service';
 import { ResidentQueryDto } from './resident.dto';
-import BadRequestError from '../../middleware/errors/BadRequestError';
 import { getTimestamp } from '../../lib/myFuns';
 import { NODE_ENV } from '../../lib/constants';
+import NotFoundError from '../../middleware/errors/NotFoundError';
 
 async function getList(req: Request, res: Response, next: NextFunction) {
   const query = req.query as ResidentQueryDto;
@@ -14,7 +14,7 @@ async function getList(req: Request, res: Response, next: NextFunction) {
       ? `조회된 입주민 결과가 없습니다.`
       : `조회된 입주민 결과가 ${count}건입니다.`;
 
-  res.status(200).json({ residents, message, count, totalCount });
+  res.status(200).json({ totalCount, count, message, residents });
 }
 
 async function post(req: Request, res: Response, next: NextFunction) {
@@ -49,7 +49,7 @@ async function downloadTemplate(req: Request, res: Response, next: NextFunction)
 }
 
 async function createManyFromFile(req: Request, res: Response, next: NextFunction) {
-  if (!req.file) throw new BadRequestError('파일이 없습니다.');
+  if (!req.file) throw new NotFoundError('파일이 없습니다.');
   const buffer = req.file.buffer;
   const count = await residentService.createManyFromFile(req.user.id, buffer);
   res.status(201).send({ message: `${count}명의 입주민이 등록되었습니다.`, count });

@@ -9,6 +9,7 @@ import notificationRepo from './notification.repo';
 import { UUID } from 'node:crypto';
 import { NotiAlarmDto } from './notification.dto';
 
+//-------------------------------------------- 추가기능: userId로 알림과 SSE 보내기
 type NotifyArgs = {
   notiType: NotificationType;
   targetId: string;
@@ -33,6 +34,7 @@ async function notify(userId: string, data: NotifyArgs) {
 //   });
 // }
 
+//-------------------------------------------- 개별 알림 읽음 처리
 async function read(userId: string, notiId: string) {
   const noti = await notiRepo.find({
     where: { id: notiId },
@@ -49,6 +51,7 @@ async function read(userId: string, notiId: string) {
   return buildNotificationRes(notiUpdated);
 }
 
+//-------------------------------------------- 추가 기능: 알림 일괄 읽음 처리
 async function readAll(userId: string): Promise<string> {
   const notis = await notiRepo.patchMany({
     where: { receiverId: userId, isChecked: false },
@@ -61,6 +64,7 @@ async function readAll(userId: string): Promise<string> {
   return `${user?.name}님이 ${notis.count}건의 알림을 읽음으로 처리하였습니다.`;
 }
 
+//-------------------------------------------- 추가 기능: 알림목록 조회
 async function getList(userId: string) {
   return await notiRepo.findMany({
     where: { receiverId: userId },
@@ -68,6 +72,7 @@ async function getList(userId: string) {
   });
 }
 
+//-------------------------------------------- 추가 기능: 안 읽은 알림목록 조회
 async function getUnreadList(userId: string) {
   const unReadNotis = await notiRepo.findMany({
     where: { receiverId: userId, isChecked: false }
@@ -78,6 +83,7 @@ async function getUnreadList(userId: string) {
   };
 }
 
+//-------------------------------------------- 지역 함수
 function buildNotiList(notis: Notification[]): NotiAlarmDto[] {
   return notis.map((n) => {
     return {
@@ -114,7 +120,6 @@ async function send(body: NotificationSendDto) {
   return noti;
 }
 
-//-------------------------------
 function buildNotificationRes(noti: Notification) {
   return {
     notificationId: noti.id,

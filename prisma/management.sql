@@ -1,7 +1,7 @@
 /* postgreSQL 접속 */
 psql postgresql://아이디:비밀번호@localhost:5432/데이터베이스
 psql postgresql://postgres:password@172.31.248.157:5432/mission7
-psql postgresql://postgres:password@localhost:5432/mission7
+psql postgresql://postgres:passwordWelive@localhost:5432/weliveJest
 
 psql -U 아이디 -h localhost -p 5432 -d 데이터베이스
 

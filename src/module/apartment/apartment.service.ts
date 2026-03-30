@@ -11,13 +11,12 @@ import {
   AptPublicResponseDto,
   AptResponseDto
 } from './apartment.dto';
-import { adminSignupBody } from '../auth/auth.schema';
 
 //--------------------------------------- 아파트 목록 조회: public
 async function publicGetList(query: ApartmentQuery): Promise<AptListPublicResponseDto[]> {
   const queryParams = buildPublicListQueryParams(query);
   const where = buildWhere(queryParams);
-  const apts = await aptRepo.findMany({ where });
+  const apts = await aptRepo.findMany({ where, orderBy: { createdAt: 'desc' } });
   return buildPublicAptListRes(apts);
 }
 
@@ -65,13 +64,14 @@ async function getList(
     where,
     skip,
     take,
+    orderBy: { createdAt: 'desc' },
     include: {
       users: {
         where: { role: UserType.ADMIN, deletedAt: null }, // 출력에 필요한 관리자 정보 가져옴
         select: { id: true, name: true, contact: true, email: true }
       }
     }
-  };
+  } satisfies Prisma.ApartmentFindManyArgs;
 
   // DB 조회
   const totalCount = await aptRepo.count({ where });

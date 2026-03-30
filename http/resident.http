@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 # 명부 회원은 가입신청과 삭제만 있음
 # 가입신청 승인은 user 가입신청을 하면서 동시에 이루어지게 되어 있음
@@ -12,7 +12,7 @@
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents?isRegistered=true&building=101
+GET {{baseUrl}}/residents?isRegistered=true&building=101&limit=10
 ###
 POST {{baseUrl}}/residents
 Content-Type: application/json

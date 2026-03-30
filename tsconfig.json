@@ -6,7 +6,6 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "typeRoots": ["src/type", "./node_modules/@types"],
-
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -14,6 +13,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*", "hide/authorize.ts", "hide/websocket", "src/error.js"],
+  "include": ["src/**/*"],
   "exclude": ["hide/**/*"]
 }

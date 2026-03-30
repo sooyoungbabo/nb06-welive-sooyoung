@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 ### 이벤트 목록 조회
 ### apartmentId, year, month

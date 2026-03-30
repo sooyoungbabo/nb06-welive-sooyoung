@@ -1,4 +1,4 @@
-import { ApprovalStatus, BoardType, HouseholdRole, JoinStatus, UserType } from '@prisma/client';
+import { BoardType, HouseholdRole, JoinStatus, UserType } from '@prisma/client';
 
 interface UserBaseDto {
   contact: string;

@@ -5,7 +5,11 @@ import { uploadFile } from '../../middleware/multer';
 import express from 'express';
 import authorize from '../../middleware/authorize';
 import { UserType } from '@prisma/client';
-import { validateParams, validateQuery, validateBody } from '../../middleware/validateReq';
+import {
+  validateParams,
+  validateQuery,
+  validateBody
+} from '../../middleware/validateReq';
 import {
   residentCreateBody,
   residentListQuery,

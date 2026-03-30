@@ -17,22 +17,36 @@ async function getList(req: Request, res: Response, next: NextFunction): Promise
 }
 
 async function get(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const complaint = await complaintService.get(req.user.id, req.params.complaintId as string);
+  const complaint = await complaintService.get(
+    req.user.id,
+    req.params.complaintId as string
+  );
   res.status(200).json(complaint);
 }
 
 async function patch(req: Request, res: Response, next: NextFunction): Promise<void> {
   assert(req.body, PatchComplaint);
-  const complaint = await complaintService.patch(req.user.id, req.params.complaintId as string, req.body);
+  const complaint = await complaintService.patch(
+    req.user.id,
+    req.params.complaintId as string,
+    req.body
+  );
   res.status(200).json(complaint);
 }
 
 async function del(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const complaint = await complaintService.del(req.user.id, req.params.complaintId as string);
+  const complaint = await complaintService.del(
+    req.user.id,
+    req.params.complaintId as string
+  );
   res.status(200).send({ message: '정상적으로 삭제 처리되었습니다.' });
 }
 
-async function changeStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function changeStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   const complaint = await complaintService.changeStatus(
     req.user.id,
     req.params.complaintId as string,

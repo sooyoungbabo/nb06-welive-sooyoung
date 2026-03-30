@@ -64,7 +64,9 @@ async function signup(body: UserSignupRequestDto): Promise<UserSignupResponseDto
   });
 
   // SSE to admin: 트랜젝션 바깥에서
-  sendToUser(adminId, `[알림] 가입신청 (${userCreated.name}님)`);
+  if (joinStatus === JoinStatus.APPROVED)
+    sendToUser(adminId, `[알림] 가입승인 (${userCreated.name}님)`);
+  else sendToUser(adminId, `[알림] 가입신청 (${userCreated.name}님)`);
 
   // 출력형식에 맞게 재가공하여 리턴
   return buildSignupUserRes(userCreated);
@@ -280,12 +282,18 @@ async function userSignupTransaction(data: UserSignupTransactionData) {
       where: { contact: residentData.contact },
       create: createResidentData,
       update: { ...residentData, userId: user.id }
-    }); // resident 생성
+    }); // resident 생성/수정
 
     const notiData = {
-      notiType: NotificationType.AUTH_USER_APPLIED,
+      notiType:
+        residentData.approvalStatus === ApprovalStatus.PENDING
+          ? NotificationType.AUTH_USER_APPLIED
+          : NotificationType.AUTH_USER_APPROVED,
       targetId: user.id,
-      content: `[알림] 가입신청 (${residentData.name}님)`
+      content:
+        residentData.approvalStatus === ApprovalStatus.PENDING
+          ? `[알림] 가입신청 (${residentData.name}님)`
+          : `[알림] 가입승인 (${residentData.name}님)`
     };
     assert(notiData, CreateNotification);
     await notificationRepo.create(tx, {

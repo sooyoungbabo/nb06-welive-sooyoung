@@ -342,9 +342,11 @@ enum CommentType {
 enum NotificationType {
   AUTH_ADMIN_APPLIED
   AUTH_USER_APPLIED
+  AUTH_USER_APPROVED
   NOTICE
   COMPLAINT_RAISED
   COMPLAINT_RESOLVED
+  POLL_CLOSED
 }
 
 enum EventType {

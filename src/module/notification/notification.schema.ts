@@ -10,11 +10,13 @@ export const notiParams = object({
 export const notiSendBody = object({
   receiverId: uuidStruct,
   notiType: enums([
-    'AUTH_ADMIN_applied',
+    'AUTH_ADMIN_APPLIED',
     'AUTH_USER_APPLIED',
+    'AUTH_USER_APPROVED',
     'NOTICE',
     'COMPLAINT_RAISED',
-    'COMPLAINT_RESOLVED'
+    'COMPLAINT_RESOLVED',
+    'POLL_CLOSED'
   ]),
   targetId: uuidStruct,
   content: string()

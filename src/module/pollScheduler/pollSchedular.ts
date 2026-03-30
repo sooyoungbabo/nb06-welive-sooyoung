@@ -7,14 +7,7 @@ import { assert } from 'superstruct';
 import boardRepo from '../board/board.repo';
 import NotFoundError from '../../middleware/errors/NotFoundError';
 
-export async function checkPollClosure() {
-  // 투표 종료되면 poll.status 변경하고, notice 생성
-  const closedPolls = await getClosedPolls();
-  if (closedPolls.length > 0) await sendClosedPollNoti(closedPolls);
-}
-
-//---------------------------------------------
-async function getClosedPolls() {
+export async function getClosedPolls() {
   return prisma.poll.findMany({
     where: {
       status: PollStatus.IN_PROGRESS,
@@ -23,7 +16,7 @@ async function getClosedPolls() {
   });
 }
 
-async function sendClosedPollNoti(polls: Poll[]) {
+export async function handlePollClosure(polls: Poll[]) {
   for (const poll of polls) {
     // 투표 상태 변경: 종료
     await pollRepo.patch(prisma, {

@@ -1,12 +1,12 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 ### 민원 등록 // boardId는 생략. apartmentId 통해 가져옴
 POST {{baseUrl}}/complaints
 Content-Type: application/json
 
 {
-  "title": "한밤중의 악기 연주",
-  "content": "201호에서 거의 매일 밤 11시 무렵 피아노를 쳐요. 말씀 좀 해주세요.",
+  "title": "망사창 교체",
+  "content": "구멍난 망사창 교체 부탁드려요~",
   "isPublic": false,
   "boardId": "12e0f6d7-cee7-4afb-b4a0-eba30d365d6c",
   "status": "PENDING"

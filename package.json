@@ -18,6 +18,7 @@
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.7",
+    "@types/supertest": "^7.2.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "jest": "^30.2.0",
@@ -40,7 +41,8 @@
     "cors": "^2.8.5",
     "cron": "^4.4.0",
     "dayjs": "^1.11.20",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
+    "dotenv-cli": "^11.0.0",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "inversify": "^7.10.6",
@@ -58,11 +60,20 @@
     "swagger-ui-express": "^5.0.1"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/main.js",
-    "dev1": "clear; nodemon --watch 'src/**/*.ts' --exec ts-node -r tsconfig-paths/register src/app.ts",
-    "dev": "clear; nodemon --watch src --exec \"npx ts-node -r tsconfig-paths/register src/app.ts\"",
-    "test": "jest",
-    "seed": "ts-node prisma/seed.ts"
+    "dev": "clear; nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "test:unit": "jest test/unit/*.ts -c ./jest.config.unit.js",
+    "test:setup": "dotenv -e .env.test -- 'prisma migrate deploy && prisma generate'",
+    "test:handlePollClosure": "dotenv -e .env.test -- sh -c 'npm run test:setupDB && jest test/integration/handlePollClosure.test.ts -c ./jest.config.pollClosure.js --runInBand'",
+    "test:api": "dotenv -e .env.test -- sh -c 'npm run test:setup && jest -c ./jest.config.api.js --detectOpenHandles --runInBand'",
+    "freshStart": "npx prisma migrate reset --force && npx prisma db push && npx prisma generate",
+    "test:setupFlow": "dotenv -e .env.test -- sh -c 'prisma migrate deploy && prisma generate'",
+    "test:flow": "dotenv -e .env.test -- sh -c 'npm run test:setupFlow && jest test/integration/flow.*.test.ts -c ./jest.config.flow.js --detectOpenHandles --runInBand'"
   }
 }

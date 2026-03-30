@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:4000
 
 ### 댓글 생성
 POST {{baseUrl}}/comments

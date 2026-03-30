@@ -48,16 +48,4 @@ devRouter.get('/token/refresh', async (req, res, next) => {
   res.json({ ok: true });
 });
 
-// devRouter.get('/sync-token', (req, res) => {
-//   const access = getDevAccessToken();
-//   const refresh = getDevRefreshToken();
-//   console.log('');
-//   console.log(`accessToken_sync:  ${access}`);
-//   console.log(`refreshToken_sync: ${refresh}`);
-//   console.log('');
-
-//   // setTokenCookies(res, access, refresh);
-//   res.json({ ok: true });
-// });
-
 export default devRouter;
