@@ -1,36 +1,45 @@
 @baseUrl = http://localhost:4000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0NDkxNSwiZXhwIjoxNzc0ODQ4NTE1fQ.X0oa7oz58jvcp-YQIB9Hu_9NRi6oG7MjYsRyBXuFu-Y
+
 
 ### 공지사항 등록
 POST {{baseUrl}}/notices
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
-  "category": "RESIDENT_VOTE",
-  "title": "[공지] 봄맞이 아파트 야유회 날짜 투표",
-  "content": "매년 개최하는 봄맞이 야유회 날짜을 정하는 투표가 곧 시작됩니다. 참여해 주세요. ",
-  "boardId": "7bd7e606-8b5e-4c03-bd0f-50af4e4fca32",
-  "isPinned": false,
-  "startDate": "2026-03-19 13:43:00",
-  "endDate": "2026-03-19 13:44:00"
+  "category": "RESIDENT_COUNCIL",
+  "title": "반상회 개최일 변경 안내",
+  "content": "마지막 주 목요일에서 첫째 주 목요일로 변경되었습니다.",
+  "boardId": "3c5522a9-c0d5-4748-b0c9-c11245b6ba82",
+  "isPinned": true
 }
+
+  # "startDate": "2026-03-31 13:00:00",
+  # "endDate": "2026-03-31 17:00:00"
 
 ### 공지사항 전체 조회
 ### page, limit(11)
 ### category
 ### keyword: title, content
 GET {{baseUrl}}/notices
+Cookie: access-token={{accessToken}}
 ###
 GET {{baseUrl}}/notices?category=RESIDENT_VOTE
+Cookie: access-token={{accessToken}}
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/1da8e723-51fd-4178-be3d-5b115201d9ca
+GET {{baseUrl}}/notices/4c26fdfe-a077-4986-85b2-8666e2bb33c2
+Cookie: access-token={{accessToken}}
 
 ### 공지사항 수정
-PATCH {{baseUrl}}/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8
+PATCH {{baseUrl}}/notices/4c26fdfe-a077-4986-85b2-8666e2bb33c2
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
-  "boardId": "7bd7e606-8b5e-4c03-bd0f-50af4e4fca32",
+  "boardId": "3c5522a9-c0d5-4748-b0c9-c11245b6ba82",
+  "title": "[공지] 불우이웃 돕기 바자회 개최 (관리동 앞)",
   "isPinned": false
 }
 

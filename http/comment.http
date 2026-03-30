@@ -1,13 +1,15 @@
 @baseUrl = http://localhost:4000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0NzYzMiwiZXhwIjoxNzc0ODUxMjMyfQ.jIVww7ld4tMRvOKAOhqE544HYxdMetoLXrL1tqb8qTs
 
 ### 댓글 생성
 POST {{baseUrl}}/comments
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
-  "content": "[관리자] 문제가 계속되면 다시 말씀 주세요.",
-  "boardType": "COMPLAINT",
-  "boardId": "b35b948b-9525-4fbc-9a4b-de188843967e"
+  "content": "[관리자] 확인했습니다. 곧 조치하겠습니다.",
+  "commentType": "COMPLAINT",
+  "targetId": "6ef988d3-b623-4da2-b29c-4f9b0534be80"
 }
 
 ### 댓글 수정
@@ -16,8 +18,8 @@ Content-Type: application/json
 
 {
   "content": "맞아요. 너무 지저분해요.",
-  "boardType": "COMPLAINT",
-  "boardId": "ae7c9a75-5191-41cc-95fa-b7ed9a07aba7"
+  "commentType": "COMPLAINT",
+  "targetId": "ae7c9a75-5191-41cc-95fa-b7ed9a07aba7"
 }
 
 ### 댓글 삭제

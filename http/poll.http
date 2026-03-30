@@ -1,19 +1,24 @@
 @baseUrl = http://localhost:4000
 
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM4YjVhMTlhLWE4NzQtNGJhZi04OGFjLTMyYzkxZTFjMDUzZiIsImlhdCI6MTc3NDg0NDY3NywiZXhwIjoxNzc0ODQ4Mjc3fQ.pij6NMYQ5Bmw69O7UkL5ElJ0KKyE-c_2Bg2p1LZismI
+
+
 GET {{baseUrl}}/poll-scheduler/ping
+Cookie: access-token={{accessToken}}
 
 ### 투표 글 작성
 POST {{baseUrl}}/polls
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
-  "boardId": "1cdf6760-dbbc-4293-8c7d-518f72a012db",
+  "boardId": "de8733ae-6dd0-43ae-9e24-f97b122ee1c0",
   "status": "IN_PROGRESS",
   "title": "청소 용역업체 계약 연장 어부",
   "content": "2026년도에도 같은 청소 용역업체를 이용할지 찬반 투표 실시합니다.",
   "buildingPermission": 0,
-  "startDate": "2026-03-24 18:45:00",
-  "endDate": "2026-03-24 18:55:00",
+  "startDate": "2026-03-30 13:17:00",
+  "endDate": "2026-03-30 13:25:00",
   "options": [
     { "title": "찬성" },
     { "title": "반대" }
@@ -26,12 +31,15 @@ Content-Type: application/json
 ### status
 ### keyword: title, content
 GET {{baseUrl}}/polls
+Cookie: access-token={{accessToken}}
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/f36fbd24-e6e4-4da8-8600-ec841b2c691f
+GET {{baseUrl}}/polls/d202c2dd-488f-4e26-8bf0-7d825c66d8f3
+Cookie: access-token={{accessToken}}
 
 ### 투표 글 수정
 PATCH {{baseUrl}}/polls/f36fbd24-e6e4-4da8-8600-ec841b2c691f
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
@@ -56,17 +64,20 @@ Content-Type: application/json
 
 ### 투표 글 삭제
 DELETE {{baseUrl}}/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
-
+Cookie: access-token={{accessToken}}
 
 
 
 ### 투표하기
-POST {{baseUrl}}/options/f7234375-ea1a-40b4-a5c7-5e85698c95b4/vote
+POST {{baseUrl}}/options/d0f014a9-6446-459f-884c-699eb63a211d/vote
+Cookie: access-token={{accessToken}}
 ###
-POST {{baseUrl}}/options/9917ad94-fb0e-464c-ab9e-f8704fe546bc/vote
+POST {{baseUrl}}/options/4299d70e-efb1-4d47-bced-fb68602931cb/vote
+Cookie: access-token={{accessToken}}
 
 
 ### 투표 취소
-DELETE {{baseUrl}}/options/ded25869-6f69-4d4b-83ed-a6616eb74305/vote
+DELETE {{baseUrl}}/options/4299d70e-efb1-4d47-bced-fb68602931cb/vote
+Cookie: access-token={{accessToken}}
 
 

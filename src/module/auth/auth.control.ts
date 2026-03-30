@@ -48,12 +48,10 @@ function logout(req: Request, res: Response, next: NextFunction) {
 }
 
 function viewTokens(req: Request, res: Response, next: NextFunction) {
-  let accessToken = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
-  let refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
+  const accessToken = req.cookies[ACCESS_TOKEN_COOKIE_NAME];
+  const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
 
   console.log('');
-  // console.log('URL:', req.originalUrl);
-  // console.log('RAW COOKIE HEADER:', req.headers.cookie);
   console.log(`accessToken:  ${accessToken}`);
   console.log(`refreshToken: ${refreshToken}`);
   console.log('');
@@ -172,13 +170,13 @@ export function setTokenCookies(
   res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: ACCESS_TOKEN_MAXAGE || 10 * 60 * 60 * 1000 // 1 hour
   });
   res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     httpOnly: true,
     secure: NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
     path: '/auth/refresh'
   });

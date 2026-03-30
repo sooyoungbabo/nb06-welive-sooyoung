@@ -1,30 +1,34 @@
 @baseUrl = http://localhost:4000
 
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0MzQxNCwiZXhwIjoxNzc0ODQ3MDE0fQ.FLe65wSGEVRfrOYxh6OBf8LKPrFvvnQQ2a27G1RpLAo
 # 추가 기능
-### 개발자용 무인증 기능: 사용자 목록 조회
+### 개발용 기능: 사용자 목록 조회
 GET {{baseUrl}}/users/getList?sort=desc
+### 개발용 기능: 사용자 상세 조회
+GET {{baseUrl}}/users/cc70a5cf-07fc-417d-86a0-547722dbabd1
 
 
-### 사용자 상세 조회
-GET {{baseUrl}}/users/dceb5142-0e46-4e8b-8776-db25b3360aa1
+
 ### 내 정보 조회
 GET {{baseUrl}}/users/me/myInfo
-
+Cookie: access-token={{accessToken}}
 
 
 ###
 PATCH {{baseUrl}}/users/me/avatar
+Cookie: access-token={{accessToken}}
 Content-Type: multipart/form-data; boundary=MyBoundary
 
 --MyBoundary
-Content-Disposition: form-data; name="image"; filename="Seulgie.png"
+Content-Disposition: form-data; name="image"; filename="Tangee.png"
 Content-Type: image/png
 
-< ./images/users/Seulgie.png
+< ./images/users/Tangee.png
 --MyBoundary--
 
 ###
 PATCH {{baseUrl}}/users/me/password
+Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {

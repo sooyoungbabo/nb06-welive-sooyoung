@@ -9,12 +9,12 @@ export const commentParams = object({
 //-------------------------------------------- Body schema
 export const commentCreateBody = object({
   content: string(),
-  boardType: enums(['NOTICE', 'COMPLAINT']),
-  boardId: uuidStruct
+  commentType: enums(['NOTICE', 'COMPLAINT']),
+  targetId: uuidStruct
 });
 
 export const commentPatchBody = partial({
   content: string(),
-  boardType: enums(['NOTICE', 'COMPLAINT']),
-  boardId: uuidStruct
+  commentType: enums(['NOTICE', 'COMPLAINT']),
+  targetId: uuidStruct
 });

@@ -30,7 +30,7 @@ app.use(
   })
 );
 
-if (NODE_ENV === 'development') app.use('/images', express.static(STATIC_IMG_PATH));
+app.use('/images', express.static(STATIC_IMG_PATH));
 
 if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 
