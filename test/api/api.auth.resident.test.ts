@@ -4,7 +4,7 @@ import prisma from '../../src/lib/prisma';
 import path from 'path';
 import * as notiSSE from '../../src/module/notification/notification.sse';
 import { JoinStatus, NotificationType, UserType } from '@prisma/client';
-import { getCookie, registerResidentOnlyMember } from './flow.util';
+import { getCookie, registerResidentOnlyMember } from './api.util';
 import { tokenPayload } from '../../src/lib/token';
 import jwt from 'jsonwebtoken';
 import {

@@ -69,11 +69,8 @@
     "prisma:generate": "prisma generate",
     "prisma:seed": "ts-node prisma/seed.ts",
     "test:unit": "jest test/unit/*.ts -c ./jest.config.unit.js",
-    "test:setup": "dotenv -e .env.test -- 'prisma migrate deploy && prisma generate'",
-    "test:handlePollClosure": "dotenv -e .env.test -- sh -c 'npm run test:setupDB && jest test/integration/handlePollClosure.test.ts -c ./jest.config.pollClosure.js --runInBand'",
-    "test:api": "dotenv -e .env.test -- sh -c 'npm run test:setup && jest -c ./jest.config.api.js --detectOpenHandles --runInBand'",
-    "freshStart": "npx prisma migrate reset --force && npx prisma db push && npx prisma generate",
-    "test:setupFlow": "dotenv -e .env.test -- sh -c 'prisma migrate deploy && prisma generate'",
-    "test:flow": "dotenv -e .env.test -- sh -c 'npm run test:setupFlow && jest test/integration/flow.*.test.ts -c ./jest.config.flow.js --detectOpenHandles --runInBand'"
+    "test:setupTest": "dotenv -e .env.test -- sh -c 'prisma migrate deploy && prisma generate'",
+    "test:integration": "dotenv -e .env.test -- sh -c 'npm run test:setupTest && jest test/integration/*.test.ts -c ./jest.config.integration.js --detectOpenHandles --runInBand'",
+    "test:api": "dotenv -e .env.test -- sh -c 'npm run test:setupTest && jest test/api/api.*.test.ts -c ./jest.config.api.js --detectOpenHandles --runInBand'"
   }
 }

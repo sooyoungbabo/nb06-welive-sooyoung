@@ -1,5 +1,5 @@
 import { handlePollClosure } from '../../src/module/pollScheduler/pollSchedular';
-import { NoticeType, NotificationType, Poll, PollStatus, UserType } from '@prisma/client';
+import { NoticeType, NotificationType, PollStatus, UserType } from '@prisma/client';
 import prisma from '../../src/lib/prisma';
 import {
   createMockData,

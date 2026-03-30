@@ -2,8 +2,8 @@ import request, { Agent } from 'supertest';
 import app from '../../src/app';
 import prisma from '../../src/lib/prisma';
 import { BoardType, ComplaintStatus, NotificationType, UserType } from '@prisma/client';
-import createWelive from './flow.createDB';
-import { clearDB } from './flow.util';
+import createWelive from './api.createDB';
+import { clearDB } from './api.util';
 import * as notiSSE from '../../src/module/notification/notification.sse';
 
 beforeAll(async () => {
