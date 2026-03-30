@@ -21,6 +21,7 @@ import {
 } from '../../lib/constants';
 import { removeJob } from '../notification/notification.scheduler';
 
+//------------------------------------------------------- 로그인
 async function login(data: LoginDto): Promise<LoginToControlDto> {
   const args = {
     where: { username: data.username },
@@ -43,7 +44,7 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
   console.log('');
   console.log(`${user.role} ${user.name}님이 로그인하셨습니다.`);
 
-  if (user.notifications.length) {
+  if (user.notifications.length > 0) {
     const unreadCount = user.notifications.filter((n) => n.isChecked === false).length;
     if (NODE_ENV === 'development') {
       console.log(`읽지 않은 알림이 ${unreadCount}개 있습니다.`);
@@ -59,11 +60,13 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
   return { userRes, accessToken, refreshToken };
 }
 
+//------------------------------------------------------- 로그아웃
 function logout(userId: string, tokenData: Response): void {
   removeJob(userId);
   clearTokenCookies(tokenData);
 }
 
+//------------------------------------------------------- 토큰 갱신
 async function issueTokens(refreshToken: string): Promise<TokenType> {
   const { userId } = verifyRefreshToken(refreshToken);
   const user = await verifyUserExist(userId);

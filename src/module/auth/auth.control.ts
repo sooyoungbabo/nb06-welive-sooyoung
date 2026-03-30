@@ -39,7 +39,6 @@ async function signupSuperAdmin(
 async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
   const { userRes, accessToken, refreshToken } = await authServiceSession.login(req.body);
   setTokenCookies(res, accessToken, refreshToken);
-  if (!accessToken && NODE_ENV === 'development') setDevTokens(accessToken);
   res.status(200).json(userRes);
 }
 
@@ -172,7 +171,7 @@ export function setTokenCookies(
 ): void {
   res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
     httpOnly: true,
-    secure: NODE_ENV === 'production', // false: 쓸데없이 우회적인 표현
+    secure: NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: ACCESS_TOKEN_MAXAGE || 10 * 60 * 60 * 1000 // 1 hour
   });
@@ -181,7 +180,7 @@ export function setTokenCookies(
     secure: NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
-    path: NODE_ENV === 'development' ? '/' : '/auth/refresh'
+    path: '/auth/refresh'
   });
 }
 

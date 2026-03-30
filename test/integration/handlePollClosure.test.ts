@@ -6,7 +6,7 @@ import {
   createPoll,
   getPollsToClose,
   updatePoll
-} from './createMockData';
+} from './handlePollClosure.createDB';
 
 jest.mock('../../src/module/notification/notification.sse');
 import { sendToUser } from '../../src/module/notification/notification.sse';

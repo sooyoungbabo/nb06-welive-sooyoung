@@ -50,7 +50,4 @@ app.use('/event', eventRouter);
 app.use(defaultNotFoundHandler);
 app.use(globalErrorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  startSystemScheduler();
-});
+export default app;

@@ -217,8 +217,7 @@ async function downloadListCsv(userId: string, query: ResidentQueryDto): Promise
     isHouseholder: r.isHouseholder
   }));
 
-  if (residents.length === 0) return '입주민 명부가 없습니다.';
-  const header = ['동', '호수', '이름', '연락처', '세대주여부'];
+  const header = ['동', ' 호수', ' 이름', ' 연락처', ' 세대주여부'];
 
   const rows = residents.map((r) =>
     [r.apartmentDong, r.apartmentHo, r.name, r.contact, r.isHouseholder]
@@ -230,7 +229,7 @@ async function downloadListCsv(userId: string, query: ResidentQueryDto): Promise
 
   // file에 저장
   const savedFilePath = await saveCsv(csv);
-  console.log(savedFilePath);
+  //console.log(savedFilePath);
 
   return csv;
 }

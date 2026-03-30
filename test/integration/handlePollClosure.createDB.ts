@@ -3,14 +3,11 @@ import {
   BoardType,
   HouseholdRole,
   JoinStatus,
-  Poll,
   PollStatus,
   ResidenceStatus,
   UserType
 } from '@prisma/client';
-import pollService from '../../src/module/poll/poll.service';
 import prisma from '../../src/lib/prisma';
-import NotFoundError from '../../src/middleware/errors/NotFoundError';
 import {
   PollCreateRequestDto,
   PollPatchRequestDto

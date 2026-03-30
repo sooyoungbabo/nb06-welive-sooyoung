@@ -89,7 +89,7 @@ function buildCommentCreateRes(comment: CommentWithAdminName) {
       content: comment.content,
       createdAt: comment.createdAt,
       updatedAt: comment.updatedAt,
-      wirterName: comment.creator.name
+      writerName: comment.creator.name
     },
     board: {
       id: comment.targetId,

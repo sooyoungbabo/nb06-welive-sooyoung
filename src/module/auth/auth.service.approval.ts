@@ -107,9 +107,8 @@ async function changeResidentStatus(
     select: { name: true }
   });
   if (status === JoinStatus.APPROVED)
-    return `[관리자] ${apt!.name}관리자가 ${residentApproved.name}의 가입요청을 승인했습니다.`;
-  else
-    return `[관리자] ${apt!.name}관리자가 ${residentApproved.name}의 가입요청을 기각했습니다.`;
+    return `[관리자] ${apt!.name} ${residentApproved.name}의 가입요청을 승인했습니다.`;
+  else return `[관리자] ${apt!.name} ${residentApproved.name}의 가입요청을 기각했습니다.`;
 }
 
 // 입주민 가입상태 일괄 변경: 관리자 권한
@@ -141,9 +140,9 @@ async function changeAllResidentsStatus(userId: string, status: JoinStatus) {
 
   const apt = await aptRepo.find({ where: { id: apartmentId }, select: { name: true } });
   if (status === JoinStatus.APPROVED)
-    return `[관리자] ${apt!.name}관리자가 입주민 ${residentApproved.count}명의 가입요청을 승인했습니다.`;
+    return `[관리자] ${apt!.name} 입주민 ${residentApproved.count}명의 가입요청을 승인했습니다.`;
   else
-    return `[관리자] ${apt!.name}관리자가 입주민 ${residentApproved.count}명의 가입요청을 기각했습니다.`;
+    return `[관리자] ${apt!.name} 입주민 ${residentApproved.count}명의 가입요청을 기각했습니다.`;
 }
 
 // 관리자 정보 수정: 최고관리자 권한
