@@ -1,17 +1,17 @@
-@baseUrl = http://localhost:4000
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0NDkxNSwiZXhwIjoxNzc0ODQ4NTE1fQ.X0oa7oz58jvcp-YQIB9Hu_9NRi6oG7MjYsRyBXuFu-Y
+@baseUrl = http://13.125.213.35
+@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
 
 
 ### 공지사항 등록
 POST {{baseUrl}}/notices
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
 {
   "category": "RESIDENT_COUNCIL",
   "title": "반상회 개최일 변경 안내",
   "content": "마지막 주 목요일에서 첫째 주 목요일로 변경되었습니다.",
-  "boardId": "3c5522a9-c0d5-4748-b0c9-c11245b6ba82",
+  "boardId": "54cdb10d-0e01-4beb-b469-183ea54b7cbc",
   "isPinned": true
 }
 
@@ -23,18 +23,18 @@ Content-Type: application/json
 ### category
 ### keyword: title, content
 GET {{baseUrl}}/notices
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_admin}}
 ###
 GET {{baseUrl}}/notices?category=RESIDENT_VOTE
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_admin}}
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/4c26fdfe-a077-4986-85b2-8666e2bb33c2
-Cookie: access-token={{accessToken}}
+GET {{baseUrl}}/notices/1f01ceb6-870a-49ad-884b-98b18c15ec98
+Cookie: access-token={{accessToken_admin}}
 
 ### 공지사항 수정
 PATCH {{baseUrl}}/notices/4c26fdfe-a077-4986-85b2-8666e2bb33c2
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
 {
@@ -51,3 +51,4 @@ Content-Type: application/json
 
 ### 공지사항 삭제
 DELETE {{baseUrl}}/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8
+Cookie: access-token={{accessToken_admin}}

@@ -1,34 +1,38 @@
-@baseUrl = http://localhost:4000
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0NzYzMiwiZXhwIjoxNzc0ODUxMjMyfQ.jIVww7ld4tMRvOKAOhqE544HYxdMetoLXrL1tqb8qTs
+@baseUrl = http://13.125.213.35
+@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
+@accessToken_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
+
 
 ### 민원 등록 // boardId는 생략. apartmentId 통해 가져옴
 POST {{baseUrl}}/complaints
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user1}}
 Content-Type: application/json
 
 {
-  "title": "201동 앞 인도와 도로 사이의 배수로 막힘",
+  "title": "101동 앞 인도와 도로 사이의 배수로 막힘",
   "content": "내려온 흙으로 막혔나봐요. 비가 오면 물이 넘쳐 흘려요.",
   "isPublic": true,
-  "boardId": "b7d46d6a-0926-4f6f-8802-a06aaaae2557",
+  "boardId": "7a808c70-66cd-4551-9b8e-440d3be63649",
   "status": "PENDING"
 }
 
 ### 전체 민원 조회
 GET {{baseUrl}}/complaints
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user1}}
 
 
 ### 전체 민원 조회: 검색
 ### status, isPublic, dong, ho, 
 ### keyword(title, content)
 GET {{baseUrl}}/complaints?isPublic=false
+Cookie: access-token={{accessToken_user1}}
 
 ### 민원 상세 조회
-GET {{baseUrl}}/complaints/6ef988d3-b623-4da2-b29c-4f9b0534be80
-Cookie: access-token={{accessToken}}
+GET {{baseUrl}}/complaints/9d16b188-a14d-4851-9c89-d3c040110141
+Cookie: access-token={{accessToken_user1}}
 ### 사용자: 민원 수정
 PATCH {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
+Cookie: access-token={{accessToken_user1}}
 Content-Type: application/json
 
 {
@@ -39,9 +43,11 @@ Content-Type: application/json
 
 ### 민원 삭제
 DELETE {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
+Cookie: access-token={{accessToken_admin}}
 
 ### 슈퍼관리자, 관리자: 민원상태 변경
-PATCH {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7/status
+PATCH {{baseUrl}}/complaints/9d16b188-a14d-4851-9c89-d3c040110141/status
+Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
 {

@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.str2numStruct = exports.dateFromStrStruct = exports.uuidStruct = exports.contactStruct = exports.str4numStruct = exports.emailStruct = exports.passwordStruct = exports.usernameStruct = exports.urlStruct = void 0;
+const superstruct_1 = require("superstruct");
+exports.urlStruct = (0, superstruct_1.pattern)((0, superstruct_1.string)(), /^https?:\/\/\S+$/);
+exports.usernameStruct = (0, superstruct_1.size)((0, superstruct_1.string)(), 5, 50);
+exports.passwordStruct = (0, superstruct_1.pattern)((0, superstruct_1.size)((0, superstruct_1.string)(), 8, 128), /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d])[^\s<>'"`\\\/]{8,128}$/);
+exports.emailStruct = (0, superstruct_1.pattern)((0, superstruct_1.size)((0, superstruct_1.string)(), 5, 254), /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/);
+exports.str4numStruct = (0, superstruct_1.pattern)((0, superstruct_1.string)(), /^\d+$/);
+exports.contactStruct = (0, superstruct_1.pattern)((0, superstruct_1.size)((0, superstruct_1.string)(), 11, 13), /^\d{2,3}-\d{3,4}-\d{4}$/);
+exports.uuidStruct = (0, superstruct_1.pattern)((0, superstruct_1.string)(), /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+exports.dateFromStrStruct = (0, superstruct_1.coerce)((0, superstruct_1.date)(), (0, superstruct_1.string)(), (value) => new Date(value));
+exports.str2numStruct = (0, superstruct_1.coerce)((0, superstruct_1.number)(), (0, superstruct_1.string)(), (v) => Number(v));
