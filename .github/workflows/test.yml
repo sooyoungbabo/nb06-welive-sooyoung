@@ -50,10 +50,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '24.13.0' # 또는 프로젝트에 필요한 Node.js 버전
           cache: 'npm' # install 속도가 빨라진다고 함
