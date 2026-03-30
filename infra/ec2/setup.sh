@@ -11,4 +11,4 @@ npm run build
 pm2 delete all || true
 pm2 start infra/ec2/ecosystem.config.js
 pm2 save
-pm2 startup || truecd
+pm2 startup || true

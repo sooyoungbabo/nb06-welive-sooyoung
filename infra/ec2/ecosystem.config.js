@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'mission11',
+      name: 'welive',
       script: 'dist/server.js',
       instances: 1,
       exec_mode: 'fork',
