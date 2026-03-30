@@ -1,5 +1,6 @@
-@baseUrl = http://localhost:4000
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgwZjJkN2Q4LWQyZDMtNGI0MS05NjQ2LWQxODU1OTM4NjE5NiIsImlhdCI6MTc3NDg0NTgyMSwiZXhwIjoxNzc0ODQ5NDIxfQ.xFHRYEIgZPJRT20T7A5LRIQCuzOdLf1VPXF8ptIa4Sw
+@baseUrl = http://13.125.213.35
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
+
 
 
 ### stream: SSE connection by clients
@@ -8,11 +9,11 @@ GET {{baseUrl}}/notifications/stream
 ### 읽지 않은 알림 실시간 수신
 ### start a cron job every 30 sec
 GET {{baseUrl}}/notifications/SSE
-
+Cookie: access-token={{accessToken}}
 
 ### 알림 읽음 처리
-PATCH {{baseUrl}}/notifications/c444abc7-22ab-4345-a117-af207a53b3f7/read
-
+PATCH {{baseUrl}}/notifications/b1313ccd-60f2-4ef9-8e25-78516024307b/read
+Cookie: access-token={{accessToken}}
 
 #################################### 부가 기능
 
