@@ -23,16 +23,15 @@ app.use(cookieParser());
 // app.use(cors());
 app.use(
   cors({
-    origin: true,
-    //origin: 'http://localhost:5173',
+    //origin: true,
+    origin: 'http://localhost:5173',
     credentials: true
   })
 );
 
 app.use('/images', express.static(STATIC_IMG_PATH));
 
-//if (process.env.NODE_ENV === 'development')
-app.use('/development', devRouter);
+if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 
 app.use('/auth', authRouter);
 app.use('/users', userRouter);

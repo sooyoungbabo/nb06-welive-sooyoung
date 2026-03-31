@@ -6,19 +6,7 @@ exports.getClient = getClient;
 exports.sendToUser = sendToUser;
 exports.sendToAll = sendToAll;
 const clients = new Map();
-// export function addClient(userId: string, res: Response) {
-//   clients.set(userId, res);
-// }
 function addClient(userId, res) {
-    const existing = clients.get(userId);
-    if (existing && !existing.writableEnded) {
-        // 기존 연결이 살아있으면 안전하게 종료
-        try {
-            existing.write(': server closing old connection\n\n');
-            existing.end();
-        }
-        catch (_a) { }
-    }
     clients.set(userId, res);
 }
 function removeClient(userId) {

@@ -169,14 +169,14 @@ export function setTokenCookies(
 ): void {
   res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
     httpOnly: true,
-    secure: false, //NODE_ENV === 'production',
-    sameSite: 'lax', //NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: ACCESS_TOKEN_MAXAGE || 10 * 60 * 60 * 1000 // 1 hour
   });
   res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     httpOnly: true,
-    secure: false, //NODE_ENV === 'production',
-    sameSite: 'lax', //NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
     path: '/auth/refresh'
   });
