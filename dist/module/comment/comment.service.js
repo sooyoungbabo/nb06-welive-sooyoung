@@ -25,7 +25,7 @@ const utils_1 = require("../../lib/utils");
 // boardId --> targetId로 바꾸었음.
 function create(userId, body) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { content, commentType: targetType, targetId } = body;
+        const { content, targetType, targetId } = body;
         const { adminId: userAdminId } = yield (0, utils_1.getAptInfoByUserId)(userId);
         // 요청 validation
         const item = targetType === client_1.CommentType.COMPLAINT
@@ -63,7 +63,7 @@ function patch(userId, commentId, body) {
         yield authorizeAdminAuthorOrThrow(userId, commentId);
         // 데이터 가공
         const commentData = {
-            targetType: body.commentType,
+            targetType: body.targetType,
             targetId: body.targetId,
             content: body.content
         };
@@ -98,7 +98,7 @@ function buildCommentCreateRes(comment) {
         },
         board: {
             id: comment.targetId,
-            CommentType: comment.targetType
+            targetType: comment.targetType
         }
     };
 }

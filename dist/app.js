@@ -21,6 +21,7 @@ const vote_router_1 = __importDefault(require("./module/pollVote/vote.router"));
 const comment_router_1 = __importDefault(require("./module/comment/comment.router"));
 const event_router_1 = __importDefault(require("./module/event/event.router"));
 const constants_1 = require("./lib/constants");
+console.log('CD TEST');
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());

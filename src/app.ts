@@ -15,8 +15,9 @@ import noticeRouter from './module/notice/notice.router';
 import voteRouter from './module/pollVote/vote.router';
 import commentRouter from './module/comment/comment.router';
 import eventRouter from './module/event/event.router';
-import { NODE_ENV, PORT, STATIC_IMG_PATH } from './lib/constants';
-import { startSystemScheduler } from './scheduler/systemScheduler';
+import { STATIC_IMG_PATH } from './lib/constants';
+
+console.log('CD TEST');
 
 const app = express();
 app.use(express.json());
