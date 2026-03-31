@@ -31,7 +31,6 @@ app.use(
 
 app.use('/images', express.static(STATIC_IMG_PATH));
 
-// 테스트 위해 잠시 EC2에서 돌려봄.
 //if (process.env.NODE_ENV === 'development')
 app.use('/development', devRouter);
 

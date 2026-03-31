@@ -31,7 +31,6 @@ app.use((0, cors_1.default)({
     credentials: true
 }));
 app.use('/images', express_1.default.static(constants_1.STATIC_IMG_PATH));
-// 테스트 위해 잠시 EC2에서 돌려봄.
 //if (process.env.NODE_ENV === 'development')
 app.use('/development', development_router_1.default);
 app.use('/auth', auth_router_1.default);
