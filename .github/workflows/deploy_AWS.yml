@@ -19,9 +19,10 @@ jobs:
           port: 22
           script: |
             cd /home/ec2-user/welive # EC2 인스턴스 내 프로젝트 경로로 진입
+            rm -rf dist
             git pull # 코드 최신화
             npm ci --omit=dev
             # npm run build # 로컬에서 build한 것 사용
             npm run prisma:deploy 
-            pm2 reload welive
+            pm2 restart infra/ec2/ecosystem.config.js
             echo "Deployment successful!"
