@@ -1,5 +1,5 @@
 @baseUrl = http://13.125.213.35
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg2MjAwOCwiZXhwIjoxNzc0ODY1NjA4fQ.MnVq7ECbSn2QdRnx5GVkLbiKlf_aApJKT7ZZKHgw29A; Max-Age=36000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkOTcwZDE5LTgzZDktNDgxZC1iYzFjLWI4YzAxZGQ1ODVkNyIsImlhdCI6MTc3NDkyNTEwOCwiZXhwIjoxNzc0OTI4NzA4fQ.d5k-M7LwvUU6kJlPNnTnH-5P-ebRudQV859kh-wwAo8
 
 @refrshToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg2MjAwOCwiZXhwIjoxNzc0OTQ4NDA4fQ.4JUethwqf0hy-NR8ip2LXPijogR1RNkfB8RJWUhUJ8o
 
@@ -27,7 +27,7 @@ Content-Type: application/json
 {
   "username": "hillie",
   "password": "password0!",
-  "contact": "010-1111-1111",
+  "contact": "010-1111-0000",
   "name": "보고싶은힐리",
   "email": "hillie@test.com",
   "description": "질서, 정리정돈, 청결 등 관리상태가 완벽한 아파트",
@@ -70,7 +70,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "gumdong",
+  "username": "superadmin",
   "password": "password0!"
 }
 
@@ -120,12 +120,12 @@ Cookie: access-token={{accessToken}}
 
 # 아래의 가입승인 --> 모두 가입상태 변경으로 작성 (APPROVED, REJECTED 가능)
 ### 최고관리자: 관리자 1명 가입상태 변경
-PATCH {{baseUrl}}/auth/admins/8fcc7a0b-2c1d-4e7b-902c-63e35587ea3c/status
+PATCH {{baseUrl}}/auth/admins/fd4cc731-8f71-4b86-ae85-f53ae4e31f47/status
 Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
-  "status": "REJECTED"
+  "status": "APPROVED"
 }
 
 ### 최고관리자: 관리자 일괄 가입상태 변경

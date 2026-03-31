@@ -10,11 +10,11 @@ exports.commentParams = (0, superstruct_1.object)({
 //-------------------------------------------- Body schema
 exports.commentCreateBody = (0, superstruct_1.object)({
     content: (0, superstruct_1.string)(),
-    commentType: (0, superstruct_1.enums)(['NOTICE', 'COMPLAINT']),
+    targetType: (0, superstruct_1.enums)(['NOTICE', 'COMPLAINT']),
     targetId: commonStructs_1.uuidStruct
 });
 exports.commentPatchBody = (0, superstruct_1.partial)({
     content: (0, superstruct_1.string)(),
-    commentType: (0, superstruct_1.enums)(['NOTICE', 'COMPLAINT']),
+    targetType: (0, superstruct_1.enums)(['NOTICE', 'COMPLAINT']),
     targetId: commonStructs_1.uuidStruct
 });
