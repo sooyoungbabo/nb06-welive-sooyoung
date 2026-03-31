@@ -133,14 +133,14 @@ function cleanup(req, res, next) {
 function setTokenCookies(res, accessToken, refreshToken) {
     res.cookie(constants_1.ACCESS_TOKEN_COOKIE_NAME, accessToken, {
         httpOnly: true,
-        secure: false, //NODE_ENV === 'production',
-        sameSite: 'lax', //NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: constants_1.NODE_ENV === 'production',
+        sameSite: 'lax',
         maxAge: constants_1.ACCESS_TOKEN_MAXAGE || 10 * 60 * 60 * 1000 // 1 hour
     });
     res.cookie(constants_1.REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
         httpOnly: true,
-        secure: false, //NODE_ENV === 'production',
-        sameSite: 'lax', //NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: constants_1.NODE_ENV === 'production',
+        sameSite: 'lax',
         maxAge: constants_1.REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
         path: '/auth/refresh'
     });
