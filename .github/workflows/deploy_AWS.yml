@@ -28,5 +28,5 @@ jobs:
             npm ci --omit=dev
             # npm run build           # 로컬에서 build 사용
             npm run prisma:deploy
-            /usr/local/bin/pm2 restart infra/ec2/ecosystem.config.js
+            ~/.nvm/versions/node/v20.20.2/bin/pm2 restart infra/ec2/ecosystem.config.js
             echo "Deployment successful!"
