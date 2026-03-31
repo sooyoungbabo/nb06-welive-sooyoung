@@ -13,7 +13,7 @@ import { getAptInfoByUserId } from '../../lib/utils';
 // boardId --> targetId로 바꾸었음.
 
 async function create(userId: string, body: CommentCreateRequestDto) {
-  const { content, commentType: targetType, targetId } = body;
+  const { content, targetType, targetId } = body;
   const { adminId: userAdminId } = await getAptInfoByUserId(userId);
 
   // 요청 validation
@@ -55,7 +55,7 @@ async function patch(userId: string, commentId: string, body: CommentPatchReques
 
   // 데이터 가공
   const commentData = {
-    targetType: body.commentType,
+    targetType: body.targetType,
     targetId: body.targetId,
     content: body.content
   };
@@ -93,7 +93,7 @@ function buildCommentCreateRes(comment: CommentWithAdminName) {
     },
     board: {
       id: comment.targetId,
-      CommentType: comment.targetType
+      targetType: comment.targetType
     }
   };
 }

@@ -6,7 +6,6 @@ import notificationRepo from '../notification/notification.repo';
 import userRepo from '../user/user.repo';
 import complaintRepo from './complaint.repo';
 import commentRepo from '../comment/comment.repo';
-import notiService from '../notification/notification.service';
 import { assert } from 'node:console';
 import { CreateNotification } from '../notification/notification.struct';
 import { sendToUser } from '../notification/notification.sse';
