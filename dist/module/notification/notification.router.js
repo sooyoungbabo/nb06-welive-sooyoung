@@ -11,7 +11,7 @@ const validateReq_1 = require("../../middleware/validateReq");
 const notification_schema_1 = require("./notification.schema");
 const notiRouter = express_1.default.Router();
 // SSE
-notiRouter.get('/stream', (0, authenticate_1.default)(), (0, withTryCatch_1.default)(notification_control_1.default.stream));
+notiRouter.get('/stream', (0, withTryCatch_1.default)(notification_control_1.default.stream));
 // 읽지 않은 알림 실시간 수신
 notiRouter.get('/SSE', (0, authenticate_1.default)(), (0, withTryCatch_1.default)(notification_control_1.default.startNotiScheduler));
 // 개별 알림 상태변경

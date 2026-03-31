@@ -8,7 +8,7 @@ import { notiParams, notiSendBody } from './notification.schema';
 const notiRouter = express.Router();
 
 // SSE
-notiRouter.get('/stream', authenticate(), withTryCatch(notiControl.stream));
+notiRouter.get('/stream', withTryCatch(notiControl.stream));
 
 // 읽지 않은 알림 실시간 수신
 notiRouter.get('/SSE', authenticate(), withTryCatch(notiControl.startNotiScheduler));
