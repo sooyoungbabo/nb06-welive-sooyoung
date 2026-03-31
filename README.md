@@ -46,12 +46,12 @@
   - Access/Refresh 토큰 구조
   - 미들웨어/서비스단 이중 인가 처리 방식: 역할 기반 권한(RBAC)과 도메인 기반 검증을 결합하여 접근 제어 수행
   - 로그인 시 JWT Access/Refresh 토큰이 발급되며 쿠키 헤더를 통해 전달
-    ![로그인 API - JWT 토큰 발급 응답](docs/images/login.png)
+    [로그인 API - JWT 토큰 발급 응답]
     <img width="2740" height="1190" alt="image" src="https://github.com/user-attachments/assets/4cf3b3e4-a152-44de-99cf-226884c30b03" />
 
   - 요청은 라우터에서 parameters, body, query에 대한 1차 검증 및 RBAC 수행
     - 서비스 레이어에서 도메인 기반 권한 및 로직 검증 수행 (박스 표시 부분)
-    ![라우터에서 요청 검증 및 사용자 역할 기반 인가 수행(좌), 서비스 레이어에서 도메인 기반 권한 검증 수행(우)]
+    [라우터에서 요청 검증 및 사용자 역할 기반 인가 수행(좌), 서비스 레이어에서 도메인 기반 권한 검증 수행(우)]
 <img width="1555" height="1044" alt="image" src="https://github.com/user-attachments/assets/175706ba-5432-4398-8733-26bb3f1c41f8" />
 
 
@@ -137,20 +137,6 @@
 ## 구현 홈페이지: http://13.125.213.35
 
 ## 프로젝트 회고록
-
-(제작한 발표자료 링크 또는 첨부파일 첨부)
-
-- 미션1
+  - 따로 첨부 에정
 
 
-## ERD
-
-![alt text](prisma/ERD.png)
-
-## 구현 홈페이지: http://13.125.213.35
-
-## 프로젝트 회고록
-
-(제작한 발표자료 링크 또는 첨부파일 첨부)
-
-- 미션1
