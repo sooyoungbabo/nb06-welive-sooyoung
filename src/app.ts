@@ -17,8 +17,6 @@ import commentRouter from './module/comment/comment.router';
 import eventRouter from './module/event/event.router';
 import { STATIC_IMG_PATH } from './lib/constants';
 
-console.log('CD TEST');
-
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -33,7 +31,8 @@ app.use(
 
 app.use('/images', express.static(STATIC_IMG_PATH));
 
-if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
+//if (process.env.NODE_ENV === 'development')
+app.use('/development', devRouter);
 
 app.use('/auth', authRouter);
 app.use('/users', userRouter);

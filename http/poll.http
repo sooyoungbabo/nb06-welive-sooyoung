@@ -1,8 +1,8 @@
 @baseUrl = http://13.125.213.35
 
-@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
+@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDkzMzY4NiwiZXhwIjoxNzc0OTM3Mjg2fQ.YeOLFUcl-6BW001BE9WdpKUlXcuRt8lN_Vsb1AdWuzI
 
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwMWNkNTNjLWVlYmItNGVmOC05NmRlLTliZTNhODRlMzhlYSIsImlhdCI6MTc3NDg2MzkwNiwiZXhwIjoxNzc0ODY3NTA2fQ.iTHg_mP5fw0w6CKWk66-DCyxgtV9y_WscJFND-1Vhio
+@accessToken_user = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwMWNkNTNjLWVlYmItNGVmOC05NmRlLTliZTNhODRlMzhlYSIsImlhdCI6MTc3NDg2MzkwNiwiZXhwIjoxNzc0ODY3NTA2fQ.iTHg_mP5fw0w6CKWk66-DCyxgtV9y_WscJFND-1Vhio
 
 
 
@@ -11,11 +11,11 @@ Cookie: access-token={{accessToken_admin}}
 
 ### 투표 글 작성
 POST {{baseUrl}}/polls
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
 {
-  "boardId": "d70dddd4-7208-48aa-bb16-86efc15384c5",
+  "boardId": "3aca1297-3668-46d6-8def-44f30082ba83",
   "status": "IN_PROGRESS",
   "title": "청소 용역업체 계약 연장 어부",
   "content": "2026년도에도 같은 청소 용역업체를 이용할지 찬반 투표 실시합니다.",
@@ -72,15 +72,15 @@ Cookie: access-token={{accessToken_admin}}
 
 ### 투표하기
 POST {{baseUrl}}/options/209f43d8-2bab-46c7-86fa-c1b2b4dac8d9/vote
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user}}
 ###
 POST {{baseUrl}}/options/486e60e9-e4cb-442b-9215-0761dc578486/vote
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user}}
 
 
 ### 투표 취소
 DELETE {{baseUrl}}/options/486e60e9-e4cb-442b-9215-0761dc578486/vote
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user}}
 
 
 
