@@ -8,7 +8,7 @@ Content-Type: application/json
 
 {
   "content": "감사합니다!",
-  "commentType": "COMPLAINT",
+  "targetType": "COMPLAINT",
   "targetId": "9d16b188-a14d-4851-9c89-d3c040110141"
 }
 
@@ -18,7 +18,7 @@ Content-Type: application/json
 
 {
   "content": "맞아요. 너무 지저분해요.",
-  "commentType": "COMPLAINT",
+  "targetType": "COMPLAINT",
   "targetId": "ae7c9a75-5191-41cc-95fa-b7ed9a07aba7"
 }
 
