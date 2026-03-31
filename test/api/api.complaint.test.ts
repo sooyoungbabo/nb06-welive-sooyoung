@@ -144,7 +144,6 @@ describe('welive 통합 테스트: Complaint', () => {
         targetId
       };
       const response = await client.post('/comments').send(commentData);
-      console.log(response.body);
 
       expect(response.status).toBe(201);
       expect(response.body.comment).toMatchObject({
