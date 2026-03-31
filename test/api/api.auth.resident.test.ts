@@ -241,7 +241,7 @@ describe('welive 통합 테스트: Auth, Resident', () => {
       expect(response.body.message).toBe('이미 사용 중인 이메일입니다.');
     });
 
-    test('승인된 명부 회원이 사용자 계정 신청하면, (1)사용자 자동 승인되고 (2)명부 정보 수정 (3)알림 생성 후 (4)SSE 보냄', async () => {
+    test('승인된 명부 회원이 사용자 계정 신청하면, (1)사용자 자동 승인 생성 (2)명부 정보 수정 (3)알림 생성 후 (4)SSE 보냄', async () => {
       jest.spyOn(notiSSE, 'sendToUser');
       await registerResidentOnlyMember();
 

@@ -1,9 +1,9 @@
 @baseUrl = http://13.125.213.35
-@accessToken_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM0Y2UyZGEwLTI3MzQtNGI2YS04MjE4LTAxZGY5Zjk5NjkwYiIsImlhdCI6MTc3NDg3NTc4NywiZXhwIjoxNzc0ODc5Mzg3fQ.OZOQvBFOVDGfyU6Frsl5Yy5s8fJtMVLlJ1HSgnSalGY
+@accessToken_user = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM0Y2UyZGEwLTI3MzQtNGI2YS04MjE4LTAxZGY5Zjk5NjkwYiIsImlhdCI6MTc3NDg3NTc4NywiZXhwIjoxNzc0ODc5Mzg3fQ.OZOQvBFOVDGfyU6Frsl5Yy5s8fJtMVLlJ1HSgnSalGY
 
 ### 댓글 생성
 POST {{baseUrl}}/comments
-Cookie: access-token={{accessToken_user1}}
+Cookie: access-token={{accessToken_user}}
 Content-Type: application/json
 
 {
@@ -14,6 +14,7 @@ Content-Type: application/json
 
 ### 댓글 수정
 PATCH {{baseUrl}}/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
+Cookie: access-token={{accessToken_user}}
 Content-Type: application/json
 
 {
@@ -24,3 +25,4 @@ Content-Type: application/json
 
 ### 댓글 삭제
 DELETE {{baseUrl}}/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
+Cookie: access-token={{accessToken_user}}

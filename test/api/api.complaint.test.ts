@@ -238,7 +238,7 @@ describe('welive 통합 테스트: Complaint', () => {
       });
     });
 
-    test('관리자가 (1)민원 상세 조회 (2)댓글 생성 (3)민원 상태 수정', async () => {
+    test('관리자가 (1)민원 상세 조회 (2)댓글 생성 (3)민원 상태 수정 (알림, SSE)', async () => {
       let response = await client.get(`/complaints/${targetId}`);
 
       // 민원 상세 조회
