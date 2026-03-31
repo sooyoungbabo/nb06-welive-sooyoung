@@ -31,7 +31,8 @@
       let es;
 
       function connect() {
-        if (es) return; // 이미 연결되어 있으면 다시 안 만듦
+        if (es) return; // 이미 연결되어 있으면 다시 안 만듬
+        log('SSE connecting...');
 
         es = new EventSource('/notifications/stream', { withCredentials: true });
 
@@ -43,25 +44,11 @@
           log('SSE message: ' + event.data);
         };
 
-        es.onerror = () => {
+        es.onerror = (err) => {
           log('SSE error');
+          console.error(err);
         };
       }
-
-      log('SSE connecting...');
-
-      es.onopen = () => {
-        log('SSE connected');
-      };
-
-      es.onmessage = (event) => {
-        log('SSE message: ' + event.data);
-      };
-
-      es.onerror = (err) => {
-        log('SSE error');
-        console.error(err);
-      };
     </script>
   </body>
 </html>
