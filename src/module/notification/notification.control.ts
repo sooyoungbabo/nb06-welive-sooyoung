@@ -17,6 +17,8 @@ function stream(req: Request, res: Response) {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
+  console.log('SSE start');
+
   addClient(user.id, res);
   console.log('SSE connected:', req.user.role);
   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
@@ -25,7 +27,7 @@ function stream(req: Request, res: Response) {
 
   const heartbeat = setInterval(() => {
     res.write(': heartbeat\n\n');
-  }, 30000);
+  }, 5000);
 
   res.write(`data: connected\n\n`);
 
