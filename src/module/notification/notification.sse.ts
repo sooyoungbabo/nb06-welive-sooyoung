@@ -1,7 +1,21 @@
 import { Response } from 'express';
 const clients = new Map<string, Response>();
 
+// export function addClient(userId: string, res: Response) {
+//   clients.set(userId, res);
+// }
+
 export function addClient(userId: string, res: Response) {
+  const existing = clients.get(userId);
+
+  if (existing && !existing.writableEnded) {
+    // 기존 연결이 살아있으면 안전하게 종료
+    try {
+      existing.write(': server closing old connection\n\n');
+      existing.end();
+    } catch {}
+  }
+
   clients.set(userId, res);
 }
 
