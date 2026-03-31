@@ -1,19 +1,25 @@
 import request, { Agent } from 'supertest';
 import app from '../../src/app';
 import prisma from '../../src/lib/prisma';
-import { BoardType, ComplaintStatus, NotificationType, UserType } from '@prisma/client';
+import {
+  BoardType,
+  CommentType,
+  ComplaintStatus,
+  NotificationType,
+  UserType
+} from '@prisma/client';
 import createWelive from './api.createDB';
 import { clearDB } from './api.util';
 import * as notiSSE from '../../src/module/notification/notification.sse';
 
 beforeAll(async () => {
   await prisma.$connect();
-  clearDB();
+  await clearDB();
   await createWelive();
 });
 
 afterAll(async () => {
-  clearDB();
+  await clearDB();
   await prisma.$disconnect();
 });
 
@@ -134,8 +140,8 @@ describe('welive 통합 테스트: Complaint', () => {
 
       const commentData = {
         content: '날이 따스해지니 날벌레들이 보이네요. 더 많아지기 전에 빨리 부탁드려요.',
-        boardType: 'COMPLAINT',
-        boardId: targetId
+        targetType: 'COMPLAINT',
+        targetId
       };
       const response = await client.post('/comments').send(commentData);
 
@@ -147,7 +153,7 @@ describe('welive 통합 테스트: Complaint', () => {
       });
       expect(response.body.board).toMatchObject({
         id: targetId,
-        boardType: BoardType.COMPLAINT
+        targetType: commentData.targetType
       });
     });
 
@@ -172,8 +178,8 @@ describe('welive 통합 테스트: Complaint', () => {
       const commentData = {
         content:
           '[관리자] 4월 중순에 망사창 점검 후 교체 작업 계획 있습니다. 4월초에 공지 나갑니다.',
-        boardType: 'COMPLAINT',
-        boardId: targetId
+        targetType: CommentType.COMPLAINT,
+        targetId
       };
       response = await client.post('/comments').send(commentData);
 
@@ -184,7 +190,7 @@ describe('welive 통합 테스트: Complaint', () => {
       });
       expect(response.body.board).toMatchObject({
         id: targetId,
-        boardType: BoardType.COMPLAINT
+        targetType: CommentType.COMPLAINT
       });
     });
 
@@ -216,8 +222,8 @@ describe('welive 통합 테스트: Complaint', () => {
 
       const commentData = {
         content: '4월 중순이면 모기 많이 나타나긴 전이라 시기적절하네요. 감사합니다.',
-        boardType: 'COMPLAINT',
-        boardId: targetId
+        targetType: 'COMPLAINT',
+        targetId
       };
       response = await client.post('/comments').send(commentData);
 
@@ -228,7 +234,7 @@ describe('welive 통합 테스트: Complaint', () => {
       });
       expect(response.body.board).toMatchObject({
         id: targetId,
-        boardType: BoardType.COMPLAINT
+        targetType: CommentType.COMPLAINT
       });
     });
 
@@ -260,8 +266,8 @@ describe('welive 통합 테스트: Complaint', () => {
       // 댓글 생성
       const commentData = {
         content: '[관리자] 본 민원은 종결합니다.',
-        boardType: 'COMPLAINT',
-        boardId: targetId
+        targetType: 'COMPLAINT',
+        targetId
       };
       response = await client.post('/comments').send(commentData);
 
@@ -272,7 +278,7 @@ describe('welive 통합 테스트: Complaint', () => {
       });
       expect(response.body.board).toMatchObject({
         id: targetId,
-        boardType: BoardType.COMPLAINT
+        targetType: CommentType.COMPLAINT
       });
 
       // 민원 상태를 종결로 수정

@@ -1,6 +1,6 @@
-@baseUrl = http://localhost:4000
+@baseUrl = http://13.125.213.35
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg1ODQ5NCwiZXhwIjoxNzc0ODYyMDk0fQ._q7Sqf20Qgvhmk-bv7eAgb-n-9WvHV8FyrJ6-hp_4Fg
 
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0MzQxNCwiZXhwIjoxNzc0ODQ3MDE0fQ.FLe65wSGEVRfrOYxh6OBf8LKPrFvvnQQ2a27G1RpLAo
 
 # 명부 회원은 가입신청과 삭제만 있음
 # 가입신청 승인은 user 가입신청을 하면서 동시에 이루어지게 되어 있음
@@ -14,7 +14,7 @@
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents?isRegistered=true&building=201&limit=10
+GET {{baseUrl}}/residents?isRegistered=true&building=101&limit=10
 Cookie: access-token={{accessToken}}
 
 ###

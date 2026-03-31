@@ -44,11 +44,9 @@ async function login(data: LoginDto): Promise<LoginToControlDto> {
   if (NODE_ENV === 'development') {
     console.log('');
     console.log(`${user.role} ${user.name}님이 로그인하셨습니다.`);
-  }
 
-  if (user.notifications.length > 0) {
-    const unreadCount = user.notifications.filter((n) => n.isChecked === false).length;
-    if (NODE_ENV === 'development') {
+    if (user.notifications.length > 0) {
+      const unreadCount = user.notifications.filter((n) => n.isChecked === false).length;
       console.log(`읽지 않은 알림이 ${unreadCount}개 있습니다.`);
       console.log('');
     }

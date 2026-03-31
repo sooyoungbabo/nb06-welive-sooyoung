@@ -1,6 +1,6 @@
-@baseUrl = http://localhost:4000
+@baseUrl = http://13.125.213.35
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
 
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjNzBhNWNmLTA3ZmMtNDE3ZC04NmEwLTU0NzcyMmRiYWJkMSIsImlhdCI6MTc3NDg0MzQxNCwiZXhwIjoxNzc0ODQ3MDE0fQ.FLe65wSGEVRfrOYxh6OBf8LKPrFvvnQQ2a27G1RpLAo
 # 추가 기능
 ### 개발용 기능: 사용자 목록 조회
 GET {{baseUrl}}/users/getList?sort=desc
@@ -20,10 +20,10 @@ Cookie: access-token={{accessToken}}
 Content-Type: multipart/form-data; boundary=MyBoundary
 
 --MyBoundary
-Content-Disposition: form-data; name="image"; filename="Tangee.png"
+Content-Disposition: form-data; name="image"; filename="Marlon.png"
 Content-Type: image/png
 
-< ./images/users/Tangee.png
+< ./images/users/Marlon.png
 --MyBoundary--
 
 ###

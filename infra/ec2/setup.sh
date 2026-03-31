@@ -4,6 +4,7 @@ set -e
 cd "$(dirname "$0")/../.."
 
 npm ci --omit=dev
+npm install --no-save typescript
 npx prisma generate
 npx prisma migrate deploy
 npm run build
