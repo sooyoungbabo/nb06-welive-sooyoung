@@ -4,7 +4,7 @@ import withTryCatch from '../../lib/withTryCatch';
 import authenticate from '../../middleware/authenticate';
 import authorize from '../../middleware/authorize';
 import commentControl from './comment.control';
-import { validateParams, validateQuery, validateBody } from '../../middleware/validateReq';
+import { validateParams, validateBody } from '../../middleware/validateReq';
 import { commentCreateBody, commentParams, commentPatchBody } from './comment.schema';
 
 const commentRouter = express.Router();

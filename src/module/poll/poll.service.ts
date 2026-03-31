@@ -21,9 +21,11 @@ import { getAptInfoByUserId } from '../../lib/utils';
 async function create(userId: string, body: PollCreateRequestDto) {
   const { adminId, pollBoardId: boardId } = await getAptInfoByUserId(userId);
 
-  // req.body 데이터 로직 validation
+  // 관리자 소속 아파트(boardId) 검증 → 도메인 권한 검증
   const isSameBoardId = boardId === body.boardId;
   if (!isSameBoardId) throw new BadRequestError('boardId가 틀립니다.');
+
+  // 요청 데이터 비즈니스 검증
   if (body.endDate < body.startDate)
     throw new BadRequestError('종료일은 시작일보다 이전일 수 없습니다.');
   if (body.endDate < new Date())

@@ -11,7 +11,7 @@ Content-Type: application/json
   "category": "RESIDENT_COUNCIL",
   "title": "반상회 개최일 변경 안내",
   "content": "마지막 주 목요일에서 첫째 주 목요일로 변경되었습니다.",
-  "boardId": "54cdb10d-0e01-4beb-b469-183ea54b7cbc",
+  "boardId": "617a58ca-d427-41b0-838d-746ea2712c00",
   "isPinned": true
 }
 
@@ -38,7 +38,7 @@ Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
 {
-  "boardId": "3c5522a9-c0d5-4748-b0c9-c11245b6ba82",
+  "boardId": "617a58ca-d427-41b0-838d-746ea2712c00",
   "title": "[공지] 불우이웃 돕기 바자회 개최 (관리동 앞)",
   "isPinned": false
 }

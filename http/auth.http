@@ -1,6 +1,5 @@
 @baseUrl = http://13.125.213.35
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkOTcwZDE5LTgzZDktNDgxZC1iYzFjLWI4YzAxZGQ1ODVkNyIsImlhdCI6MTc3NDkyNTEwOCwiZXhwIjoxNzc0OTI4NzA4fQ.d5k-M7LwvUU6kJlPNnTnH-5P-ebRudQV859kh-wwAo8
-
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk0NDk3MiwiZXhwIjoxNzc0OTQ4NTcyfQ.6OVBqt7bj-RAkUCD24YM9JVtG7BbsOW1nvsCe0MkXgU
 @refrshToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg2MjAwOCwiZXhwIjoxNzc0OTQ4NDA4fQ.4JUethwqf0hy-NR8ip2LXPijogR1RNkfB8RJWUhUJ8o
 
 
@@ -9,15 +8,15 @@ POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "bawoo",
+  "username": "marlon",
   "password": "password0!",
-  "contact": "010-1111-1117",
-  "name": "같이더있을껄바우",
-  "email": "bawoo@test.com",
+  "contact": "010-1111-2113",
+  "name": "잘생긴말론",
+  "email": "marlon@test.com",
   "role": "USER",
   "apartmentName": "힐리아파트",
   "apartmentDong": "101",
-  "apartmentHo": "203"
+  "apartmentHo": "201"
 }
 
 ### 회원가입: 관리자 - 관리자/아파트/보드 생성
@@ -64,13 +63,14 @@ Content-Type: application/json
 GET {{baseUrl}}/users/me/myInfo
 Cookie: access-token={{accessToken}}
 
-### 
 
+
+### 관리자: hillie
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "superadmin",
+  "username": "marlon",  
   "password": "password0!"
 }
 
@@ -90,7 +90,7 @@ Cookie: access-token={{accessToken}}; refresh-token={{refrshToken}}
 #                                                  관리자 Auth 기능
 ######################################################################## 
 ### 관리자: 사용자 1명 가입상태 변경, residentId 사용
-PATCH {{baseUrl}}/auth/residents/e376d34f-69d4-485c-ae03-48bc08a04f57/status
+PATCH {{baseUrl}}/auth/residents/5a71956c-df42-4a4d-8c66-434d703cf12b/status
 Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
