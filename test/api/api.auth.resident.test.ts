@@ -4,7 +4,7 @@ import prisma from '../../src/lib/prisma';
 import path from 'path';
 import * as notiSSE from '../../src/module/notification/notification.sse';
 import { JoinStatus, NotificationType, UserType } from '@prisma/client';
-import { getCookie, registerResidentOnlyMember } from './api.util';
+import { clearDB, getCookie, registerResidentOnlyMember } from './api.util';
 import { tokenPayload } from '../../src/lib/token';
 import jwt from 'jsonwebtoken';
 import {
@@ -16,19 +16,11 @@ import {
 
 beforeAll(async () => {
   await prisma.$connect();
-  await prisma.notification.deleteMany();
-  await prisma.board.deleteMany();
-  await prisma.resident.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.apartment.deleteMany();
+  await clearDB();
 });
 
 afterAll(async () => {
-  await prisma.notification.deleteMany();
-  await prisma.board.deleteMany();
-  await prisma.resident.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.apartment.deleteMany();
+  await clearDB();
   await prisma.$disconnect();
 });
 

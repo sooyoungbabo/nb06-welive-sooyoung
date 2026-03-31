@@ -11,6 +11,7 @@ import {
 jest.mock('../../src/module/notification/notification.sse');
 import { sendToUser } from '../../src/module/notification/notification.sse';
 import { PollCreateRequestDto } from '../../src/module/poll/poll.dto';
+import { clearDB } from '../api/api.util';
 
 const rawPolls: Omit<PollCreateRequestDto, 'boardId' | 'options'>[] = [
   {
@@ -39,6 +40,16 @@ const updateData = {
 let adminId: string;
 let boardId: string;
 let nReceivers: number;
+
+beforeAll(async () => {
+  await prisma.$connect();
+  await clearDB();
+});
+
+afterAll(async () => {
+  await clearDB();
+  await prisma.$disconnect();
+});
 
 describe('processPollClosure: 종료된 투표 처리', () => {
   beforeEach(async () => {
