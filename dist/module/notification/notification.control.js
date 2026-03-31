@@ -27,6 +27,7 @@ function stream(req, res) {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
+    console.log('SSE start');
     (0, notification_sse_1.addClient)(user.id, res);
     console.log('SSE connected:', req.user.role);
     const access = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a[constants_1.ACCESS_TOKEN_COOKIE_NAME];
@@ -34,7 +35,7 @@ function stream(req, res) {
     console.log('');
     const heartbeat = setInterval(() => {
         res.write(': heartbeat\n\n');
-    }, 30000);
+    }, 5000);
     res.write(`data: connected\n\n`);
     req.on('close', () => {
         clearInterval(heartbeat);
