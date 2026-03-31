@@ -89,8 +89,8 @@
   - 알림 생성 후 SSE 발송: 외부 I/O(SSE)는 트랜잭션 외부에서 실행하여 DB 일관성과 성능 분리
 
 - Cron을 이용한 두 가지 유형의 일정 관리
-  - 시스템 레벨: systemScheduler - 투표 종료 점검 및 처리
-  - 사용자 레벨: notiSSE - 요청에 의해 시작되며 매 30초마다 안 읽은 알림 SSE 발송
+  - (1) 시스템 레벨: systemScheduler - 투표 종료 점검 및 처리
+  - (2) 사용자 레벨: notiSSE - 요청에 의해 시작되며 매 30초마다 안 읽은 알림 SSE 발송
   - 중복 실행 방지: boolean flag 기반 lock (예: isPollClosureRunning)
 
 - 아파트 일정 관리
