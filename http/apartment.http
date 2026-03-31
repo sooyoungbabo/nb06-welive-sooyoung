@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:4000
+@baseUrl = http://13.125.213.35
 
 ### 공개: 아파트 목록 조회
 ### query keyword: name, address, description
