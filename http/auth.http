@@ -1,4 +1,4 @@
-@baseUrl = http://13.125.213.35
+@baseUrl = http://localhost:3000
 @accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk0NDk3MiwiZXhwIjoxNzc0OTQ4NTcyfQ.6OVBqt7bj-RAkUCD24YM9JVtG7BbsOW1nvsCe0MkXgU
 @refrshToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg2MjAwOCwiZXhwIjoxNzc0OTQ4NDA4fQ.4JUethwqf0hy-NR8ip2LXPijogR1RNkfB8RJWUhUJ8o
 
@@ -70,7 +70,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "frodo",  
+  "username": "hillie",  
   "password": "password0!"
 }
 
@@ -130,7 +130,6 @@ Content-Type: application/json
 
 ### 최고관리자: 관리자 일괄 가입상태 변경
 PATCH {{baseUrl}}/auth/admins/status
-Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
 {
