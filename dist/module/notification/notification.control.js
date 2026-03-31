@@ -23,24 +23,52 @@ const jobs = new Map();
 function stream(req, res) {
     var _a;
     const user = req.user;
+    // SSE 헤더
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
+    // 클라이언트 등록
     (0, notification_sse_1.addClient)(user.id, res);
     console.log('SSE connected:', req.user.role);
     const access = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a[constants_1.ACCESS_TOKEN_COOKIE_NAME];
     (0, tokenDev_1.setDevTokens)(access);
-    console.log('');
+    // 초기 연결 메시지
+    res.write(`data: connected\n\n`);
+    res.flush();
+    // heartbeat
     const heartbeat = setInterval(() => {
         res.write(': heartbeat\n\n');
+        res.flush();
     }, 30000);
-    res.write(`data: connected\n\n`);
+    // 클라이언트 연결 종료 처리
     req.on('close', () => {
         clearInterval(heartbeat);
         (0, notification_scheduler_1.cleanupUser)(user.id);
+        console.log('SSE disconnected:', req.user.role);
     });
 }
+// function stream(req: Request, res: Response) {
+//   const user = req.user;
+//   res.setHeader('Content-Type', 'text/event-stream');
+//   res.setHeader('Cache-Control', 'no-cache');
+//   res.setHeader('Connection', 'keep-alive');
+//   res.flushHeaders();
+//   addClient(user.id, res);
+//   console.log('SSE connected:', req.user.role);
+//   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
+//   setDevTokens(access);
+//   console.log('');
+//   const heartbeat = setInterval(() => {
+//     res.write(': heartbeat\n\n');
+//   }, 30000);
+//   res.write(`data: connected\n\n`);
+//   (res as any).flush();
+//   req.on('close', () => {
+//     clearInterval(heartbeat);
+//     cleanupUser(user.id);
+//   });
+// }
 //------------------------------------------ 클라이언트 요청에 의한 cron job
 //                                           매 30초마다 안 읽은 알림목록 SSE 전송
 function startNotiScheduler(req, res) {
