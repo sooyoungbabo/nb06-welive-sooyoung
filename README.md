@@ -2,7 +2,7 @@
 
 계획서: https://www.notion.so/WELIVE-313a0d5530a580b78ddfde22eb1ec072?source=copy_link
 
-서버: http://13.125.213.35
+서버: http://13.125.213.35/apartments/public
 
 ## 프로젝트 소개
 
@@ -59,6 +59,9 @@
   - Soft Delete
   - Transaction
   - Validation middleware
+    [미들웨어를 활용한 요청 파라미터/바디/쿼리 검증]
+    <img width="838" height="866" alt="image" src="https://github.com/user-attachments/assets/b8f79c96-9dd5-465a-9240-8c86ff18207b" />
+
   - Error Handling middleware
 
 - 스케줄링 / 실시간 알림
@@ -134,7 +137,7 @@
 
 ![alt text](prisma/ERD.png)
 
-## 구현 홈페이지: http://13.125.213.35
+## 구현 홈페이지: http://13.125.213.35/apartments/public
 
 ## 프로젝트 회고록
   - 따로 첨부 에정
