@@ -59,7 +59,7 @@
   - Soft Delete
   - Transaction
   - Validation middleware
-    [미들웨어를 활용한 요청 파라미터/바디/쿼리 검증]
+    - [미들웨어를 활용한 요청 파라미터/바디/쿼리 검증]
     <img width="838" height="866" alt="image" src="https://github.com/user-attachments/assets/b8f79c96-9dd5-465a-9240-8c86ff18207b" />
 
   - Error Handling middleware
