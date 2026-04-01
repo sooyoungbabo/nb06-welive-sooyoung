@@ -129,9 +129,9 @@
 ## 프로젝트 개발레포트 : https://docs.google.com/document/d/1pkIB2OwFK5QXQ0_MvryPTuffoGEjPsSJEl3LKDY_KuE/edit?usp=sharing
 
 ## mockData Users;
-최고관리자: superadmin
-관리자: hillie
-사용자: gumdong, kkoma
-공용비번: password0!
+- 최고관리자: superadmin
+- 관리자: hillie
+- 사용자: gumdong, kkoma
+- 공용비번: password0!
 
 
