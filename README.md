@@ -119,10 +119,11 @@
 
 ### 배포 및 운영
 
-- infra/EC2/
-  - setup.sh
-  - nginx.conf
-  - ecosystem.config.js
+- infra/EC2, S3, RDS
+    - EC2/
+      - setup.sh
+      - nginx.conf
+      - ecosystem.config.js
 
 - CI/CD
   - GitHub Actions: .github/workflows/
