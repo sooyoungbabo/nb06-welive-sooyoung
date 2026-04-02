@@ -8,7 +8,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 exports.NODE_ENV = process.env.NODE_ENV || 'development';
-exports.PORT = process.env.PORT || 3000;
+exports.PORT = process.env.PORT || 3001;
 exports.JWT_ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET || 'your_jwt_access_token_secret';
 exports.JWT_REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_TOKEN_SECRET || 'your_jwt_refresh_token_secret';
 exports.ACCESS_TOKEN_COOKIE_NAME = 'access-token';

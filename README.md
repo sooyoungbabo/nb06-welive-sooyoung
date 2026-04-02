@@ -32,21 +32,17 @@
   - Access/Refresh 토큰 구조
   - 미들웨어/서비스단 이중 인가 처리 방식: 역할 기반 권한(RBAC)과 도메인 기반 검증을 결합하여 접근 제어 수행
   - 로그인 시 JWT Access/Refresh 토큰이 발급되며 쿠키 헤더를 통해 전달
-    [로그인 API - JWT 토큰 발급 응답]
-    <img width="2740" height="1190" alt="image" src="https://github.com/user-attachments/assets/4cf3b3e4-a152-44de-99cf-226884c30b03" />
-
+    ![로그인 API - JWT 토큰 발급 응답](docs/images/login.png)
   - 요청은 라우터에서 parameters, body, query에 대한 1차 검증 및 RBAC 수행
     - 서비스 레이어에서 도메인 기반 권한 및 로직 검증 수행 (박스 표시 부분)
-    [라우터에서 요청 검증 및 사용자 역할 기반 인가 수행(좌), 서비스 레이어에서 도메인 기반 권한 검증 수행(우)]
-<img width="1555" height="1044" alt="image" src="https://github.com/user-attachments/assets/175706ba-5432-4398-8733-26bb3f1c41f8" />
-
+      ![라우터에서 요청 검증 및 사용자 역할 기반 인가 수행(좌), 서비스 레이어에서 도메인 기반 권한 검증 수행(우)](docs/images/pollCreate.png)
 
 - 데이터 관리 전략
   - Soft Delete
   - Transaction
   - Validation middleware
     - [미들웨어를 활용한 요청 파라미터/바디/쿼리 검증]
-    <img width="838" height="866" alt="image" src="https://github.com/user-attachments/assets/b8f79c96-9dd5-465a-9240-8c86ff18207b" />
+      <img width="838" height="866" alt="image" src="https://github.com/user-attachments/assets/b8f79c96-9dd5-465a-9240-8c86ff18207b" />
 
   - Error Handling middleware
 
@@ -108,10 +104,10 @@
 ### 배포 및 운영
 
 - infra/EC2, S3, RDS
-    - EC2/
-      - setup.sh
-      - nginx.conf
-      - ecosystem.config.js
+  - EC2/
+    - setup.sh
+    - nginx.conf
+    - ecosystem.config.js
 
 - CI/CD
   - GitHub Actions: .github/workflows/
@@ -124,17 +120,21 @@
 
 ![alt text](prisma/ERD.png)
 
-## 프로젝트 계획서: 
+## 프로젝트 계획서:
+
 - https://www.notion.so/WELIVE-313a0d5530a580b78ddfde22eb1ec072?source=copy_link
-## 구현 홈페이지: 
+
+## 구현 홈페이지:
+
 - http://13.125.213.35/apartments/public
-## 프로젝트 개발레포트 : 
+
+## 프로젝트 개발레포트 :
+
 - https://docs.google.com/document/d/1pkIB2OwFK5QXQ0_MvryPTuffoGEjPsSJEl3LKDY_KuE/edit?usp=sharing
 
 ## mockData Users;
+
 - 최고관리자: superadmin
 - 관리자: hillie
 - 사용자: gumdong, kkoma
 - 공용비번: password0!
-
-

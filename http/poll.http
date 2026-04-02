@@ -1,11 +1,16 @@
-@baseUrl = http://13.125.213.35
+@baseUrl = http://localhost:3001
 
-@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDkzMzY4NiwiZXhwIjoxNzc0OTM3Mjg2fQ.YeOLFUcl-6BW001BE9WdpKUlXcuRt8lN_Vsb1AdWuzI
+@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk4NDkzMiwiZXhwIjoxNzc0OTg4NTMyfQ.ygOsdNIbLkc-XHe2X_qtiFtILwnPDscST70s9vgo8Fg
 
-@accessToken_user = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwMWNkNTNjLWVlYmItNGVmOC05NmRlLTliZTNhODRlMzhlYSIsImlhdCI6MTc3NDg2MzkwNiwiZXhwIjoxNzc0ODY3NTA2fQ.iTHg_mP5fw0w6CKWk66-DCyxgtV9y_WscJFND-1Vhio
+@accessToken_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhMDQ4MDMwLTQ1OGEtNDc1MC05MGU4LTY5MGQwMTEyZmI5NiIsImlhdCI6MTc3NDk4NDk4NiwiZXhwIjoxNzc0OTg4NTg2fQ.vug4Nwb_VTmAtcnet8TSzEfK9oqmyBsv7lzwCryjBbM
 
+@accessToken_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4NTAyNiwiZXhwIjoxNzc0OTg4NjI2fQ.i9gr17-LRIt8AlSiY0GkLibxeGox1PwKwUAl_ojVaDM
 
+###
+GET {{baseUrl}}/users/me/myInfo
+Cookie: access-token={{accessToken_user2}}
 
+###
 GET {{baseUrl}}/poll-scheduler/ping
 Cookie: access-token={{accessToken_admin}}
 
@@ -17,14 +22,14 @@ Content-Type: application/json
 {
   "boardId": "3aca1297-3668-46d6-8def-44f30082ba83",
   "status": "IN_PROGRESS",
-  "title": "청소 용역업체 계약 연장 어부",
-  "content": "2026년도에도 같은 청소 용역업체를 이용할지 찬반 투표 실시합니다.",
+  "title": "아파트 외벽칠 색상 결정",
+  "content": "아파트 외벽에 칠할 페인트 색상을 결정해 주세요",
   "buildingPermission": 0,
-  "startDate": "2026-03-30 18:40:00",
-  "endDate": "2026-03-30 18:45:00",
+  "startDate": "2026-04-01 05:08:00",
+  "endDate": "2026-04-01 05:09:30",
   "options": [
-    { "title": "찬성" },
-    { "title": "반대" }
+    { "title": "미색" },
+    { "title": "베이지색" }
   ]
 }
 
@@ -34,10 +39,10 @@ Content-Type: application/json
 ### status
 ### keyword: title, content
 GET {{baseUrl}}/polls
-Cookie: access-token={{accessToken_admin}}
+Cookie: access-token={{accessToken_user2}}
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/45bd6594-65b0-477e-91b2-e687d464941b
+GET {{baseUrl}}/polls/f4621795-5816-4b35-858e-bad29c5d8413
 Cookie: access-token={{accessToken_admin}}
 
 ### 투표 글 수정
@@ -71,16 +76,16 @@ Cookie: access-token={{accessToken_admin}}
 
 
 ### 투표하기
-POST {{baseUrl}}/options/209f43d8-2bab-46c7-86fa-c1b2b4dac8d9/vote
-Cookie: access-token={{accessToken_user}}
+POST {{baseUrl}}/options/6976b3e4-dcde-4e91-b25b-eb64cac24fb4/vote
+Cookie: access-token={{accessToken_user2}}
 ###
-POST {{baseUrl}}/options/486e60e9-e4cb-442b-9215-0761dc578486/vote
-Cookie: access-token={{accessToken_user}}
+POST {{baseUrl}}/options/96805a97-4f3c-48b5-85c3-d6439a00688a/vote
+Cookie: access-token={{accessToken_user2}}
 
 
 ### 투표 취소
-DELETE {{baseUrl}}/options/486e60e9-e4cb-442b-9215-0761dc578486/vote
-Cookie: access-token={{accessToken_user}}
+DELETE {{baseUrl}}/options/96805a97-4f3c-48b5-85c3-d6439a00688a/vote
+Cookie: access-token={{accessToken_user2}}
 
 
 

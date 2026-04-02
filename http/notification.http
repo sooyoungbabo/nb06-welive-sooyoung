@@ -1,7 +1,9 @@
-@baseUrl = http://13.125.213.35
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
+@baseUrl = http://localhost:3000
+@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk4ODI4OSwiZXhwIjoxNzc0OTkxODg5fQ.jpqy7e07iAeXP8HzK0hmy7k5dehpi_4vzl31iQZGtRo
 
+@accessToken_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhMDQ4MDMwLTQ1OGEtNDc1MC05MGU4LTY5MGQwMTEyZmI5NiIsImlhdCI6MTc3NDk4ODM2NywiZXhwIjoxNzc0OTkxOTY3fQ.2sGwqY8IP4KCkGg4nCYn74ab-Cds4naoesVR-zIXnKk
 
+@accessToken_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4ODQyOSwiZXhwIjoxNzc0OTkyMDI5fQ.4xfxeLBgfLk5dzqwHOvslAYl94lqijD7BUncaRYyDg4
 
 ### stream: SSE connection by clients
 GET {{baseUrl}}/notifications/stream
@@ -9,25 +11,25 @@ GET {{baseUrl}}/notifications/stream
 ### 읽지 않은 알림 실시간 수신
 ### start a cron job every 30 sec
 GET {{baseUrl}}/notifications/SSE
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_admin}}
 
 ### 알림 읽음 처리
 PATCH {{baseUrl}}/notifications/b1313ccd-60f2-4ef9-8e25-78516024307b/read
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user2}}
 
 #################################### 부가 기능
 
 ### 알림 목록 조회: all
 GET {{baseUrl}}/notifications
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user1}}
 
 ### 알림 목록 조회: unread
 GET {{baseUrl}}/notifications/unread
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user1}}
 
 ### 알림 읽음 일괄 처리
 PATCH {{baseUrl}}/notifications/read
-Cookie: access-token={{accessToken}}
+Cookie: access-token={{accessToken_user1}}
 
 ### 알림 보내기
 POST {{baseUrl}}/notifications/send
