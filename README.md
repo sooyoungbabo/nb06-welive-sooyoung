@@ -124,9 +124,12 @@
 
 ![alt text](prisma/ERD.png)
 
-## 프로젝트 계획서: https://www.notion.so/WELIVE-313a0d5530a580b78ddfde22eb1ec072?source=copy_link
-## 구현 홈페이지: http://13.125.213.35/apartments/public
-## 프로젝트 개발레포트 : https://docs.google.com/document/d/1pkIB2OwFK5QXQ0_MvryPTuffoGEjPsSJEl3LKDY_KuE/edit?usp=sharing
+## 프로젝트 계획서: 
+- https://www.notion.so/WELIVE-313a0d5530a580b78ddfde22eb1ec072?source=copy_link
+## 구현 홈페이지: 
+- http://13.125.213.35/apartments/public
+## 프로젝트 개발레포트 : 
+- https://docs.google.com/document/d/1pkIB2OwFK5QXQ0_MvryPTuffoGEjPsSJEl3LKDY_KuE/edit?usp=sharing
 
 ## mockData Users;
 - 최고관리자: superadmin
