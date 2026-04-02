@@ -1,11 +1,11 @@
-@baseUrl = http://13.125.213.35
-@accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg2NjE1MCwiZXhwIjoxNzc0ODY5NzUwfQ.Ej1pAc2H1NEU5blAfXo_yRme2VHewL8pY0k_wZNyNRc
+@baseUrl = http://localhost:3001
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4NTAyNiwiZXhwIjoxNzc0OTg4NjI2fQ.i9gr17-LRIt8AlSiY0GkLibxeGox1PwKwUAl_ojVaDM
 
 
 ### 이벤트 목록 조회
 ### apartmentId, year, month
-GET {{baseUrl}}/event?apartmentId=83661321-7be3-4df1-8b32-a596e95eb292&year=2026&month=3
-Cookie: access-token={{accessToken_admin}}
+GET {{baseUrl}}/event?apartmentId=0af92638-ed99-43ed-932f-a7168d8b92b1&year=2026&month=4
+Cookie: access-token={{accessToken}}
 
 
 ### 이벤트 생성 또는 업데이트
@@ -21,4 +21,4 @@ Content-Type: application/json
 
 ### 이벤트 삭제
 DELETE {{baseUrl}}/event/1dba8d7e-f78b-4b00-b44f-291e8344bbdc
-Cookie: access-token={{accessToken_admin}}
+Cookie: access-token={{accessToken}}

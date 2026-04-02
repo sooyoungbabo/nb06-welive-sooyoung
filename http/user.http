@@ -1,5 +1,5 @@
 @baseUrl = http://13.125.213.35
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE1ODZiOThjLTVhN2UtNDBmNS1hZDE1LTY1MDgzMDFmNzMzZiIsImlhdCI6MTc3NDk0NTAxNywiZXhwIjoxNzc0OTQ4NjE3fQ.5qdab7nUB2F-1gVVjJJFchYUzC-jDGV-7Da7RCXVdSc
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImEwZGRmM2I5LTE3MDctNGMwZS04MGNiLTczNzgxMDg5NjgyYiIsImlhdCI6MTc3NDk4NDQ5MywiZXhwIjoxNzc0OTg4MDkzfQ.C1VGgVukZf3mpKtFTWxeJWon_GowRKkP12iH5tuvNu4
 
 # 추가 기능
 ### 개발용 기능: 사용자 목록 조회
