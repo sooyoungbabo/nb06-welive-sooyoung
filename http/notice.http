@@ -5,7 +5,7 @@
 
 
 ### 공지사항 등록
-POST {{baseUrl}}/notices
+POST {{baseUrl}}/api/notices
 Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
@@ -24,18 +24,18 @@ Content-Type: application/json
 ### page, limit(11)
 ### category
 ### keyword: title, content
-GET {{baseUrl}}/notices
+GET {{baseUrl}}/api/notices
 Cookie: access-token={{accessToken_user2}}
 ###
-GET {{baseUrl}}/notices?category=RESIDENT_VOTE
+GET {{baseUrl}}/api/notices?category=RESIDENT_VOTE
 Cookie: access-token={{accessToken_admin}}
 
 ### 공지사항 상세 조회
-GET {{baseUrl}}/notices/1f01ceb6-870a-49ad-884b-98b18c15ec98
+GET {{baseUrl}}/api/notices/1f01ceb6-870a-49ad-884b-98b18c15ec98
 Cookie: access-token={{accessToken_admin}}
 
 ### 공지사항 수정
-PATCH {{baseUrl}}/notices/4c26fdfe-a077-4986-85b2-8666e2bb33c2
+PATCH {{baseUrl}}/api/notices/4c26fdfe-a077-4986-85b2-8666e2bb33c2
 Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
@@ -52,5 +52,5 @@ Content-Type: application/json
   # "endDate": "2026-03-14 22:00:00"
 
 ### 공지사항 삭제
-DELETE {{baseUrl}}/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8
+DELETE {{baseUrl}}/api/notices/5ca5fce9-deed-4e00-b35d-f8a3c7c679e8
 Cookie: access-token={{accessToken_admin}}

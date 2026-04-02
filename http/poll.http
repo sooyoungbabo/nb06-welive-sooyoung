@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3001
+@baseUrl = http://13.125.213.35
 
 @accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk4NDkzMiwiZXhwIjoxNzc0OTg4NTMyfQ.ygOsdNIbLkc-XHe2X_qtiFtILwnPDscST70s9vgo8Fg
 
@@ -7,15 +7,15 @@
 @accessToken_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4NTAyNiwiZXhwIjoxNzc0OTg4NjI2fQ.i9gr17-LRIt8AlSiY0GkLibxeGox1PwKwUAl_ojVaDM
 
 ###
-GET {{baseUrl}}/users/me/myInfo
+GET {{baseUrl}}/api/users/me/myInfo
 Cookie: access-token={{accessToken_user2}}
 
 ###
-GET {{baseUrl}}/poll-scheduler/ping
+GET {{baseUrl}}/api/poll-scheduler/ping
 Cookie: access-token={{accessToken_admin}}
 
 ### 투표 글 작성
-POST {{baseUrl}}/polls
+POST {{baseUrl}}/api/polls
 Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
@@ -38,15 +38,15 @@ Content-Type: application/json
 ### buildingPermission
 ### status
 ### keyword: title, content
-GET {{baseUrl}}/polls
+GET {{baseUrl}}/api/polls
 Cookie: access-token={{accessToken_user2}}
 
 ### 투표 글 상세 조회
-GET {{baseUrl}}/polls/f4621795-5816-4b35-858e-bad29c5d8413
+GET {{baseUrl}}/api/polls/f4621795-5816-4b35-858e-bad29c5d8413
 Cookie: access-token={{accessToken_admin}}
 
 ### 투표 글 수정
-PATCH {{baseUrl}}/polls/f36fbd24-e6e4-4da8-8600-ec841b2c691f
+PATCH {{baseUrl}}/api/polls/f36fbd24-e6e4-4da8-8600-ec841b2c691f
 Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
@@ -71,20 +71,20 @@ Content-Type: application/json
 # }
 
 ### 투표 글 삭제
-DELETE {{baseUrl}}/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
+DELETE {{baseUrl}}/api/polls/e2bf6f53-0f8a-413f-b6c1-7ce12e990fe7
 Cookie: access-token={{accessToken_admin}}
 
 
 ### 투표하기
-POST {{baseUrl}}/options/6976b3e4-dcde-4e91-b25b-eb64cac24fb4/vote
+POST {{baseUrl}}/api/options/6976b3e4-dcde-4e91-b25b-eb64cac24fb4/vote
 Cookie: access-token={{accessToken_user2}}
 ###
-POST {{baseUrl}}/options/96805a97-4f3c-48b5-85c3-d6439a00688a/vote
+POST {{baseUrl}}/api/options/96805a97-4f3c-48b5-85c3-d6439a00688a/vote
 Cookie: access-token={{accessToken_user2}}
 
 
 ### 투표 취소
-DELETE {{baseUrl}}/options/96805a97-4f3c-48b5-85c3-d6439a00688a/vote
+DELETE {{baseUrl}}/api/options/96805a97-4f3c-48b5-85c3-d6439a00688a/vote
 Cookie: access-token={{accessToken_user2}}
 
 

@@ -1,16 +1,16 @@
-@baseUrl = http://localhost:3001
+@baseUrl = http://13.125.213.35
 
 ### 최고관리자 로그인 요청
-GET {{baseUrl}}/development/superAdmin
+GET {{baseUrl}}/api/development/superAdmin
 ### 관리자 로그인 요청
-GET {{baseUrl}}/development/admin
+GET {{baseUrl}}/api/development/admin
 ### 사용자 로그인 요청
-GET {{baseUrl}}/development/user
+GET {{baseUrl}}/api/development/user
 ### 간단한 SSE 테스트
-GET {{baseUrl}}/development/test-noti
+GET {{baseUrl}}/api/development/test-noti
 ### 서버에 토큰 전달
 # GET {{baseUrl}}/development/token
 ### 토큰 갱신 요청
-GET {{baseUrl}}/development/token/refresh
+GET {{baseUrl}}/api/development/token/refresh
 
 

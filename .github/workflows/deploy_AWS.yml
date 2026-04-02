@@ -22,6 +22,7 @@ jobs:
             git pull origin main      # 코드 최신화
             npm ci --omit=dev
             # npm run build           # 로컬에서 build 사용
+            npm run prisma:generate
             npm run prisma:deploy
             pm2 restart infra/ec2/ecosystem.config.js
             echo "Deployment successful!"

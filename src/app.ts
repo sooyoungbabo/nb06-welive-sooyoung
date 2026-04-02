@@ -24,7 +24,7 @@ app.use(cookieParser());
 app.use(
   cors({
     //origin: true,
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:3000',
     credentials: true
   })
 );
@@ -33,18 +33,18 @@ app.use('/images', express.static(STATIC_IMG_PATH));
 
 if (process.env.NODE_ENV === 'development') app.use('/development', devRouter);
 
-app.use('/auth', authRouter);
-app.use('/users', userRouter);
-app.use('/apartments', aptRouter);
-app.use('/residents', residentRouter);
-app.use('/complaints', complaintRouter);
-app.use('/polls', pollRouter);
-app.use('/poll-scheduler', pollSchedulerRouter);
-app.use('/options', voteRouter);
-app.use('/notices', noticeRouter);
-app.use('/comments', commentRouter);
-app.use('/notifications', notiRouter);
-app.use('/event', eventRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+app.use('/api/apartments', aptRouter);
+app.use('/api/residents', residentRouter);
+app.use('/api/complaints', complaintRouter);
+app.use('/api/polls', pollRouter);
+app.use('/api/poll-scheduler', pollSchedulerRouter);
+app.use('/api/options', voteRouter);
+app.use('/api/notices', noticeRouter);
+app.use('/api/comments', commentRouter);
+app.use('/api/notifications', notiRouter);
+app.use('/api/event', eventRouter);
 
 app.use(defaultNotFoundHandler);
 app.use(globalErrorHandler);

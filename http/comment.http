@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3001
+@baseUrl = http://13.125.213.35
 @accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk4ODI4OSwiZXhwIjoxNzc0OTkxODg5fQ.jpqy7e07iAeXP8HzK0hmy7k5dehpi_4vzl31iQZGtRo
 
 @accessToken_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhMDQ4MDMwLTQ1OGEtNDc1MC05MGU4LTY5MGQwMTEyZmI5NiIsImlhdCI6MTc3NDk4ODM2NywiZXhwIjoxNzc0OTkxOTY3fQ.2sGwqY8IP4KCkGg4nCYn74ab-Cds4naoesVR-zIXnKk
@@ -6,7 +6,7 @@
 @accessToken_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4ODQyOSwiZXhwIjoxNzc0OTkyMDI5fQ.4xfxeLBgfLk5dzqwHOvslAYl94lqijD7BUncaRYyDg4
 
 ### 댓글 생성
-POST {{baseUrl}}/comments
+POST {{baseUrl}}/api/comments
 Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
@@ -17,7 +17,7 @@ Content-Type: application/json
 }
 
 ### 댓글 수정
-PATCH {{baseUrl}}/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
+PATCH {{baseUrl}}/api/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
 Cookie: access-token={{accessToken_user1}}
 Content-Type: application/json
 
@@ -28,5 +28,5 @@ Content-Type: application/json
 }
 
 ### 댓글 삭제
-DELETE {{baseUrl}}/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
+DELETE {{baseUrl}}/api/comments/74eaecea-9945-4988-ab3a-a451d8e694cf
 Cookie: access-token={{accessToken_user1}}

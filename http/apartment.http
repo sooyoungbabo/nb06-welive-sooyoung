@@ -1,20 +1,20 @@
-@baseUrl = http://localhost:3001
+@baseUrl = http://13.125.213.35
 
 ### 공개: 아파트 목록 조회
 ### query keyword: name, address, description
 ### query filters: name, address
-GET {{baseUrl}}/apartments/public?name=아파트
+GET {{baseUrl}}/api/apartments/public?name=아파트
 ###
-GET {{baseUrl}}/apartments/public?address=서울
+GET {{baseUrl}}/api/apartments/public?address=서울
 
 ### 공개: 아파트 상세 조회
-GET {{baseUrl}}/apartments/public/188fdedf-2659-4491-b740-8a35f969d7b4
+GET {{baseUrl}}/api/apartments/public/188fdedf-2659-4491-b740-8a35f969d7b4
 
 ### 슈퍼관리자/관리자: 아파트 목록 조회
 ### query filters: name, address
 ### query exactFilters: apartmentStatus
 ### query keyword: name, address, (관계형) admin name/email
-GET {{baseUrl}}/apartments?apartmentStatus=APPROVED
+GET {{baseUrl}}/api/apartments?apartmentStatus=APPROVED
 
 ### 슈퍼관리자/관리자: 아파트 상세 조회
-GET {{baseUrl}}/apartments/378daf10-c7a9-405a-a5b8-2692b45bfece
+GET {{baseUrl}}/api/apartments/378daf10-c7a9-405a-a5b8-2692b45bfece
