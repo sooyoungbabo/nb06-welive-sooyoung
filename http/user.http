@@ -3,19 +3,19 @@
 
 # 추가 기능
 ### 개발용 기능: 사용자 목록 조회
-GET {{baseUrl}}/users/getList?sort=desc
+GET {{baseUrl}}/api/users/getList?sort=desc
 ### 개발용 기능: 사용자 상세 조회
-GET {{baseUrl}}/users/cc70a5cf-07fc-417d-86a0-547722dbabd1
+GET {{baseUrl}}/api/users/cc70a5cf-07fc-417d-86a0-547722dbabd1
 
 
 
 ### 내 정보 조회
-GET {{baseUrl}}/users/me/myInfo
+GET {{baseUrl}}/api/users/me/myInfo
 Cookie: access-token={{accessToken}}
 
 
 ###
-PATCH {{baseUrl}}/users/me/avatar
+PATCH {{baseUrl}}/api/users/me/avatar
 Cookie: access-token={{accessToken}}
 Content-Type: multipart/form-data; boundary=MyBoundary
 
@@ -27,7 +27,7 @@ Content-Type: image/png
 --MyBoundary--
 
 ###
-PATCH {{baseUrl}}/users/me/password
+PATCH {{baseUrl}}/api/users/me/password
 Cookie: access-token={{accessToken}}
 Content-Type: application/json
 

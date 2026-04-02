@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3001
+@baseUrl = http://13.125.213.35
 @accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg1ODQ5NCwiZXhwIjoxNzc0ODYyMDk0fQ._q7Sqf20Qgvhmk-bv7eAgb-n-9WvHV8FyrJ6-hp_4Fg
 
 
@@ -14,11 +14,11 @@
 ### page, limit (defualt 20, 최대 100)
 ### building, unitNumber, residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents?isRegistered=true&building=101&limit=10
+GET {{baseUrl}}/api/residents?isRegistered=true&building=101&limit=10
 Cookie: access-token={{accessToken}}
 
 ###
-POST {{baseUrl}}/residents
+POST {{baseUrl}}/api/residents
 Cookie: access-token={{accessToken}}
 Content-Type: application/json
 
@@ -41,11 +41,11 @@ Content-Type: application/json
 # }
 
 ###
-GET {{baseUrl}}/residents/file/template
+GET {{baseUrl}}/api/residents/file/template
 Accept: text/csv
 
 ### 파일로부터 입주민들 생성
-POST {{baseUrl}}/residents/from-file
+POST {{baseUrl}}/api/residents/from-file
 Content-Type: multipart/form-data; boundary=----MyBoundary
 
 ------MyBoundary
@@ -60,13 +60,13 @@ Content-Type: text/csv
 ### building, unitNumber
 ### residenceState, isRegistered
 ### keyword: name, contact
-GET {{baseUrl}}/residents/file?isRegistered=true&building=201
+GET {{baseUrl}}/api/residents/file?isRegistered=true&building=201
 
 ### 입주민 상세 조회
-GET {{baseUrl}}/residents/5c0fa861-57e6-4c6c-b8d2-3db631c83a3e
+GET {{baseUrl}}/api/residents/5c0fa861-57e6-4c6c-b8d2-3db631c83a3e
 
 ###
-PATCH {{baseUrl}}/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941
+PATCH {{baseUrl}}/api/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941
 Content-Type: application/json
 
 {
@@ -78,4 +78,4 @@ Content-Type: application/json
 }
 
 ###
-DELETE {{baseUrl}}/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941
+DELETE {{baseUrl}}/api/residents/e0aa799d-18be-42d9-8db6-2cfc130d6941

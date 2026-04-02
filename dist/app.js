@@ -27,24 +27,24 @@ app.use((0, cookie_parser_1.default)());
 // app.use(cors());
 app.use((0, cors_1.default)({
     //origin: true,
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:3000',
     credentials: true
 }));
 app.use('/images', express_1.default.static(constants_1.STATIC_IMG_PATH));
 if (process.env.NODE_ENV === 'development')
     app.use('/development', development_router_1.default);
-app.use('/auth', auth_router_1.default);
-app.use('/users', user_router_1.default);
-app.use('/apartments', apartment_router_1.default);
-app.use('/residents', resident_router_1.default);
-app.use('/complaints', complaint_router_1.default);
-app.use('/polls', poll_router_1.default);
-app.use('/poll-scheduler', pollSchedular_router_1.default);
-app.use('/options', vote_router_1.default);
-app.use('/notices', notice_router_1.default);
-app.use('/comments', comment_router_1.default);
-app.use('/notifications', notification_router_1.default);
-app.use('/event', event_router_1.default);
+app.use('/api/auth', auth_router_1.default);
+app.use('/api/users', user_router_1.default);
+app.use('/api/apartments', apartment_router_1.default);
+app.use('/api/residents', resident_router_1.default);
+app.use('/api/complaints', complaint_router_1.default);
+app.use('/api/polls', poll_router_1.default);
+app.use('/api/poll-scheduler', pollSchedular_router_1.default);
+app.use('/api/options', vote_router_1.default);
+app.use('/api/notices', notice_router_1.default);
+app.use('/api/comments', comment_router_1.default);
+app.use('/api/notifications', notification_router_1.default);
+app.use('/api/event', event_router_1.default);
 app.use(errorHandler_1.defaultNotFoundHandler);
 app.use(errorHandler_1.globalErrorHandler);
 exports.default = app;

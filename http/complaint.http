@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3001
+@baseUrl = http://13.125.213.35
 @accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk4ODI4OSwiZXhwIjoxNzc0OTkxODg5fQ.jpqy7e07iAeXP8HzK0hmy7k5dehpi_4vzl31iQZGtRo
 
 @accessToken_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRhMDQ4MDMwLTQ1OGEtNDc1MC05MGU4LTY5MGQwMTEyZmI5NiIsImlhdCI6MTc3NDk4ODM2NywiZXhwIjoxNzc0OTkxOTY3fQ.2sGwqY8IP4KCkGg4nCYn74ab-Cds4naoesVR-zIXnKk
@@ -6,11 +6,11 @@
 @accessToken_user1 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4ODQyOSwiZXhwIjoxNzc0OTkyMDI5fQ.4xfxeLBgfLk5dzqwHOvslAYl94lqijD7BUncaRYyDg4
 
 ###
-GET {{baseUrl}}/users/me/myInfo
+GET {{baseUrl}}/api/users/me/myInfo
 Cookie: access-token={{accessToken_user1}}
 
 ### 민원 등록 // boardId는 생략. apartmentId 통해 가져옴
-POST {{baseUrl}}/complaints
+POST {{baseUrl}}/api/complaints
 Cookie: access-token={{accessToken_user1}}
 Content-Type: application/json
 
@@ -23,21 +23,21 @@ Content-Type: application/json
 }
 
 ### 전체 민원 조회
-GET {{baseUrl}}/complaints
+GET {{baseUrl}}/api/complaints
 Cookie: access-token={{accessToken_user1}}
 
 
 ### 전체 민원 조회: 검색
 ### status, isPublic, dong, ho, 
 ### keyword(title, content)
-GET {{baseUrl}}/complaints?isPublic=true
+GET {{baseUrl}}/api/complaints?isPublic=true
 Cookie: access-token={{accessToken_user1}}
 
 ### 민원 상세 조회
-GET {{baseUrl}}/complaints/1276895c-11ce-4913-bb4c-0ee5de4c2a92
+GET {{baseUrl}}/api/complaints/1276895c-11ce-4913-bb4c-0ee5de4c2a92
 Cookie: access-token={{accessToken_admin}}
 ### 사용자: 민원 수정
-PATCH {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
+PATCH {{baseUrl}}/api/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
 Cookie: access-token={{accessToken_user1}}
 Content-Type: application/json
 
@@ -48,11 +48,11 @@ Content-Type: application/json
 }
 
 ### 민원 삭제
-DELETE {{baseUrl}}/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
+DELETE {{baseUrl}}/api/complaints/ae7c9a75-5191-41cc-95fa-b7ed9a07aba7
 Cookie: access-token={{accessToken_admin}}
 
 ### 슈퍼관리자, 관리자: 민원상태 변경
-PATCH {{baseUrl}}/complaints/1276895c-11ce-4913-bb4c-0ee5de4c2a92/status
+PATCH {{baseUrl}}/api/complaints/1276895c-11ce-4913-bb4c-0ee5de4c2a92/status
 Cookie: access-token={{accessToken_admin}}
 Content-Type: application/json
 
