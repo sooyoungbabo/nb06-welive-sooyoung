@@ -142,7 +142,7 @@ function setTokenCookies(res, accessToken, refreshToken) {
         secure: false, // NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: constants_1.REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
-        path: '/' //'/auth/refresh'
+        path: '/auth/refresh'
     });
 }
 exports.default = {

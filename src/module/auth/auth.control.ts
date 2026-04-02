@@ -142,7 +142,7 @@ export function setTokenCookies(
     secure: false, // NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
-    path: '/' //'/auth/refresh'
+    path: '/auth/refresh'
   });
 }
 
