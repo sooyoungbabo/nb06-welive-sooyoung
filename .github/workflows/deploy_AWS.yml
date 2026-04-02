@@ -18,15 +18,10 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           port: 22
           script: |
-            # nvm 로드 및 PATH 추가
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            export PATH=$PATH:$NVM_DIR/versions/node/v20.20.2/bin:/usr/local/bin:/usr/bin
-
-            cd /home/ec2-user/welive # EC2 프로젝트 경로
+            cd /home/ec2-user/welive2 # EC2 프로젝트 경로
             git pull origin main      # 코드 최신화
             npm ci --omit=dev
             # npm run build           # 로컬에서 build 사용
             npm run prisma:deploy
-            ~/.nvm/versions/node/v20.20.2/bin/pm2 restart infra/ec2/ecosystem.config.js
+            pm2 restart infra/ec2/ecosystem.config.js
             echo "Deployment successful!"

@@ -18,20 +18,12 @@ async function signup(req: Request, res: Response, next: NextFunction): Promise<
   res.status(201).json(newUser);
 }
 
-async function signupAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function signupAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   const newAdmin = await authServiceSignup.signupAdmin(req.body);
   res.status(201).json(newAdmin);
 }
 
-async function signupSuperAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function signupSuperAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   const newSuperAdmin = await authServiceSignup.signupSuperAdmin(req.body);
   res.status(201).json(newSuperAdmin);
 }
@@ -57,41 +49,24 @@ function viewTokens(req: Request, res: Response, next: NextFunction) {
   console.log('');
 }
 
-async function issueTokens(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function issueTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
   let currRefreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
-  const { accessToken, refreshToken } =
-    await authServiceSession.issueTokens(currRefreshToken);
+  const { accessToken, refreshToken } = await authServiceSession.issueTokens(currRefreshToken);
   setTokenCookies(res, accessToken, refreshToken);
   res.status(201).send({ accessToken });
 }
 
-async function getAdminList(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function getAdminList(req: Request, res: Response, next: NextFunction): Promise<void> {
   const admins = await authServiceApproval.getAdminList();
   res.status(200).json({ count: admins.length, admins });
 }
 
-async function getAptList(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function getAptList(req: Request, res: Response, next: NextFunction): Promise<void> {
   const apts = await authServiceApproval.getAptList();
   res.status(200).json({ count: apts.length, apts });
 }
 
-async function changeAdminStatus(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function changeAdminStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
   const adminId = req.params.adminId as string;
   if (!adminId) throw new BadRequestError('관리자 ID가 필요합니다.');
   const message = await authServiceApproval.changeAdminStatus(adminId, req.body.status);
@@ -127,28 +102,17 @@ async function changeAllResidentsStatus(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const message = await authServiceApproval.changeAllResidentsStatus(
-    req.user.id,
-    req.body.status
-  );
+  const message = await authServiceApproval.changeAllResidentsStatus(req.user.id, req.body.status);
   res.status(200).send({ message });
 }
 
-async function patchAdminApt(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function patchAdminApt(req: Request, res: Response, next: NextFunction): Promise<void> {
   const adminId = req.params.adminId as string;
   const adminPatched = await authServiceApproval.patchAdminApt(adminId, req.body);
   res.status(200).send({ message: '작업이 성공적으로 완료되었습니다' });
 }
 
-async function deleteAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
+async function deleteAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   const adminId = req.params.adminId as string;
   if (NODE_ENV === 'development') await authServiceCleanup.deleteAdmin(adminId);
   else await authServiceCleanup.softDeleteAdmin(adminId);
@@ -169,13 +133,13 @@ export function setTokenCookies(
 ): void {
   res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
     httpOnly: true,
-    secure: NODE_ENV === 'production',
+    secure: false, // NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: ACCESS_TOKEN_MAXAGE || 10 * 60 * 60 * 1000 // 1 hour
   });
   res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     httpOnly: true,
-    secure: NODE_ENV === 'production',
+    secure: false, // NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: REFRESH_TOKEN_MAXAGE || 1 * 24 * 60 * 60 * 1000, // 1 day,
     path: '/auth/refresh'

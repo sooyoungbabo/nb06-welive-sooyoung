@@ -5,86 +5,14 @@ import notiService from './notification.service';
 import { setDevTokens } from '../../lib/tokenDev';
 import { ACCESS_TOKEN_COOKIE_NAME } from '../../lib/constants';
 import { cleanupUser, removeJob } from './notification.scheduler';
+import UnauthorizedError from '../../middleware/errors/UnauthorizedError';
 
 const jobs = new Map<string, CronJob>();
 
 //------------------------------------------ 클라이언트 요청에 의한 SSE 연결
-// function stream(req: Request, res: Response) {
-//   const user = req.user;
-
-//   // SSE 헤더
-//   res.setHeader('Content-Type', 'text/event-stream');
-//   res.setHeader('Cache-Control', 'no-cache');
-//   res.setHeader('Connection', 'keep-alive');
-//   res.flushHeaders();
-
-//   // 클라이언트 등록
-//   addClient(user.id, res);
-//   console.log('SSE connected:', req.user.role);
-
-//   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
-//   setDevTokens(access);
-
-//   // 초기 연결 메시지
-//   res.write(`data: connected\n\n`);
-//   (res as any).flush();
-
-//   // heartbeat
-//   const heartbeat = setInterval(() => {
-//     res.write(': heartbeat\n\n');
-//     (res as any).flush();
-//   }, 30000);
-
-//   // Step 3: 연결 즉시 ping + 1초 간격 ping
-//   res.write(`data: ping\n\n`); // 연결되자마자 전송
-//   const pingInterval = setInterval(() => {
-//     res.write(`data: ping ${new Date().toISOString()}\n\n`);
-//   }, 1000);
-
-//   // 클라이언트 연결 종료 처리
-//   req.on('close', () => {
-//     clearInterval(heartbeat);
-//     clearInterval(pingInterval);
-//     cleanupUser(user.id);
-//     console.log('SSE disconnected:', req.user.role);
-//   });
-// }
-
-// function stream(req: Request, res: Response) {
-//   const user = req.user;
-
-//   // SSE 헤더
-//   res.setHeader('Content-Type', 'text/event-stream');
-//   res.setHeader('Cache-Control', 'no-cache');
-//   res.setHeader('Connection', 'keep-alive');
-//   res.flushHeaders();
-
-//   // 클라이언트 등록
-//   addClient(user.id, res);
-//   console.log('SSE connected:', req.user.role);
-
-//   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
-//   setDevTokens(access);
-
-//   // 초기 연결 메시지
-//   res.write(`data: connected\n\n`);
-//   (res as any).flush();
-
-//   // heartbeat
-//   const heartbeat = setInterval(() => {
-//     res.write(': heartbeat\n\n');
-//     (res as any).flush();
-//   }, 30000);
-
-//   // 클라이언트 연결 종료 처리
-//   req.on('close', () => {
-//     clearInterval(heartbeat);
-//     cleanupUser(user.id);
-//     console.log('SSE disconnected:', req.user.role);
-//   });
-// }
 function stream(req: Request, res: Response) {
   const user = req.user;
+  if (!user) throw new UnauthorizedError();
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -92,17 +20,14 @@ function stream(req: Request, res: Response) {
   res.flushHeaders();
 
   addClient(user.id, res);
-  console.log('SSE connected:', req.user.role);
+
   const access = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME];
-  setDevTokens(access);
-  console.log('');
+
+  res.write(': connected\n\n');
 
   const heartbeat = setInterval(() => {
     res.write(': heartbeat\n\n');
-  }, 30000);
-
-  res.write(`data: connected\n\n`);
-  (res as any).flush();
+  }, 15000);
 
   req.on('close', () => {
     clearInterval(heartbeat);
@@ -113,6 +38,8 @@ function stream(req: Request, res: Response) {
 //------------------------------------------ 클라이언트 요청에 의한 cron job
 //                                           매 30초마다 안 읽은 알림목록 SSE 전송
 async function startNotiScheduler(req: Request, res: Response) {
+  const user = req.user;
+  if (!user) throw new UnauthorizedError();
   const userId = req.user.id;
   const role = req.user.role;
 
@@ -125,26 +52,28 @@ async function startNotiScheduler(req: Request, res: Response) {
       if (isRunning) return;
       isRunning = true;
 
+      let data;
       try {
         if (!getClient(userId)) {
-          removeJob(userId); // SSE 연결이 없으면 cron job 삭제
+          console.log('No SSE connected');
+          removeJob(userId);
           return;
         }
 
-        const data = await notiService.getUnreadList(userId);
+        data = await notiService.getUnreadList(userId);
         sendToUser(userId, data);
       } catch (err) {
         console.error('notiScheduler error:', err);
       } finally {
         isRunning = false;
+        if (data) console.log('SEND TRY:', userId, data.data.length);
       }
     });
 
     jobs.set(userId, job);
     job.start();
   }
-
-  res.status(200).json({ message: 'Notification Scheduler Started' });
+  res.status(200).json({ mesage: 'Notification Scheduler Started' });
 }
 
 //------------------------------------------ 추가 기능: 알림 목록 조회

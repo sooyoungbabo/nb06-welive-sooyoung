@@ -1,5 +1,6 @@
-@baseUrl = http://localhost:3000
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk0NDk3MiwiZXhwIjoxNzc0OTQ4NTcyfQ.6OVBqt7bj-RAkUCD24YM9JVtG7BbsOW1nvsCe0MkXgU
+@baseUrl = http://13.125.213.35
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZkNGNjNzMxLThmNzEtNGI4Ni1hZTg1LWY1M2FlNGUzMWY0NyIsImlhdCI6MTc3NDk4ODI4OSwiZXhwIjoxNzc0OTkxODg5fQ.jpqy7e07iAeXP8HzK0hmy7k5dehpi_4vzl31iQZGtRo
+
 @refrshToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg2MjAwOCwiZXhwIjoxNzc0OTQ4NDA4fQ.4JUethwqf0hy-NR8ip2LXPijogR1RNkfB8RJWUhUJ8o
 
 
@@ -8,15 +9,15 @@ POST {{baseUrl}}/auth/signup
 Content-Type: application/json
 
 {
-  "username": "marlon",
+  "username": "indie",
   "password": "password0!",
-  "contact": "010-1111-2113",
-  "name": "잘생긴말론",
-  "email": "marlon@test.com",
+  "contact": "010-1111-1115",
+  "name": "입양가자인디",
+  "email": "indie@test.com",
   "role": "USER",
   "apartmentName": "힐리아파트",
   "apartmentDong": "101",
-  "apartmentHo": "201"
+  "apartmentHo": "103"
 }
 
 ### 회원가입: 관리자 - 관리자/아파트/보드 생성
@@ -61,7 +62,6 @@ Content-Type: application/json
 
 ###
 GET {{baseUrl}}/users/me/myInfo
-Cookie: access-token={{accessToken}}
 
 
 
@@ -70,7 +70,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "hillie",  
+  "username": "marlon",  
   "password": "password0!"
 }
 

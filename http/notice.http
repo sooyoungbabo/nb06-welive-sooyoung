@@ -1,6 +1,8 @@
 @baseUrl = http://13.125.213.35
 @accessToken_admin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2YjE2MjU5LTViOTctNGZmNC04NjdkLTM4YjQzYzcyZTg1OCIsImlhdCI6MTc3NDg3NTM2MSwiZXhwIjoxNzc0ODc4OTYxfQ.4qMovvMFtquaaN81Z6yyXErp0zLT1GtRb8GI5eSWDoY
 
+@accessToken_user2 = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA1ZGRiNWFmLWM0OGEtNDQ2Ny05ZWRhLWUxMzg5NjcyMWZiMiIsImlhdCI6MTc3NDk4NTAyNiwiZXhwIjoxNzc0OTg4NjI2fQ.i9gr17-LRIt8AlSiY0GkLibxeGox1PwKwUAl_ojVaDM
+
 
 ### 공지사항 등록
 POST {{baseUrl}}/notices
@@ -23,7 +25,7 @@ Content-Type: application/json
 ### category
 ### keyword: title, content
 GET {{baseUrl}}/notices
-Cookie: access-token={{accessToken_admin}}
+Cookie: access-token={{accessToken_user2}}
 ###
 GET {{baseUrl}}/notices?category=RESIDENT_VOTE
 Cookie: access-token={{accessToken_admin}}
